@@ -10,7 +10,7 @@ const saveBtn = document.getElementById('save-tracker');
 const pirateInput = document.getElementById('pirate');
 const savePirateBtn = document.getElementById('save-pirate');
 
-const DEFAULT_TRACKER = 'http://localhost:8787';
+const DEFAULT_TRACKER = 'https://sot-tracker-api-ssi7.onrender.com';
 const SOT_ORIGIN = 'https://www.seaofthieves.com/*';
 
 /* Every failure names the thing the user can actually do about it. */

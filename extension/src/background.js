@@ -15,7 +15,7 @@
 const api = typeof browser !== 'undefined' ? browser : chrome;
 const isFirefox = typeof browser !== 'undefined' && !!browser.runtime;
 
-const DEFAULT_TRACKER = 'http://localhost:8787';
+const DEFAULT_TRACKER = 'https://sot-tracker-api-ssi7.onrender.com';
 const SOT_URL = 'https://www.seaofthieves.com/profile';
 
 class SyncError extends Error {

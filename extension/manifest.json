@@ -10,6 +10,7 @@
   ],
   "host_permissions": [
     "https://www.seaofthieves.com/*",
+    "https://sot-tracker-api-ssi7.onrender.com/*",
     "http://localhost:8787/*",
     "http://127.0.0.1:8787/*"
   ],
