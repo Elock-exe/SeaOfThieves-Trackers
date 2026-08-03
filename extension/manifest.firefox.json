@@ -48,7 +48,5 @@
       "src/background.js"
     ]
   },
-  "optional_host_permissions": [
-    "https://*/*"
-  ]
+  "//host_permissions": "Exactly what a sync touches: the game site to read stats, the tracker to publish them, localhost for development. Self-hosting a tracker elsewhere means adding that origin here."
 }

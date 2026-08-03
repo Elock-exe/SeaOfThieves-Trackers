@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Confidentialité — Sea of Thieves Tracker</title>
+<meta name="description" content="Ce que l'extension Sea of Thieves Tracker lit, ce qu'elle envoie, et ce qu'elle ne touche jamais." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 26 26%22><circle cx=%2213%22 cy=%2213%22 r=%2212%22 fill=%22%230b0b12%22 stroke=%22%23ff4655%22 stroke-width=%221.6%22/><circle cx=%2213%22 cy=%2213%22 r=%222.8%22 fill=%22%23ff4655%22/></svg>">
+<link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+<div class="page-header">
+  <div class="container">
+    <div class="breadcrumb"><a href="index.html" data-i18n="nav.home">Accueil</a> / Confidentialité</div>
+    <h1>Confidentialité</h1>
+    <p>Ce que l'extension lit, ce qu'elle envoie, et ce qu'elle ne touche jamais.</p>
+  </div>
+</div>
+
+<section class="block tight">
+  <div class="container">
+
+    <div class="two-col" style="align-items:start;">
+      <div class="panel">
+        <div class="panel-head"><span>Ce qui est envoyé</span></div>
+        <div class="panel-body padded">
+          <p>Quand tu cliques sur <strong>Sync</strong>, et uniquement à ce
+             moment-là, l'extension lit sur ta page de profil Sea of Thieves :</p>
+          <ul class="warn-list">
+            <li>tes monnaies — or, doublons, pièces anciennes ;</li>
+            <li>ta réputation auprès des compagnies, et ton rang Sablier ;</li>
+            <li>ta progression de saison et tes emblèmes ;</li>
+            <li>ton nom de pirate, pour savoir à qui appartiennent ces chiffres.</li>
+          </ul>
+          <p>Ces statistiques sont envoyées au tracker, où elles sont
+             publiques : n'importe qui peut consulter le profil d'un pirate
+             par son nom. C'est le principe même d'un site de statistiques.</p>
+        </div>
+      </div>
+
+      <div class="panel panel-warn">
+        <div class="panel-head"><span>Ce qui n'est jamais touché</span></div>
+        <div class="panel-body padded">
+          <p><strong>Ton cookie de session n'est ni lu, ni copié, ni transmis.</strong>
+             L'extension exécute ses requêtes <em>à l'intérieur</em> de la page
+             seaofthieves.com, où le navigateur attache lui-même ton cookie,
+             exactement comme il le fait pour le site. L'extension n'en voit
+             jamais la valeur.</p>
+          <ul class="warn-list">
+            <li>Aucun mot de passe n'est demandé ni manipulé.</li>
+            <li>Aucune donnée n'est envoyée ailleurs qu'au tracker.</li>
+            <li>Aucun traceur, aucune publicité, aucune revente.</li>
+            <li>Aucune autre page que seaofthieves.com n'est lue.</li>
+            <li>Le serveur refuse toute donnée contenant un champ ressemblant
+                à un identifiant.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="panel-head"><span>Ton compte, et comment l'effacer</span></div>
+      <div class="panel-body padded">
+        <p>À l'installation, l'extension tire une valeur aléatoire qu'elle
+           garde sur ta machine. Elle sert à prouver que les synchronisations
+           suivantes d'un même pirate viennent bien de toi — sans quoi
+           n'importe qui pourrait publier des statistiques sous ton nom. Le
+           serveur n'en conserve qu'une empreinte (SHA-256), jamais la valeur
+           elle-même.</p>
+        <p><strong>Pour tout supprimer :</strong> désinstalle l'extension, et
+           écris-moi via le dépôt du projet pour que tes statistiques publiées
+           soient effacées. Il n'y a ni e-mail, ni mot de passe, ni profil à
+           gérer — donc rien d'autre à réclamer.</p>
+        <p class="warn-foot">Projet de fan, sans affiliation avec Rare ou
+           Microsoft. Le code est ouvert et vérifiable :
+           <a href="https://github.com/Elock-exe/SeaOfThieves-Trackers" target="_blank" rel="noopener">github.com/Elock-exe/SeaOfThieves-Trackers</a>.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/translations.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/icons.js"></script>
+<script src="assets/js/badge.js"></script>
+<script src="assets/js/ui.js"></script>
+</body>
+</html>

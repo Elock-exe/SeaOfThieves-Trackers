@@ -14,10 +14,6 @@
     "http://localhost:8787/*",
     "http://127.0.0.1:8787/*"
   ],
-  "//optional_host_permissions": "A deployed tracker lives on a domain nobody knows at build time. Rather than shipping a hardcoded URL (or asking testers to edit the manifest), the popup requests access to whatever address its owner types — granted per origin, by a click, at that moment.",
-  "optional_host_permissions": [
-    "https://*/*"
-  ],
   "content_scripts": [
     {
       "matches": [
@@ -43,5 +39,6 @@
   },
   "background": {
     "service_worker": "src/background.js"
-  }
+  },
+  "//host_permissions": "Exactly what a sync touches: the game site to read stats, the tracker to publish them, localhost for development. Self-hosting a tracker elsewhere means adding that origin here."
 }

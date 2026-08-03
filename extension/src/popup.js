@@ -274,10 +274,15 @@ saveBtn.addEventListener('click', async () => {
       const origin = new URL(value).origin + '/*';
       const already = await api.permissions.contains({ origins: [origin] });
       if (!already) {
-        const granted = await api.permissions.request({ origins: [origin] });
+        /* Only the origins in the manifest can be granted. A published
+           add-on that asked for every HTTPS site to support self-hosting
+           would be answering a reviewer's first question badly, so the
+           list is explicit and a custom address says so plainly. */
+        const granted = await api.permissions.request({ origins: [origin] }).catch(() => false);
         if (!granted) {
-          show('err', 'Access to that address was declined' +
-            '<span class="hint">The extension cannot publish stats there without it.</span>');
+          show('err', 'This build cannot reach that address' +
+            '<span class="hint">It ships with access to the official tracker only. ' +
+            'Self-hosting? Add your origin to host_permissions in the manifest and reload.</span>');
           return;
         }
       }
