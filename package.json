@@ -5,7 +5,8 @@
   "description": "Sea of Thieves stats tracker — static front-end + local API for Steam/Xbox public data",
   "scripts": {
     "start": "node --env-file-if-exists=.env server/index.js",
-    "site": "node server/static.js"
+    "site": "node server/static.js",
+    "build:ext": "node tools/build-extension.js"
   },
   "engines": {
     "node": ">=20.12"

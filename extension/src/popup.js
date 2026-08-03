@@ -67,9 +67,23 @@ function renderProbes(probes, phases) {
 /* Firefox MV3 hands out host permissions only on request, and the request
    must come from a click. Chromium grants them at install time, so this
    simply reports true there. */
+/* Both origins are needed for a sync to complete: the game site to read
+   the stats, and the tracker to publish them. Checking only the first
+   passed the button as ready on Firefox and then failed at the last
+   step, with the collected stats already in hand. */
+async function requiredOrigins() {
+  const stored = await api.storage.local.get('trackerBase');
+  const base = (stored && stored.trackerBase) || DEFAULT_TRACKER;
+  const origins = [SOT_ORIGIN];
+  try {
+    if (/^https:\/\//.test(base)) origins.push(new URL(base).origin + '/*');
+  } catch (e) { /* a malformed address is reported when saving */ }
+  return origins;
+}
+
 async function hasSiteAccess() {
   try {
-    return await api.permissions.contains({ origins: [SOT_ORIGIN] });
+    return await api.permissions.contains({ origins: await requiredOrigins() });
   } catch (e) {
     return true; // no permissions API — assume install-time grant
   }
@@ -85,7 +99,7 @@ async function refreshGrantUI() {
 
 grantBtn.addEventListener('click', async () => {
   try {
-    const ok = await api.permissions.request({ origins: [SOT_ORIGIN] });
+    const ok = await api.permissions.request({ origins: await requiredOrigins() });
     if (ok) {
       show('ok', 'Access granted. You can sync now.');
       await refreshGrantUI();

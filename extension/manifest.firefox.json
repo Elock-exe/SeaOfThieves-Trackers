@@ -39,7 +39,7 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "sot-tracker@localhost",
+      "id": "sot-tracker@elock-exe.github.io",
       "strict_min_version": "115.0"
     }
   },

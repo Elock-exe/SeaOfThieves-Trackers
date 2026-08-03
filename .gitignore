@@ -12,3 +12,6 @@ data/
 
 # Built for distribution, rebuilt on demand — not source
 sot-extension.zip
+
+# Built extension packages — rebuilt with npm run build:ext
+dist/
