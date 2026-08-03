@@ -5,10 +5,11 @@
 # dashboard — they are marked sync:false below precisely so they are
 # never written down in a file that gets committed.
 #
-# DISK: the free tier has an ephemeral filesystem, so data/ is wiped on
-# every redeploy and every idle restart. Fine for testing; before real
-# use, attach a disk (paid) or move store.js to a database. This is a
-# deliberate limitation, not an oversight — see README.
+# STORAGE: the free tier has an ephemeral filesystem, so anything written
+# to data/ is wiped on every redeploy and every idle restart. That is why
+# SUPABASE_URL and SUPABASE_KEY below are not optional in practice —
+# without them the API falls back to local files and every account and
+# snapshot is lost on the next restart. It says so in its startup log.
 services:
   - type: web
     name: sot-tracker-api
@@ -22,8 +23,19 @@ services:
         value: 20.11.0
       # Where the site is served from, so CORS accepts it.
       # e.g. https://sot-tracker.netlify.app
+      # Leave blank until Netlify has given you a URL, then set it.
       - key: SITE_ORIGIN
         sync: false
+
+      # Persistent storage. Project URL and the *secret* key
+      # (sb_secret_… / service_role) from Supabase → Project Settings →
+      # API Keys. The secret key bypasses row-level security, so it lives
+      # here and never in the front-end.
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+
       - key: STEAM_API_KEY
         sync: false
       - key: OPENXBL_API_KEY
