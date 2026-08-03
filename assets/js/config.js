@@ -1,31 +1,39 @@
 /* ============================================================
    Where the site looks for its API.
 
-   Local development needs nothing: the default is localhost:8787.
+   The site and the API are deployed to two different hosts, so the
+   front-end has to be told where the API lives. One file, one line, no
+   build step.
 
-   When the tracker is deployed, the site and the API live on two
-   different hosts, so the front-end has to be told the API's address.
-   Putting it here — one line, no build step — means deploying does not
-   require editing source files scattered across the project.
+   The address is chosen from the page's own origin, so the same commit
+   works locally and in production without anyone editing a value before
+   pushing.
 
-   The value is read by assets/js/data.js as window.SOT_API_BASE.
+   Read by assets/js/data.js as window.SOT_API_BASE.
    ============================================================ */
 (function () {
   'use strict';
 
-  /* Set this to the deployed API when going live, e.g.
-       window.SOT_API_BASE = 'https://sot-tracker-api.onrender.com';
-     Leave it undefined and the site talks to localhost, which is what
-     you want while developing. */
-  // window.SOT_API_BASE = 'https://your-api.onrender.com';
+  /* Which API this page talks to, decided by where the page itself came
+     from rather than by a value someone has to remember to change.
 
-  /* A deployed page served over HTTPS cannot call http://localhost —
-     browsers block it as mixed content. Saying so here turns a silent
-     "nothing loads" into an explanation. */
-  if (location.protocol === 'https:' && !window.SOT_API_BASE) {
+     A single hardcoded address would be wrong half the time: point it at
+     production and local development writes test data into the real
+     database; point it at localhost and every visitor of the published
+     site gets nothing, because nothing is listening on their machine. */
+  const LOCAL = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+
+  window.SOT_API_BASE = LOCAL
+    ? 'http://localhost:8787'
+    : 'https://sot-tracker-api-ssi7.onrender.com';
+
+  /* An HTTPS page cannot call http://localhost — browsers block it as
+     mixed content. That combination can only come from a misedit here,
+     and it fails silently, so name it. */
+  if (location.protocol === 'https:' && /^http:/.test(window.SOT_API_BASE)) {
     console.warn(
-      '[SoT Tracker] This page is served over HTTPS but no API address is set. ' +
-      'Edit assets/js/config.js and set window.SOT_API_BASE to your deployed API.'
+      '[SoT Tracker] This HTTPS page points at an http:// API (' +
+      window.SOT_API_BASE + '). Browsers block that as mixed content.'
     );
   }
 })();
