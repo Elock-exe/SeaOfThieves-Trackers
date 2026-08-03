@@ -110,8 +110,24 @@ async function rest(pathAndQuery, options) {
     err.code = 'store_unavailable';
     throw err;
   }
-  if (res.status === 204) return null;
-  return res.json();
+  /* An empty body is a normal answer here, not an edge case: writes are
+     sent with Prefer: return=minimal, and PostgREST then replies 201 with
+     nothing in it. Calling res.json() on that throws "Unexpected end of
+     JSON input" — after the row has already been written, so the data
+     lands and the caller still sees a failure.
+
+     Read the body as text and only parse it when there is something to
+     parse. This covers 200, 201 and 204 alike, instead of special-casing
+     the one status a stand-in server happened to return during testing. */
+  const text = await res.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    const err = new Error('Supabase sent a non-JSON body: ' + text.slice(0, 200));
+    err.code = 'store_unavailable';
+    throw err;
+  }
 }
 
 const supabaseDriver = {
