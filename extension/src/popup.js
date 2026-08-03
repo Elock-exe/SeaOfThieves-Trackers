@@ -35,33 +35,77 @@ const HINTS = {
   unknown: 'Open Advanced for details, or check the extension console.'
 };
 
-function show(kind, html) {
+/* Builds nodes rather than parsing a string. Almost everything shown
+   here started life on the Sea of Thieves page or in a server reply —
+   pirate names, endpoint paths, error text — and the popup runs with the
+   extension's privileges, including access to the stored account key. A
+   gamertag containing markup would have been executed, not displayed.
+
+   @param kind   '' | 'ok' | 'err'
+   @param text   the message
+   @param opts   { hints: string[], spinner: boolean }
+*/
+function show(kind, text, opts) {
+  const o = opts || {};
   statusEl.hidden = false;
   statusEl.className = 'status ' + kind;
-  statusEl.innerHTML = html;
+  statusEl.replaceChildren();
+
+  if (o.spinner) {
+    const spin = document.createElement('span');
+    spin.className = 'spin';
+    statusEl.appendChild(spin);
+  }
+
+  statusEl.appendChild(document.createTextNode(text));
+
+  for (const hint of o.hints || []) {
+    if (!hint) continue;
+    const el = document.createElement('span');
+    el.className = 'hint';
+    el.textContent = hint;          // textContent, never innerHTML
+    statusEl.appendChild(el);
+  }
 }
 
-function renderProbes(probes, phases) {
+/** One "label: value" row for the Advanced panel. */
+function probeRow(label, value, bad) {
+  const row = document.createElement('div');
+  row.className = 'probe-row';
+
+  const k = document.createElement('span');
+  k.className = 'k';
+  k.textContent = label;
+
+  const v = document.createElement('span');
+  v.className = 'v ' + (bad ? 'bad' : 'ok');
+  v.textContent = value;
+
+  row.append(k, v);
+  return row;
+}
+
+function renderProbes(probes, phases, tried) {
   const rows = [];
 
   if (probes) {
-    rows.push(...Object.entries(probes).map(([k, v]) => `
-      <div class="probe-row">
-        <span class="k">${k}</span>
-        <span class="v ${v === 'failed' ? 'bad' : 'ok'}">${v}</span>
-      </div>`));
+    for (const [k, v] of Object.entries(probes)) {
+      rows.push(probeRow(k, String(v), v === 'failed' || v === 'timeout'));
+    }
   }
 
   /* Timings say which step is slow. Without them a timeout is just a number. */
   if (phases) {
-    rows.push(...Object.entries(phases).map(([k, v]) => `
-      <div class="probe-row">
-        <span class="k">⏱ ${k}</span>
-        <span class="v ${parseInt(v, 10) > 5000 ? 'bad' : 'ok'}">${v}</span>
-      </div>`));
+    for (const [k, v] of Object.entries(phases)) {
+      rows.push(probeRow('\u23F1 ' + k, String(v), parseInt(v, 10) > 5000));
+    }
   }
 
-  if (rows.length) probesEl.innerHTML = rows.join('');
+  if (tried && tried.length) {
+    rows.push(probeRow('tried', tried.join(', '), true));
+  }
+
+  if (rows.length) probesEl.replaceChildren(...rows);
 }
 
 /* Firefox MV3 hands out host permissions only on request, and the request
@@ -104,10 +148,10 @@ grantBtn.addEventListener('click', async () => {
       show('ok', 'Access granted. You can sync now.');
       await refreshGrantUI();
     } else {
-      show('err', 'Permission declined<span class="hint">The extension can\'t read your profile without it.</span>');
+      show('err', 'Permission declined', { hints: ["The extension can't read your profile without it."] });
     }
   } catch (e) {
-    show('err', `Could not request permission<span class="hint">${e.message}</span>`);
+    show('err', 'Could not request permission', { hints: [e.message] });
   }
 });
 
@@ -149,14 +193,15 @@ async function init() {
   const healed = await healTrackerBase(trackerInput.value);
   trackerInput.value = healed.base;
   if (healed.corrected) {
-    show('ok', `Tracker address fixed<span class="hint">${healed.corrected} has no API — now using ${healed.base}.</span>`);
+    show('ok', 'Tracker address fixed',
+      { hints: [healed.corrected + ' has no API — now using ' + healed.base + '.'] });
   }
 
   if (stored.lastSync) {
     // Don't clobber the correction notice — it is the more useful message.
     if (!healed.corrected) {
       const when = new Date(stored.lastSync.at).toLocaleString();
-      show('', `Last synced ${when}${stored.lastSync.handle ? ' — ' + stored.lastSync.handle : ''}`);
+      show('', 'Last synced ' + when + (stored.lastSync.handle ? ' — ' + stored.lastSync.handle : ''));
     }
     renderProbes(stored.lastSync.probes, stored.lastSync.phases);
   }
@@ -164,12 +209,12 @@ async function init() {
 
 btn.addEventListener('click', async () => {
   if (!(await refreshGrantUI())) {
-    show('err', 'Permission needed<span class="hint">' + HINTS.no_permission + '</span>');
+    show('err', 'Permission needed', { hints: [HINTS.no_permission] });
     return;
   }
 
   btn.disabled = true;
-  show('', '<span class="spin"></span>Syncing…');
+  show('', 'Syncing…', { spinner: true });
 
   try {
     /* Chrome can kill the service worker mid-sync, and then sendMessage
@@ -186,28 +231,24 @@ btn.addEventListener('click', async () => {
     // A missing reply means the background worker never answered — say so
     // rather than falling through to a vague "try again".
     if (res === undefined || res === null) {
-      show('err', 'No reply from the extension<span class="hint">Reload the extension and try again.</span>');
+      show('err', 'No reply from the extension', { hints: ['Reload the extension and try again.'] });
       return;
     }
 
     if (res.ok) {
       /* If the configured address was wrong, say so plainly rather than
          quietly using a different one. */
-      const note = res.corrected
-        ? `<span class="hint">${res.corrected} had no API — switched to ${res.base} and saved it.</span>`
-        : '';
-      show('ok', `Synced${res.handle ? ' — ' + res.handle : ''}.${note}`);
+      const hints = res.corrected
+        ? [res.corrected + ' had no API — switched to ' + res.base + ' and saved it.']
+        : [];
+      show('ok', 'Synced' + (res.handle ? ' — ' + res.handle : '') + '.', { hints });
       if (res.base) trackerInput.value = res.base;
-      renderProbes(res.probes, res.phases);
-      if (res.tried && res.tried.length) {
-        probesEl.innerHTML += '<div class="probe-row"><span class="k">tried</span>' +
-          '<span class="v bad">' + res.tried.join(', ') + '</span></div>';
-      }
+      renderProbes(res.probes, res.phases, res.tried);
     } else if (res.code === 'post_blocked' && res.pending && res.base) {
       /* The worker read the stats but could not post them. This page is a
          document, not a service worker, so the same request may well go
          through from here. Retry before calling it a failure. */
-      show('', '<span class="spin"></span>Worker POST refused — retrying from the popup…');
+      show('', 'Worker POST refused — retrying from the popup…', { spinner: true });
       try {
         const r = await fetch(res.base + '/api/sync', {
           method: 'POST',
@@ -216,37 +257,28 @@ btn.addEventListener('click', async () => {
         });
         const body = await r.json().catch(() => ({}));
         if (r.ok) {
-          show('ok', `Synced${body.handle ? ' — ' + body.handle : ''}.` +
-            '<span class="hint">The worker\'s POST was blocked; sent from the popup instead.</span>');
+          show('ok', 'Synced' + (body.handle ? ' — ' + body.handle : '') + '.',
+            { hints: ["The worker's POST was blocked; sent from the popup instead."] });
           await api.storage.local.set({
             lastSync: { at: new Date().toISOString(), handle: body.handle || null, probes: res.probes, phases: res.phases }
           });
         } else {
-          show('err', `Tracker refused the data (HTTP ${r.status})` +
-            `<span class="hint">${(body.error && body.error.message) || ''}</span>`);
+          show('err', 'Tracker refused the data (HTTP ' + r.status + ')',
+            { hints: [(body.error && body.error.message) || ''] });
         }
       } catch (e) {
-        show('err', `${res.message}<span class="hint">The popup could not post either: ${e.message}</span>` +
-          '<span class="hint">code: post_blocked</span>');
+        show('err', res.message,
+          { hints: ['The popup could not post either: ' + e.message, 'code: post_blocked'] });
       }
-      renderProbes(res.probes, res.phases);
-      if (res.tried && res.tried.length) {
-        probesEl.innerHTML += '<div class="probe-row"><span class="k">tried</span>' +
-          '<span class="v bad">' + res.tried.join(', ') + '</span></div>';
-      }
+      renderProbes(res.probes, res.phases, res.tried);
     } else {
       const code = res.code || 'unknown';
-      show('err',
-        `${res.message || 'Sync failed'}<span class="hint">${HINTS[code] || HINTS.unknown}</span>` +
-        `<span class="hint">code: ${code}</span>`);
-      if (res.probes || res.phases) renderProbes(res.probes, res.phases);
-      if (res.tried && res.tried.length) {
-        probesEl.innerHTML += '<div class="probe-row"><span class="k">tried</span>' +
-          '<span class="v bad">' + res.tried.join(', ') + '</span></div>';
-      }
+      show('err', res.message || 'Sync failed',
+        { hints: [HINTS[code] || HINTS.unknown, 'code: ' + code] });
+      if (res.probes || res.phases || res.tried) renderProbes(res.probes, res.phases, res.tried);
     }
   } catch (e) {
-    show('err', `Sync failed<span class="hint">${e.message}</span>`);
+    show('err', 'Sync failed', { hints: [e.message] });
   } finally {
     btn.disabled = false;
   }
@@ -280,14 +312,15 @@ saveBtn.addEventListener('click', async () => {
            list is explicit and a custom address says so plainly. */
         const granted = await api.permissions.request({ origins: [origin] }).catch(() => false);
         if (!granted) {
-          show('err', 'This build cannot reach that address' +
-            '<span class="hint">It ships with access to the official tracker only. ' +
-            'Self-hosting? Add your origin to host_permissions in the manifest and reload.</span>');
+          show('err', 'This build cannot reach that address', {
+            hints: ['It ships with access to the official tracker only. ' +
+                    'Self-hosting? Add your origin to host_permissions in the manifest and reload.']
+          });
           return;
         }
       }
     } catch (e) {
-      show('err', `That address could not be used<span class="hint">${e.message}</span>`);
+      show('err', 'That address could not be used', { hints: [e.message] });
       return;
     }
   }
@@ -295,16 +328,17 @@ saveBtn.addEventListener('click', async () => {
   await api.storage.local.set({ trackerBase: value });
 
   // Saving an address that answers nothing costs a whole sync to discover.
-  show('', '<span class="spin"></span>Saved — checking it answers…');
+  show('', 'Saved — checking it answers…', { spinner: true });
   try {
     const ctl = new AbortController();
     setTimeout(() => ctl.abort(), 3000);
     const res = await fetch(value + '/api/health', { signal: ctl.signal });
-    if (res.ok) show('ok', `Tracker address saved — API answered at ${value}.`);
-    else show('err', `Saved, but ${value} replied ${res.status}<span class="hint">The API listens on 8787.</span>`);
+    if (res.ok) show('ok', 'Tracker address saved — API answered at ' + value + '.');
+    else show('err', 'Saved, but ' + value + ' replied ' + res.status,
+      { hints: ['The API listens on 8787.'] });
   } catch (e) {
-    show('err', `Saved, but nothing answered at ${value}` +
-      '<span class="hint">The API is on port 8787; 5501 is the static site, which has no /api routes.</span>');
+    show('err', 'Saved, but nothing answered at ' + value,
+      { hints: ['The API is on port 8787; 5501 is the static site, which has no /api routes.'] });
   }
 });
 
