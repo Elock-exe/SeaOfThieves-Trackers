@@ -479,36 +479,138 @@ section.band {
 .news-row p { margin: 0; font-size: 13px; color: var(--text-2); }
 
 /* ---------- reference lists (voyages / companies) ---------- */
+/* Two sections side by side. The old rule glued them into one bordered
+   slab with a 1px gap standing in for a divider — a technique for rows,
+   which fought the cards once these became cards. */
 .ref-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1px;
-  background: var(--border);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+  gap: 28px;
 }
-.ref-col { background: var(--bg-2); }
+.ref-col { min-width: 0; }
 .ref-col-head {
-  padding: 18px 24px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 4px 4px;
   font-family: var(--font-display);
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  font-size: 15px;
-  color: var(--text-0);
+  font-size: 17px;
+  color: #fff;
+}
+/* A rule running out from the title, so each section has a visible start. */
+.ref-col-head::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+@media (max-width: 900px) {
+  .ref-columns { grid-template-columns: 1fr; gap: 34px; }
+}
+/* ---------- reference cards (voyages, companies) ----------
+   These were flat rows stacked behind a hairline: a list of paragraphs,
+   nothing to look at and nothing to scan. As a grid of cards each one
+   gets an icon with weight of its own, a faint chart-grid texture for
+   depth, and a hover state — so the section reads as content rather
+   than as a wall of small print. */
+.ref-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
+  gap: 12px;
+  padding: 14px 0 0;
 }
 .ref-row {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  padding: 14px 24px;
-  border-top: 1px solid var(--border-soft);
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.022), transparent 40%),
+    var(--bg-2);
+  overflow: hidden;
+  transition: border-color 200ms ease, transform 200ms ease, background 200ms ease;
 }
-.ref-row .icon { flex: none; margin: 2px 0 0; color: var(--teal); opacity: 0.85; }
-.ref-row .icon svg { width: 20px; height: 20px; display: block; }
-.ref-row .txt h4 { margin: 0 0 3px; font-size: 14px; color: var(--text-0); font-weight: 700; }
-.ref-row .txt p { margin: 0; font-size: 12.5px; color: var(--text-2); line-height: 1.45; }
+
+/* The texture: a 22px lattice, barely visible, fading out downward. */
+.ref-row::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-mask-image: linear-gradient(180deg, #000, transparent 75%);
+  mask-image: linear-gradient(180deg, #000, transparent 75%);
+  pointer-events: none;
+}
+
+.ref-row:hover {
+  border-color: rgba(255, 70, 85, 0.4);
+  transform: translateY(-2px);
+  background:
+    radial-gradient(120% 100% at 0% 0%, rgba(255, 70, 85, 0.09), transparent 60%),
+    var(--bg-2);
+}
+
+/* The icon gets a tinted plate instead of floating loose in the text. */
+.ref-row .icon {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin: 0;
+  border-radius: 10px;
+  color: var(--red);
+  background: rgba(255, 70, 85, 0.1);
+  border: 1px solid rgba(255, 70, 85, 0.22);
+  opacity: 1;
+  transition: background 200ms ease, transform 200ms ease;
+}
+.ref-row:hover .icon { background: rgba(255, 70, 85, 0.17); transform: scale(1.04); }
+.ref-row .icon svg { width: 21px; height: 21px; display: block; }
+
+/* A company crest is artwork, not a line icon: it needs no tinted plate
+   behind it, and gets more room. If the file is missing the <img>
+   removes itself and the card simply has no icon — no broken square. */
+.ref-row .icon-crest {
+  width: 46px;
+  height: 46px;
+  background: none;
+  border: 0;
+}
+.ref-row .icon-crest img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.55));
+}
+.ref-row:hover .icon-crest { background: none; }
+
+.ref-row .txt { position: relative; min-width: 0; }
+.ref-row .txt h4 {
+  margin: 0 0 5px;
+  font-size: 14.5px;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+.ref-row .txt p { margin: 0; font-size: 12.5px; color: var(--text-2); line-height: 1.5; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ref-row, .ref-row .icon { transition: none; }
+  .ref-row:hover { transform: none; }
+  .ref-row:hover .icon { transform: none; }
+}
 
 /* ---------- CTA strip ---------- */
 .cta-strip {
@@ -1487,6 +1589,22 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   pointer-events: none;
 }
 .currency-lead .deco-mark { width: 132px; height: 132px; right: -18px; bottom: -22px; opacity: 0.11; }
+
+/* Artwork in place of the drawn mark. Sitting in the same corner at the
+   same scale, so a card with an image and a card without still line up. */
+.currency-art {
+  position: absolute;
+  right: -10px;
+  bottom: -12px;
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  opacity: 0.5;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
+}
+/* When the artwork loaded, the fallback mark beside it is redundant. */
+.currency-card:has(.currency-art) .deco-mark { display: none; }
 
 /* Company crest, when the image exists. */
 .rep-crest {

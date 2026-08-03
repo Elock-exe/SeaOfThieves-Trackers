@@ -21,7 +21,11 @@
 
   /* What the API can actually do right now, stated plainly. */
   (async function apiStatus() {
+    /* The status line was removed from the page: it announced plumbing
+       ("live search available: steam, xbox") to people who only want to
+       search. Failures still surface where they matter — on the result. */
     const el = document.getElementById('api-status');
+    if (!el) return;
     if (!el) return;
 
     const health = await SOT.apiHealth();

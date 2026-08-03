@@ -6,7 +6,7 @@
 <title>Link your account — Sea of Thieves Tracker</title>
 <meta name="description" content="Link your Sea of Thieves account to unlock gold, Hourglass rank, reputation and commendations." />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 26 26%22><circle cx=%2213%22 cy=%2213%22 r=%2212%22 fill=%22%230b0b12%22 stroke=%22%23ff4655%22 stroke-width=%221.6%22/><path d=%22M16,13L23,13M15.1,15.1L20.1,20.1M13,16L13,23M10.9,15.1L5.9,20.1M10,13L3,13M10.9,10.9L5.9,5.9M13,10L13,3M15.1,10.9L20.1,5.9%22 stroke=%22%23ff4655%22 stroke-width=%221.4%22/><circle cx=%2213%22 cy=%2213%22 r=%222.8%22 fill=%22%23ff4655%22/></svg>">
-<link rel="stylesheet" href="assets/css/style.css?v=1785764078" />
+<link rel="stylesheet" href="assets/css/style.css?v=1785773044" />
 </head>
 <body>
 
@@ -62,42 +62,19 @@
       </div>
     </div>
 
-    <details class="panel" style="margin-top:18px;">
-      <summary class="panel-head" style="cursor:pointer;list-style:revert;">
-        <span data-i18n="link.manualTitle">Old method — pasting the session cookie by hand (no longer needed)</span>
-      </summary>
-      <div class="panel-body padded">
-        <p data-i18n="link.manualIntro">The extension replaced this. It is kept only in case you prefer running the API without a browser extension.</p>
-        <ol class="steps">
-          <li>
-            <span data-i18n="link.step1">Sign in at</span>
-            <a href="https://www.seaofthieves.com" target="_blank" rel="noopener">seaofthieves.com</a>
-          </li>
-          <li data-i18n="link.step2">Press F12 to open developer tools</li>
-          <li data-i18n="link.step3">Go to Application (or Storage) → Cookies → https://www.seaofthieves.com</li>
-          <li data-i18n="link.step4">Find the cookie named <code>rat</code> and copy its Value</li>
-          <li>
-            <span data-i18n="link.step5">Paste it into the</span> <code>.env</code>
-            <span data-i18n="link.step5b">file next to</span> <code>SOT_RAT_COOKIE=</code>
-          </li>
-          <li data-i18n="link.step6">Restart the API (Ctrl+C in its terminal, then npm start)</li>
-        </ol>
-        <p class="warn-foot" data-i18n="link.warn1">That cookie is a session token. Anyone holding it can act as you on the Sea of Thieves website — treat it like a password.</p>
-      </div>
-    </details>
 
     <div id="link-diagnose" class="diagnose" style="display:none;"></div>
 
   </div>
 </section>
 
-<script src="assets/js/config.js?v=1785764078"></script>
-<script src="assets/js/translations.js?v=1785764078"></script>
-<script src="assets/js/i18n.js?v=1785764078"></script>
-<script src="assets/js/data.js?v=1785764078"></script>
-<script src="assets/js/icons.js?v=1785764078"></script>
-<script src="assets/js/badge.js?v=1785764078"></script>
-<script src="assets/js/ui.js?v=1785764078"></script>
-<script src="assets/js/link.js?v=1785764078"></script>
+<script src="assets/js/config.js?v=1785773044"></script>
+<script src="assets/js/translations.js?v=1785773044"></script>
+<script src="assets/js/i18n.js?v=1785773044"></script>
+<script src="assets/js/data.js?v=1785773044"></script>
+<script src="assets/js/icons.js?v=1785773044"></script>
+<script src="assets/js/badge.js?v=1785773044"></script>
+<script src="assets/js/ui.js?v=1785773044"></script>
+<script src="assets/js/link.js?v=1785773044"></script>
 </body>
 </html>

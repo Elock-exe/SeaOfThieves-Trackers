@@ -6,7 +6,7 @@
 <title>Sea of Thieves Tracker — Stats, Leaderboards & Voyage Guides</title>
 <meta name="description" content="Check Sea of Thieves pirate stats, leaderboards, trading company reputation and voyage guides." />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 26 26%22><circle cx=%2213%22 cy=%2213%22 r=%2212%22 fill=%22%230b0b12%22 stroke=%22%23ff4655%22 stroke-width=%221.6%22/><path d=%22M16,13L23,13M15.1,15.1L20.1,20.1M13,16L13,23M10.9,15.1L5.9,20.1M10,13L3,13M10.9,10.9L5.9,5.9M13,10L13,3M15.1,10.9L20.1,5.9%22 stroke=%22%23ff4655%22 stroke-width=%221.4%22/><circle cx=%2213%22 cy=%2213%22 r=%222.8%22 fill=%22%23ff4655%22/></svg>">
-<link rel="stylesheet" href="assets/css/style.css?v=1785764078" />
+<link rel="stylesheet" href="assets/css/style.css?v=1785773044" />
 </head>
 <body>
 
@@ -27,7 +27,6 @@
         </span>
         <input type="search" name="player" data-i18n-attr="placeholder:hero.searchPlaceholder" placeholder="Find a Pirate, ie. CutlassClem#4821" autocomplete="off" />
       </form>
-      <p class="api-status" id="api-status"></p>
 
       <div class="or-divider"><span data-i18n="hero.or">or</span></div>
 
@@ -101,21 +100,25 @@
     <div class="ref-columns">
       <div class="ref-col">
         <div class="ref-col-head" data-i18n="ref.voyageTypes">Voyage Types</div>
+        <div class="ref-list">
         <div class="ref-row"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2V6z"/><path d="M9 4v14M15 6v14"/></svg></span><div class="txt"><h4 data-i18n="voyage.gh.t">Gold Hoarders Voyage</h4><p data-i18n="voyage.gh.d">Riddle or X-marks maps leading to buried chests. Best run solo or duo on a sloop.</p></div></div>
         <div class="ref-row"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a7 7 0 0 0-7 7c0 3 1.5 4.8 2.5 6h9c1-1.2 2.5-3 2.5-6a7 7 0 0 0-7-7z"/><circle cx="9.3" cy="10" r="1.1" fill="currentColor" stroke="none"/><circle cx="14.7" cy="10" r="1.1" fill="currentColor" stroke="none"/><path d="M9 16v3M12 16v4M15 16v3"/></svg></span><div class="txt"><h4 data-i18n="voyage.oos.t">Order of Souls Bounty</h4><p data-i18n="voyage.oos.d">Skeleton captain hunts across islands and skeleton ships. Bring blunderbombs for crowd control.</p></div></div>
         <div class="ref-row"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v9l9 5 9-5V8"/><path d="M12 13v9"/></svg></span><div class="txt"><h4 data-i18n="voyage.ma.t">Merchant Alliance Delivery</h4><p data-i18n="voyage.ma.d">Fragile cargo runs — livestock, crates or cannons. Watch your ship's tilt.</p></div></div>
         <div class="ref-row"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6"/><path d="M4 9v11M8 9v11M12 9v11M16 9v11M20 9v11"/><path d="M3 21h18"/></svg></span><div class="txt"><h4 data-i18n="voyage.af.t">Athena's Fortune Voyage</h4><p data-i18n="voyage.af.d">Combined multi-company voyages with the highest emissary value.</p></div></div>
         <div class="ref-row"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 20L20 4"/><path d="M15 4h5v5"/><path d="M20 20L4 4"/><path d="M4 9V4h5"/></svg></span><div class="txt"><h4 data-i18n="voyage.rb.t">Reaper's Chest Hunt</h4><p data-i18n="voyage.rb.d">No map — track down a randomly placed chest and turn it in at a Reaper's hideout.</p></div></div>
         <div class="ref-row"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 9c2-2.5 4-2.5 6 0s4 2.5 6 0 4-2.5 6 0"/><path d="M2 15c2-2.5 4-2.5 6 0s4 2.5 6 0 4-2.5 6 0"/></svg></span><div class="txt"><h4 data-i18n="voyage.fotd.t">Fort of the Damned</h4><p>Server-wide PvPvE event. High risk, high reward loot from the skeleton fleet.</p></div></div>
+        </div>
       </div>
       <div class="ref-col" id="companies">
         <div class="ref-col-head" data-i18n="ref.companies">Trading Companies</div>
-        <div class="ref-row"><div class="txt"><h4 data-i18n="company.goldHoarders">Gold Hoarders</h4><p data-i18n="company.goldHoarders.d">Treasure maps and buried chests. The classic entry point for new crews.</p></div></div>
-        <div class="ref-row"><div class="txt"><h4 data-i18n="company.orderOfSouls">Order of Souls</h4><p data-i18n="company.orderOfSouls.d">Bounty hunting against the undead — skeleton captains, forts and fleets.</p></div></div>
-        <div class="ref-row"><div class="txt"><h4 data-i18n="company.merchantAlliance">Merchant Alliance</h4><p data-i18n="company.merchantAlliance.d">Cargo delivery and animal transport contracts across the map.</p></div></div>
-        <div class="ref-row"><div class="txt"><h4 data-i18n="company.athenaFortune">Athena's Fortune</h4><p data-i18n="company.athenaFortune.d">Unified high-stakes voyages requiring standing with the other companies.</p></div></div>
-        <div class="ref-row"><div class="txt"><h4 data-i18n="company.reapersBones">Reaper's Bones</h4><p data-i18n="company.reapersBones.d">PvP-focused faction rewarding stolen loot and rival ship kills.</p></div></div>
-        <div class="ref-row"><div class="txt"><h4 data-i18n="company.huntersCall">Hunter's Call</h4><p data-i18n="company.huntersCall.d">Fishing and cooking contracts, plus megalodon and kraken trophies.</p></div></div>
+        <div class="ref-list">
+        <div class="ref-row"><span class="icon icon-crest"><img src="assets/img/company-goldHoarders.png" alt="" loading="lazy" onerror="this.remove()" /></span><div class="txt"><h4 data-i18n="company.goldHoarders">Gold Hoarders</h4><p data-i18n="company.goldHoarders.d">Treasure maps and buried chests. The classic entry point for new crews.</p></div></div>
+        <div class="ref-row"><span class="icon icon-crest"><img src="assets/img/company-orderOfSouls.png" alt="" loading="lazy" onerror="this.remove()" /></span><div class="txt"><h4 data-i18n="company.orderOfSouls">Order of Souls</h4><p data-i18n="company.orderOfSouls.d">Bounty hunting against the undead — skeleton captains, forts and fleets.</p></div></div>
+        <div class="ref-row"><span class="icon icon-crest"><img src="assets/img/company-merchantAlliance.png" alt="" loading="lazy" onerror="this.remove()" /></span><div class="txt"><h4 data-i18n="company.merchantAlliance">Merchant Alliance</h4><p data-i18n="company.merchantAlliance.d">Cargo delivery and animal transport contracts across the map.</p></div></div>
+        <div class="ref-row"><span class="icon icon-crest"><img src="assets/img/company-athenaFortune.png" alt="" loading="lazy" onerror="this.remove()" /></span><div class="txt"><h4 data-i18n="company.athenaFortune">Athena's Fortune</h4><p data-i18n="company.athenaFortune.d">Unified high-stakes voyages requiring standing with the other companies.</p></div></div>
+        <div class="ref-row"><span class="icon icon-crest"><img src="assets/img/company-reapersBones.png" alt="" loading="lazy" onerror="this.remove()" /></span><div class="txt"><h4 data-i18n="company.reapersBones">Reaper's Bones</h4><p data-i18n="company.reapersBones.d">PvP-focused faction rewarding stolen loot and rival ship kills.</p></div></div>
+        <div class="ref-row"><span class="icon icon-crest"><img src="assets/img/company-huntersCall.png" alt="" loading="lazy" onerror="this.remove()" /></span><div class="txt"><h4 data-i18n="company.huntersCall">Hunter's Call</h4><p data-i18n="company.huntersCall.d">Fishing and cooking contracts, plus megalodon and kraken trophies.</p></div></div>
+        </div>
       </div>
     </div>
   </div>
@@ -146,13 +149,13 @@
   </div>
 </section>
 
-<script src="assets/js/config.js?v=1785764078"></script>
-<script src="assets/js/translations.js?v=1785764078"></script>
-<script src="assets/js/i18n.js?v=1785764078"></script>
-<script src="assets/js/data.js?v=1785764078"></script>
-<script src="assets/js/icons.js?v=1785764078"></script>
-<script src="assets/js/badge.js?v=1785764078"></script>
-<script src="assets/js/ui.js?v=1785764078"></script>
-<script src="assets/js/home.js?v=1785764078"></script>
+<script src="assets/js/config.js?v=1785773044"></script>
+<script src="assets/js/translations.js?v=1785773044"></script>
+<script src="assets/js/i18n.js?v=1785773044"></script>
+<script src="assets/js/data.js?v=1785773044"></script>
+<script src="assets/js/icons.js?v=1785773044"></script>
+<script src="assets/js/badge.js?v=1785773044"></script>
+<script src="assets/js/ui.js?v=1785773044"></script>
+<script src="assets/js/home.js?v=1785773044"></script>
 </body>
 </html>

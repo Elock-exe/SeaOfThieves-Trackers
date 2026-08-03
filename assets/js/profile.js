@@ -150,17 +150,6 @@
     document.getElementById('p-name').textContent = p.name;
     document.getElementById('p-tag').textContent = p.tag ? '#' + p.tag : '';
 
-    /* Real data must not sit under a "sample data" banner. */
-    if (p.live) {
-      const banner = document.querySelector('#profile-content .demo-banner');
-      if (banner) {
-        banner.classList.add('live-banner');
-        banner.innerHTML = `
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-          <div><strong>${I18N.t('live.strong')}</strong> ${I18N.t('live.body', { source: p.platform })}</div>`;
-      }
-    }
-
     renderAll();
     document.addEventListener('sot:langchange', renderAll);
   }
@@ -342,6 +331,10 @@
           </div>
           <div class="currency-stack">
             <div class="currency-card coin-doubloon">
+              <!-- Real artwork where it exists; the line mark stays as the
+                   fallback and is hidden once the image loads. -->
+              <img class="currency-art" src="assets/img/coin-doubloon.webp" alt=""
+                   loading="lazy" onerror="this.remove()" />
               ${SOTIcons.mark('doubloon')}
               <div class="currency-label">${t('currency.doubloons')}</div>
               <div class="currency-value">${SOT.formatNumber(c.doubloons)}</div>
