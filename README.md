@@ -1,0 +1,1 @@
+# SeaOfThieves-Trackers
