@@ -453,30 +453,59 @@ section.band {
 }
 
 /* ---------- news feed ---------- */
+/* ---------- news ----------
+   One bordered slab with transparent rows inside it: the items had no
+   surface of their own, so the section read as a paragraph list with a
+   line drawn round it. Each item is now a card, with the lead story
+   spanning the row above the rest. */
 .news-feed {
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  background: none;
+  border: 0;
 }
-.news-featured {
-  padding: 26px 28px;
-  border-bottom: 1px solid var(--border-soft);
-  background: linear-gradient(135deg, rgba(255,70,85,0.05), transparent 60%);
-}
-.news-featured h3 { font-size: 19px; margin: 10px 0 8px; color: var(--text-0); }
-.news-featured p { margin: 0; color: var(--text-2); font-size: 14px; max-width: 640px; }
+
+.news-featured,
 .news-row {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
-  padding: 16px 28px;
-  border-bottom: 1px solid var(--border-soft);
+  position: relative;
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.022), transparent 40%),
+    var(--bg-2);
+  overflow: hidden;
+  transition: border-color 200ms ease, transform 200ms ease;
 }
-.news-row:last-child { border-bottom: none; }
-.news-row .tagline { flex: none; margin-bottom: 0; width: 88px; }
-.news-row h4 { margin: 0 0 3px; font-size: 14.5px; color: var(--text-0); font-weight: 700; }
-.news-row p { margin: 0; font-size: 13px; color: var(--text-2); }
+.news-featured:hover,
+.news-row:hover {
+  border-color: rgba(255, 70, 85, 0.4);
+  transform: translateY(-2px);
+}
+
+/* The lead story keeps the whole width and a warmer wash. */
+.news-featured {
+  grid-column: 1 / -1;
+  padding: 26px 28px;
+  background:
+    radial-gradient(120% 130% at 0% 0%, rgba(255, 70, 85, 0.1), transparent 58%),
+    var(--bg-2);
+}
+.news-featured h3 { font-size: 20px; margin: 10px 0 8px; color: #fff; }
+.news-featured p { margin: 0; color: var(--text-2); font-size: 14px; max-width: 640px; line-height: 1.55; }
+
+/* Stacked, not side by side: at card width a label column left the
+   headline three words per line. */
+.news-row { display: block; }
+.news-row .tagline { width: auto; margin-bottom: 8px; }
+.news-row h4 { margin: 0 0 5px; font-size: 15px; color: #fff; font-weight: 700; }
+.news-row p { margin: 0; font-size: 13px; color: var(--text-2); line-height: 1.5; }
+
+@media (prefers-reduced-motion: reduce) {
+  .news-featured, .news-row { transition: none; }
+  .news-featured:hover, .news-row:hover { transform: none; }
+}
 
 /* ---------- reference lists (voyages / companies) ---------- */
 /* Two sections side by side. The old rule glued them into one bordered
@@ -1007,23 +1036,40 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
 .hero-head h1 { font-size: 44px; margin: 0; letter-spacing: 1px; }
 .hero-head .lede { margin: 6px 0 0; font-size: 15px; }
 
+/* The one element on the page that was still light-themed: a near-white
+   slab (#efefef) across a near-black hero. It read as a foreign object
+   dropped onto the design rather than part of it. */
 .search-bar {
   display: flex;
   align-items: stretch;
-  background: #efefef;
-  border-radius: 4px;
+  height: 56px;
+  border-radius: 10px;
   overflow: hidden;
-  height: 54px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--bg-3);
+  backdrop-filter: blur(8px);
+  transition: border-color 200ms ease, box-shadow 200ms ease, background 200ms ease;
 }
+.search-bar:hover { border-color: #3c5063; }
+/* Focus lives on the wrapper: the input's own outline is suppressed, so
+   without this a keyboard user has nothing to follow. */
+.search-bar:focus-within {
+  border-color: var(--red);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 0 3px rgba(255, 70, 85, 0.16);
+}
+
 .search-bar-icon {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 56px;
-  color: #0f1923;
-  border-right: 1px solid rgba(15, 25, 35, 0.12);
+  color: var(--text-2);
+  border-right: 1px solid var(--bg-3);
+  transition: color 200ms ease;
 }
+.search-bar:focus-within .search-bar-icon { color: var(--red); }
 .search-bar-icon::after {
   content: '';
   position: absolute;
@@ -1031,18 +1077,23 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   height: 3px;
   border-radius: 2px;
   background: var(--red);
+  transform: scaleX(0.4);
+  transform-origin: center;
+  transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
 }
+.search-bar:focus-within .search-bar-icon::after { transform: scaleX(1); }
+
 .search-bar input {
   flex: 1;
   border: none;
   outline: none;
   background: transparent;
-  color: #0f1923;
+  color: #fff;
   font-size: 15px;
   padding: 0 16px;
   font-family: var(--font-body);
 }
-.search-bar input::placeholder { color: #5d6b78; }
+.search-bar input::placeholder { color: var(--text-3); }
 
 .recent-row {
   display: flex;
@@ -1572,6 +1623,57 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
 .badge-expired   { --badge-fg: #9AA5B1; --badge-bg: rgba(154, 165, 177, 0.13); --badge-br: rgba(154, 165, 177, 0.26); }
 .badge-submitted { --badge-fg: #A98BF5; --badge-bg: rgba(108, 60, 240, 0.18); --badge-br: rgba(108, 60, 240, 0.4); }
 .badge-star      { --badge-fg: var(--gold-soft); --badge-bg: rgba(216, 161, 58, 0.14); --badge-br: rgba(216, 161, 58, 0.32); }
+
+/* ---------- scroll reveal ----------
+   Applied by assets/js/reveal.js, and only there: the class is added by
+   script, so a browser with JS disabled never hides anything. */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal.is-revealed {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* ---------- buttons: something happens when you press ---------- */
+.btn-red,
+.btn-outline,
+.btn-track,
+.share-btn,
+.search-bar + button,
+button[type="submit"] {
+  transition: transform 140ms cubic-bezier(0.16, 1, 0.3, 1),
+              filter 180ms ease,
+              background-color 180ms ease;
+}
+.btn-red:hover,
+.btn-track:hover,
+button[type="submit"]:hover { filter: brightness(1.08); }
+
+/* 0.97, not 0.9: a press should register, not bounce. */
+.btn-red:active,
+.btn-outline:active,
+.btn-track:active,
+.share-btn:active,
+button[type="submit"]:active { transform: scale(0.97); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-red, .btn-outline, .btn-track, .share-btn, button[type="submit"] {
+    transition: none;
+  }
+  .btn-red:active, .btn-outline:active, .btn-track:active,
+  .share-btn:active, button[type="submit"]:active { transform: none; }
+}
 
 /* ---------- decorative marks ----------
    A large, faint glyph behind each stat. It inherits the card's accent
