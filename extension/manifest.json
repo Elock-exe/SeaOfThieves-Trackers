@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "Sea of Thieves Tracker",
+  "version": "0.2.0",
+  "description": "Sync your Sea of Thieves gold, Hourglass rank and reputation to your tracker. Your session never leaves this browser.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://www.seaofthieves.com/*",
+    "http://localhost:8787/*",
+    "http://127.0.0.1:8787/*"
+  ],
+  "//optional_host_permissions": "A deployed tracker lives on a domain nobody knows at build time. Rather than shipping a hardcoded URL (or asking testers to edit the manifest), the popup requests access to whatever address its owner types — granted per origin, by a click, at that moment.",
+  "optional_host_permissions": [
+    "https://*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.seaofthieves.com/*"
+      ],
+      "js": [
+        "src/content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Sea of Thieves Tracker",
+    "default_popup": "src/popup.html",
+    "default_icon": {
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "background": {
+    "service_worker": "src/background.js"
+  }
+}

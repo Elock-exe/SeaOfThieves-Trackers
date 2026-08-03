@@ -1,0 +1,13 @@
+{
+  "name": "sot-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sea of Thieves stats tracker — static front-end + local API for Steam/Xbox public data",
+  "scripts": {
+    "start": "node --env-file=.env server/index.js",
+    "site": "node server/static.js"
+  },
+  "engines": {
+    "node": ">=20.6"
+  }
+}

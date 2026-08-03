@@ -1,0 +1,36 @@
+# Netlify config for the static front-end.
+#
+# There is no build step: the site is plain HTML, CSS and JS, so the
+# repository root is published as-is.
+#
+# The API is NOT deployed here — it is a Node server (see render.yaml).
+# The site finds it through window.SOT_API_BASE, set in config.js.
+
+[build]
+  publish = "."
+  command = ""
+
+# Never serve the server directory or the data store as static files.
+[[redirects]]
+  from = "/server/*"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/data/*"
+  to = "/404.html"
+  status = 404
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "DENY"
+
+# The pages read live data; caching the HTML would serve stale scripts,
+# which is exactly the trap the local dev server had to work around.
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache"

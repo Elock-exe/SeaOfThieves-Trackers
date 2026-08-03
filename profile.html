@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Player Profile — Sea of Thieves Tracker</title>
+<meta name="description" content="Sea of Thieves player profile: gold earned, voyages, trading company reputation, recent voyage history." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 26 26%22><circle cx=%2213%22 cy=%2213%22 r=%2212%22 fill=%22%230b0b12%22 stroke=%22%23ff4655%22 stroke-width=%221.6%22/><path d=%22M16,13L23,13M15.1,15.1L20.1,20.1M13,16L13,23M10.9,15.1L5.9,20.1M10,13L3,13M10.9,10.9L5.9,5.9M13,10L13,3M15.1,10.9L20.1,5.9%22 stroke=%22%23ff4655%22 stroke-width=%221.4%22/><circle cx=%2213%22 cy=%2213%22 r=%222.8%22 fill=%22%23ff4655%22/></svg>">
+<link rel="stylesheet" href="assets/css/style.css?v=1785764078" />
+</head>
+<body>
+
+<div id="profile-empty" class="container profile-empty" style="display:none;">
+  <h2 data-i18n="profile.emptyTitle">Search for a pirate</h2>
+  <p data-i18n="profile.emptyBody">Enter a pirate name to look up their stats, reputation and recent voyages.</p>
+  <form class="search-box" id="empty-search-form" action="profile.html" method="get">
+    <input type="search" name="player" data-i18n-attr="placeholder:profile.searchPlaceholder" placeholder="Xbox gamertag or Steam name" autocomplete="off" />
+    <button type="submit" data-i18n="profile.searchBtn">Search</button>
+  </form>
+</div>
+
+<div id="profile-loading" class="container profile-loading" style="display:none;">
+  <span class="spinner" aria-hidden="true"></span>
+  <div>
+    <div class="loading-text">Searching…</div>
+    <div class="loading-name"></div>
+  </div>
+</div>
+
+<div id="profile-not-found" class="container profile-empty" style="display:none;">
+  <h2 data-i18n="error.title">Couldn't load that profile</h2>
+  <p id="not-found-name"></p>
+  <p style="margin-top:-14px;" data-i18n="error.notFound">No player with that name on this platform.</p>
+  <form class="search-box" id="not-found-search-form" action="profile.html" method="get">
+    <input type="search" name="player" data-i18n-attr="placeholder:profile.searchPlaceholder" placeholder="Xbox gamertag or Steam name" autocomplete="off" />
+    <button type="submit" data-i18n="profile.searchBtn">Search</button>
+  </form>
+</div>
+
+<div id="profile-content" style="display:none;">
+  <div class="page-header" style="padding-bottom:0; border-bottom:none;">
+    <div class="container">
+      <div class="breadcrumb"><a href="index.html" data-i18n="nav.home">Home</a> / <a href="leaderboards.html" data-i18n="nav.leaderboards">Leaderboards</a> / <span data-i18n="nav.profileCrumb">Profile</span></div>
+      <div class="demo-banner">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+        <div><strong data-i18n="live.strong">Live data.</strong> <span data-i18n="live.body">Pulled from a public API just now.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="profile-banner">
+      <span class="avatar" id="p-avatar"></span>
+      <div>
+        <h1 id="p-name"></h1>
+        <span class="tag" id="p-tag"></span>
+        <div class="profile-meta" id="p-meta"></div>
+      </div>
+      <button class="share-btn" id="p-share">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 8a3 3 0 1 0-2.83-4H15a3 3 0 0 0 .05 3.9L9.09 11.51a3 3 0 1 0 0 .98l5.96 3.61A3 3 0 1 0 18 16a2.98 2.98 0 0 0-.91.14l-5.96-3.61a3.01 3.01 0 0 0 0-1.06l5.96-3.61A2.98 2.98 0 0 0 18 8z" fill="currentColor"/></svg>
+        <span data-i18n="profile.copyLink">Copy Link</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Categories, so one page is not a single scroll of every number
+       the account has. Tabs are built from the data that exists. -->
+  <div class="container">
+    <nav class="profile-tabs" id="profile-tabs" role="tablist"></nav>
+  </div>
+
+  <section class="block tight">
+    <div class="container">
+      <!-- shown only when the pirate has not linked their SoT account -->
+      <div class="link-cta" id="link-cta" style="display:none;"></div>
+
+      <div class="tab-panel" id="tab-overview">
+        <!-- Hourglass allegiance = the game's real PvP rank -->
+        <div id="hourglass-section"></div>
+
+        <!-- the headline numbers, at a glance -->
+        <div id="keystats-section"></div>
+
+        <!-- gold / doubloons / ancient coins -->
+        <div id="currencies-section"></div>
+
+        <!-- derived from consecutive snapshots -->
+        <div id="session-section"></div>
+      </div>
+
+      <div class="tab-panel" id="tab-companies" hidden>
+        <div id="reputation-section"></div>
+        <div id="milestones-section"></div>
+      </div>
+
+      <div class="tab-panel" id="tab-achievements" hidden>
+        <div id="public-section"></div>
+        <div id="commendations-section"></div>
+      </div>
+
+      <div class="tab-panel" id="tab-seasons" hidden>
+        <div id="season-section"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="assets/js/config.js?v=1785764078"></script>
+<script src="assets/js/translations.js?v=1785764078"></script>
+<script src="assets/js/i18n.js?v=1785764078"></script>
+<script src="assets/js/data.js?v=1785764078"></script>
+<script src="assets/js/icons.js?v=1785764078"></script>
+<script src="assets/js/badge.js?v=1785764078"></script>
+<script src="assets/js/ui.js?v=1785764078"></script>
+<script src="assets/js/profile.js?v=1785764078"></script>
+</body>
+</html>

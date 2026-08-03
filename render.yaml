@@ -1,0 +1,30 @@
+# Render blueprint for the tracker API.
+#
+# Deploy: push this repo to GitHub, then on render.com pick
+# "New → Blueprint" and select it. Set the secret values in the
+# dashboard — they are marked sync:false below precisely so they are
+# never written down in a file that gets committed.
+#
+# DISK: the free tier has an ephemeral filesystem, so data/ is wiped on
+# every redeploy and every idle restart. Fine for testing; before real
+# use, attach a disk (paid) or move store.js to a database. This is a
+# deliberate limitation, not an oversight — see README.
+services:
+  - type: web
+    name: sot-tracker-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server/index.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.0
+      # Where the site is served from, so CORS accepts it.
+      # e.g. https://sot-tracker.netlify.app
+      - key: SITE_ORIGIN
+        sync: false
+      - key: STEAM_API_KEY
+        sync: false
+      - key: OPENXBL_API_KEY
+        sync: false
