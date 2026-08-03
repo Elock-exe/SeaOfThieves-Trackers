@@ -217,7 +217,15 @@ const server = http.createServer(async (req, res) => {
         steam: steam.isConfigured(),
         xbox: xbox.isConfigured()
       },
-      linked: rare.isConfigured()
+      linked: rare.isConfigured(),
+      /* Whether stats survive a restart. A deployed instance answering
+         false is storing to a disk the host wipes, and every account
+         will be gone by tomorrow — worth being able to check without
+         shell access to the logs.
+
+         A boolean, not the backend's address: which database is in use
+         is nobody else's business. */
+      persistent: require('./db').REMOTE
     });
   }
 
