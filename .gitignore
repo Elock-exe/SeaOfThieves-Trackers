@@ -9,3 +9,6 @@ Thumbs.db
 *.log
 
 data/
+
+# Built for distribution, rebuilt on demand — not source
+sot-extension.zip
