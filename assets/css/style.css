@@ -204,14 +204,64 @@ button { font-family: inherit; cursor: pointer; }
 .subnav-search svg { flex: none; color: var(--text-3); }
 
 /* ---------- hero ---------- */
+/* ---------- hero ----------
+   Two flat gradients and nothing else: it could have fronted a banking
+   dashboard. The layers below add sea, chart paper and depth, all drawn
+   in CSS — no image to download, no asset to keep in step.
+
+   Everything here is decoration: aria-hidden by virtue of being a
+   pseudo-element, behind the content, and pointer-events: none. */
 .hero {
   position: relative;
   overflow: hidden;
-  padding: 72px 0 64px;
+  padding: 84px 0 76px;
   background:
-    radial-gradient(900px 340px at 78% 10%, rgba(255, 70, 85, 0.10), transparent 65%),
-    linear-gradient(180deg, #1b2733 0%, #0f1923 100%);
+    radial-gradient(900px 340px at 78% 8%, rgba(255, 70, 85, 0.12), transparent 62%),
+    radial-gradient(700px 420px at 8% 100%, rgba(52, 218, 158, 0.07), transparent 62%),
+    linear-gradient(180deg, #1b2733 0%, #0f1923 72%, #0c141d 100%);
   border-bottom: 1px solid var(--border-soft);
+}
+
+/* Nautical chart grid, fading out downward so the text never fights it. */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 46px 46px;
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 20%, transparent 78%);
+  mask-image: radial-gradient(120% 90% at 50% 0%, #000 20%, transparent 78%);
+  pointer-events: none;
+}
+
+/* A swell along the bottom edge. Two offset wave bands, drifting slowly
+   in opposite directions — the sea, suggested rather than illustrated. */
+.hero::after {
+  content: '';
+  position: absolute;
+  left: -50%;
+  right: -50%;
+  bottom: -10px;
+  height: 130px;
+  pointer-events: none;
+  opacity: 0.5;
+  background:
+    radial-gradient(60px 18px at 50% 100%, rgba(52, 218, 158, 0.16), transparent 70%) 0 0/160px 40px repeat-x,
+    radial-gradient(80px 22px at 50% 100%, rgba(255, 70, 85, 0.10), transparent 70%) 40px 16px/220px 48px repeat-x;
+  animation: hero-swell 26s linear infinite;
+}
+
+@keyframes hero-swell {
+  from { background-position: 0 0, 40px 16px; }
+  to   { background-position: 320px 0, -400px 16px; }
+}
+
+/* Motion that repeats forever is the first thing to remove for anyone
+   who asked not to see it. */
+@media (prefers-reduced-motion: reduce) {
+  .hero::after { animation: none; }
 }
 .hero-scene, .hero-waves { display: none; }
 .hero-inner { max-width: 1240px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 3; }
