@@ -16,7 +16,10 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
-const PORT = Number(process.env.SITE_PORT || 5501);
+/* PORT first: tooling that assigns a free port sets that one. SITE_PORT
+   stays for running the site and the API side by side by hand, and 5501
+   is the fallback the docs quote. */
+const PORT = Number(process.env.PORT || process.env.SITE_PORT || 5501);
 
 const TYPES = {
   '.html': 'text/html; charset=utf-8',

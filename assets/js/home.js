@@ -19,36 +19,17 @@
       Math.floor(diff / 86400000) + 'd ' + Math.floor((diff % 86400000) / 3600000) + 'h';
   })();
 
-  /* What the API can actually do right now, stated plainly. */
-  (async function apiStatus() {
-    /* The status line was removed from the page: it announced plumbing
-       ("live search available: steam, xbox") to people who only want to
-       search. Failures still surface where they matter — on the result. */
-    const el = document.getElementById('api-status');
-    if (!el) return;
-    if (!el) return;
+  /* The status line that used to live here announced plumbing ("live
+     search available: steam, xbox") to people who only wanted to search,
+     and was removed. Filling the promo card was tangled up in the same
+     function, behind a guard on the element that no longer exists — so
+     removing the line silently left an empty box in the hero.
 
+     The card is its own concern now, and does not care whether some
+     other element is on the page. */
+  (async function linkCard() {
     const health = await SOT.apiHealth();
-
-    function paint() {
-      if (!health) {
-        el.className = 'api-status off';
-        el.textContent = I18N.t('api.offline');
-        return;
-      }
-      const live = Object.keys(health.providers).filter((k) => health.providers[k]);
-      if (!live.length) {
-        el.className = 'api-status off';
-        el.textContent = I18N.t('api.noKeys');
-      } else {
-        el.className = 'api-status on';
-        el.textContent = I18N.t('api.online', { list: live.join(', ') });
-      }
-      renderLinkCard(health.linked);
-    }
-
-    paint();
-    document.addEventListener('sot:langchange', paint);
+    renderLinkCard(!!(health && health.linked));
   })();
 
   /* The promo slot doubles as the account-linking entry point: it either

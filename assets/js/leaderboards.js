@@ -109,6 +109,33 @@
     return link;
   }
 
+  /* The player's Xbox picture. It was in the API response all along and
+     simply never rendered, which is why the board looked like a
+     spreadsheet. Falls back to initials on a colour derived from the
+     name, so a row is never a blank circle. */
+  function avatar(entry, size) {
+    const el = document.createElement('span');
+    el.className = 'lb-avatar' + (size === 'lg' ? ' lb-avatar-lg' : '');
+
+    if (entry.avatar) {
+      const img = document.createElement('img');
+      img.src = entry.avatar;
+      img.alt = '';
+      img.loading = 'lazy';
+      // A dead image URL should leave initials, not a broken icon.
+      img.addEventListener('error', () => {
+        img.remove();
+        el.style.background = SOT.avatarColor(entry.handle);
+        el.textContent = SOT.initials(entry.handle);
+      });
+      el.appendChild(img);
+    } else {
+      el.style.background = SOT.avatarColor(entry.handle);
+      el.textContent = SOT.initials(entry.handle);
+    }
+    return el;
+  }
+
   function when(iso) {
     if (!iso) return '—';
     const d = new Date(iso);
@@ -129,6 +156,8 @@
       const medal = document.createElement('div');
       medal.className = 'podium-medal';
       medal.textContent = e.rank;
+
+      card.appendChild(avatar(e, 'lg'));
 
       const crest = crestImg(state.metric, 'podium-crest');
       if (crest) card.appendChild(crest);
@@ -156,6 +185,7 @@
       const who = document.createElement('td');
       const wrap = document.createElement('div');
       wrap.className = 'lb-pirate';
+      wrap.appendChild(avatar(e));
       const crest = crestImg(state.metric);
       if (crest) wrap.appendChild(crest);
       wrap.appendChild(pirateLink(e.handle));

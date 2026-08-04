@@ -1856,6 +1856,33 @@ button[type="submit"]:active { transform: scale(0.97); }
 }
 .lb-rank-top { color: var(--gold-soft); }
 
+/* Player pictures. A ranking of names and numbers is a spreadsheet; a
+   ranking of faces is a scoreboard. */
+.lb-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #0f1923;
+  border: 1px solid var(--bg-3);
+  background: var(--bg-3);
+}
+.lb-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.lb-avatar-lg {
+  width: 62px;
+  height: 62px;
+  font-size: 19px;
+  border: 2px solid color-mix(in srgb, var(--tone, var(--red)) 55%, transparent);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+.podium-1 .lb-avatar-lg { width: 76px; height: 76px; font-size: 23px; }
+
 .lb-pirate { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .lb-crest { width: 22px; height: 22px; object-fit: contain; flex: none; }
 .lb-pirate a { color: var(--text-0); text-decoration: none; font-weight: 600; }

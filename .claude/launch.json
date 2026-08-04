@@ -2,10 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "//runtime": "node, not `python -m http.server`: the Python one sends no cache headers, so Chrome served stale HTML and scripts for hours. server/static.js sends no-store, and refuses /.env and /data/.",
+      "//port": "No fixed port. The site calls the API cross-origin and the API's CORS rule allows localhost on any port, so nothing here depends on 5501 — autoPort lets the harness pick a free one instead of colliding with a server already running.",
       "name": "sot-tracker-static",
-      "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "5501"],
-      "port": 5501
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server/static.js"],
+      "autoPort": true
     }
   ]
 }
