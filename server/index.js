@@ -20,6 +20,7 @@ const xbox = require('./providers/xbox');
 const rare = require('./providers/rare');
 const store = require('./store');
 const accounts = require('./accounts');
+const leaderboard = require('./leaderboard');
 
 /* Only the public sources are searchable by name — Rare's API can never
    return anyone but the authenticated account, so it stays out of this map. */
@@ -365,6 +366,31 @@ const server = http.createServer(async (req, res) => {
      no handle was given. On one machine that was convenient; with more
      than one account it means the first visitor sees whoever synced last.
      The handle is now required. */
+  /* Rankings across every published pirate. Public, like the profiles
+     they are built from. */
+  if (url.pathname === '/api/leaderboard/metrics') {
+    return send(res, 200, { metrics: leaderboard.metrics() });
+  }
+
+  if (url.pathname === '/api/leaderboard') {
+    const metric = url.searchParams.get('metric') || 'gold';
+    const limit = Math.min(Number(url.searchParams.get('limit') || 50), 200);
+    try {
+      return send(res, 200, await leaderboard.rank(metric, limit));
+    } catch (err) {
+      if (err.code === 'bad_metric') {
+        return send(res, 400, {
+          error: {
+            code: 'bad_metric',
+            message: err.message,
+            available: leaderboard.metrics().map((m) => m.key)
+          }
+        });
+      }
+      return fail(res, err);
+    }
+  }
+
   if (url.pathname === '/api/synced') {
     const handle = url.searchParams.get('handle');
     if (!handle) {

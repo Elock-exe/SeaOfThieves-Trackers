@@ -1,126 +1,305 @@
 /* ============================================================
-   Players this browser has looked up.
+   Leaderboards.
 
-   A global leaderboard would need a shared database and many linked
-   accounts — neither exists yet. So rather than inventing rankings,
-   this ranks the players actually searched from this machine. It's
-   real data, it grows with use, and it's labelled for what it is.
+   This page used to rank the profiles this browser had looked up. The
+   note at the top of the old file explained why: a real ranking needs a
+   shared database and linked accounts, and neither existed.
+
+   Both exist now. It reads /api/leaderboard, which ranks every published
+   pirate on one number. The metric list comes from the API as well, so a
+   ranking added on the server appears here without an edit.
    ============================================================ */
 (function () {
   'use strict';
 
   SOTUI.mount('Leaderboards');
 
-  const METRICS = {
-    achievements: {
-      key: 'metric.achievements',
-      get: (p) => (p.achTotal ? p.achUnlocked : null),
-      fmt: (v, p) => v + '/' + p.achTotal
+  const metricsEl = document.getElementById('lb-metrics');
+  const stateEl = document.getElementById('lb-state');
+  const podiumEl = document.getElementById('lb-podium');
+  const tableWrap = document.getElementById('lb-table-wrap');
+  const bodyEl = document.getElementById('lb-body');
+  const headEl = document.getElementById('lb-metric-head');
+
+  /* Grouping and decoration per metric: which crest sits beside a name,
+     and which colour the board takes. A Reaper's Bones ranking should
+     not look identical to a gold one. */
+  const GROUPS = [
+    {
+      key: 'lb.group.currencies',
+      fallback: 'Monnaies',
+      metrics: {
+        gold: { i18n: 'currency.gold', tone: 'gold' },
+        doubloons: { i18n: 'currency.doubloons', tone: 'steel' },
+        ancientCoins: { i18n: 'currency.ancientCoins', tone: 'violet' }
+      }
     },
-    gamerscore: {
-      key: 'metric.gamerscore',
-      get: (p) => p.gamerscore,
-      fmt: (v) => SOT.formatNumber(v)
+    {
+      key: 'lb.group.hourglass',
+      fallback: 'Sablier',
+      metrics: {
+        servants: { i18n: 'hourglass.servants', tone: 'red', crest: 'hourglass-servants' },
+        guardians: { i18n: 'hourglass.guardians', tone: 'teal', crest: 'hourglass-guardians' }
+      }
     },
-    playtimeHours: {
-      key: 'metric.playtimeHours',
-      get: (p) => p.playtimeHours,
-      fmt: (v) => SOT.formatNumber(v) + 'h'
+    {
+      key: 'lb.group.companies',
+      fallback: 'Compagnies',
+      metrics: {
+        reapersBones: { i18n: 'company.reapersBones', tone: 'red', crest: 'company-reapersBones' },
+        athenaFortune: { i18n: 'company.athenaFortune', tone: 'gold', crest: 'company-athenaFortune' },
+        goldHoarders: { i18n: 'company.goldHoarders', tone: 'gold', crest: 'company-goldHoarders' },
+        orderOfSouls: { i18n: 'company.orderOfSouls', tone: 'violet', crest: 'company-orderOfSouls' },
+        merchantAlliance: { i18n: 'company.merchantAlliance', tone: 'teal', crest: 'company-merchantAlliance' },
+        huntersCall: { i18n: 'company.huntersCall', tone: 'steel', crest: 'company-huntersCall' }
+      }
     },
-    seenAt: {
-      key: 'metric.lastSeen',
-      get: (p) => (p.seenAt ? Date.parse(p.seenAt) : null),
-      fmt: (v) => new Date(v).toISOString().slice(0, 10)
+    {
+      key: 'lb.group.collection',
+      fallback: 'Collection',
+      metrics: {
+        emblems: { i18n: 'profile.emblems', tone: 'gold' },
+        totalLevels: { i18n: 'profile.totalLevels', tone: 'steel' }
+      }
     }
-  };
+  ];
 
-  const state = { metric: 'achievements', filter: '' };
-
-  function rows() {
-    const m = METRICS[state.metric];
-    return SOT.recentPlayers()
-      .filter((p) => p.name.toLowerCase().includes(state.filter.toLowerCase()))
-      .sort((a, b) => {
-        const av = m.get(a), bv = m.get(b);
-        if (av == null && bv == null) return 0;
-        if (av == null) return 1;
-        if (bv == null) return -1;
-        return bv - av;
-      });
+  function describe(metric) {
+    for (const g of GROUPS) if (g.metrics[metric]) return g.metrics[metric];
+    return {};
   }
 
-  function render() {
-    const t = I18N.t;
-    const m = METRICS[state.metric];
-    const list = rows();
+  /* I18N.t returns the key itself when there is no translation, so a
+     missing string would print "company.reapersBones" on the button. */
+  function translate(key, fallback) {
+    if (!key) return fallback;
+    const t = I18N.t(key);
+    return t && t !== key ? t : fallback;
+  }
 
-    const head = document.querySelector('th[data-sort="metric"]');
-    if (head) head.textContent = t(m.key);
+  function label(metric, fallback) {
+    return translate(describe(metric).i18n, fallback);
+  }
 
-    const tbody = document.getElementById('lb-body');
+  const state = { metric: readMetric(), available: [] };
 
-    if (!list.length) {
-      tbody.innerHTML = `
-        <tr><td colspan="6" class="lb-empty">
-          <strong>${t('lb.emptyTitle')}</strong>
-          <span>${t('lb.emptyBody')}</span>
-        </td></tr>`;
-      const pag = document.getElementById('lb-pagination');
-      if (pag) pag.innerHTML = '';
+  function readMetric() {
+    return new URLSearchParams(location.search).get('metric') || 'gold';
+  }
+
+  /* ---------- rendering ---------- */
+
+  function crestImg(metric, cls) {
+    const d = describe(metric);
+    if (!d.crest) return null;
+    const img = document.createElement('img');
+    img.className = cls || 'lb-crest';
+    img.alt = '';
+    img.loading = 'lazy';
+    img.src = 'assets/img/' + d.crest + '.png';
+    img.addEventListener('error', () => img.remove());
+    return img;
+  }
+
+  function pirateLink(handle, cls) {
+    const link = document.createElement('a');
+    if (cls) link.className = cls;
+    link.href = 'profile.html?player=' + encodeURIComponent(handle);
+    link.textContent = handle;      // textContent: a pirate name is user data
+    return link;
+  }
+
+  function when(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return isNaN(d) ? '—' : d.toLocaleDateString();
+  }
+
+  function renderPodium(entries) {
+    podiumEl.replaceChildren();
+    if (entries.length < 3) return;          // a podium of one is just a label
+
+    const tone = describe(state.metric).tone || 'red';
+    // Visual order second, first, third: the winner belongs in the middle.
+    for (const i of [1, 0, 2]) {
+      const e = entries[i];
+      const card = document.createElement('div');
+      card.className = 'podium-step podium-' + e.rank + ' tone-' + tone;
+
+      const medal = document.createElement('div');
+      medal.className = 'podium-medal';
+      medal.textContent = e.rank;
+
+      const crest = crestImg(state.metric, 'podium-crest');
+      if (crest) card.appendChild(crest);
+
+      const value = document.createElement('div');
+      value.className = 'podium-value';
+      value.textContent = SOT.formatNumber(e.value);
+
+      card.append(medal, pirateLink(e.handle, 'podium-name'), value);
+      podiumEl.appendChild(card);
+    }
+  }
+
+  function renderTable(entries) {
+    bodyEl.replaceChildren();
+
+    for (const e of entries) {
+      const tr = document.createElement('tr');
+
+      const rank = document.createElement('td');
+      rank.className = 'lb-rank';
+      if (e.rank <= 3) rank.classList.add('lb-rank-top');
+      rank.textContent = e.rank;
+
+      const who = document.createElement('td');
+      const wrap = document.createElement('div');
+      wrap.className = 'lb-pirate';
+      const crest = crestImg(state.metric);
+      if (crest) wrap.appendChild(crest);
+      wrap.appendChild(pirateLink(e.handle));
+      who.appendChild(wrap);
+
+      const val = document.createElement('td');
+      val.className = 'lb-value';
+      val.textContent = SOT.formatNumber(e.value);
+
+      const upd = document.createElement('td');
+      upd.className = 'lb-when';
+      upd.textContent = when(e.capturedAt);
+
+      tr.append(rank, who, val, upd);
+      bodyEl.appendChild(tr);
+    }
+  }
+
+  function setState(text, hint) {
+    stateEl.replaceChildren();
+    if (!text) { stateEl.hidden = true; return; }
+    stateEl.hidden = false;
+
+    const strong = document.createElement('strong');
+    strong.textContent = text;
+    stateEl.appendChild(strong);
+
+    if (hint) {
+      const p = document.createElement('p');
+      p.textContent = hint;
+      stateEl.appendChild(p);
+    }
+  }
+
+  /* ---------- metric tabs ---------- */
+
+  function renderMetrics() {
+    metricsEl.replaceChildren();
+
+    for (const group of GROUPS) {
+      const keys = Object.keys(group.metrics).filter((k) => state.available.includes(k));
+      if (!keys.length) continue;
+
+      const box = document.createElement('div');
+      box.className = 'lb-group';
+
+      const title = document.createElement('div');
+      title.className = 'lb-group-title';
+      title.textContent = translate(group.key, group.fallback);
+      box.appendChild(title);
+
+      const row = document.createElement('div');
+      row.className = 'lb-group-tabs';
+
+      for (const key of keys) {
+        const btn = document.createElement('button');
+        btn.className = 'lb-tab tone-' + (group.metrics[key].tone || 'red');
+        if (key === state.metric) btn.classList.add('is-active');
+        btn.type = 'button';
+        btn.dataset.metric = key;
+        btn.textContent = label(key, key);
+        btn.addEventListener('click', () => select(key));
+        row.appendChild(btn);
+      }
+
+      box.appendChild(row);
+      metricsEl.appendChild(box);
+    }
+  }
+
+  function select(metric) {
+    if (metric === state.metric) return;
+    state.metric = metric;
+    // Shareable: a ranking someone sends should open on that ranking.
+    history.replaceState(null, '', '?metric=' + encodeURIComponent(metric));
+    renderMetrics();
+    load();
+  }
+
+  /* ---------- data ---------- */
+
+  async function load() {
+    setState(translate('lb.loading', 'Chargement…'));
+    podiumEl.replaceChildren();
+    bodyEl.replaceChildren();
+    tableWrap.hidden = true;
+
+    let data;
+    try {
+      const res = await fetch(SOT.API_BASE + '/api/leaderboard?metric=' +
+        encodeURIComponent(state.metric) + '&limit=50', { cache: 'no-store' });
+      data = await res.json();
+      if (!res.ok) throw new Error((data.error && data.error.message) || 'HTTP ' + res.status);
+    } catch (e) {
+      setState(translate('error.apiDown', 'Classements indisponibles'), e.message);
       return;
     }
 
-    tbody.innerHTML = list.map((p, i) => {
-      const rank = i + 1;
-      const rankClass = rank === 1 ? 'top1' : rank === 2 ? 'top2' : rank === 3 ? 'top3' : '';
-      const v = m.get(p);
-      const avatar = p.avatar
-        ? `<span class="avatar" style="background:center/cover no-repeat url('${p.avatar}')"></span>`
-        : `<span class="avatar" style="background:${SOT.avatarColor(p.name)}">${SOT.initials(p.name)}</span>`;
+    headEl.textContent = label(state.metric, data.label);
 
-      return `
-        <tr onclick="location.href='profile.html?player=${encodeURIComponent(p.name)}'">
-          <td class="lb-rank ${rankClass}">#${rank}</td>
-          <td>
-            <div class="lb-player">
-              ${avatar}
-              <span>
-                <span class="name">${p.name}</span>
-                ${p.pirateLegend ? '<span class="pl-badge">★ Legend</span>' : ''}
-              </span>
-            </div>
-          </td>
-          <td><span class="region-tag">${p.platform || '—'}</span></td>
-          <td class="stat-strong">${v == null ? '—' : m.fmt(v, p)}</td>
-          <td>${p.gamerscore != null ? SOT.formatNumber(p.gamerscore) : '—'}</td>
-          <td>${p.seenAt ? p.seenAt.slice(0, 10) : '—'}</td>
-        </tr>`;
-    }).join('');
-
-    const pag = document.getElementById('lb-pagination');
-    if (pag) {
-      pag.innerHTML = `<button class="page-btn" id="lb-clear">${t('lb.clear')}</button>`;
-      document.getElementById('lb-clear').addEventListener('click', () => {
-        SOT.forgetPlayers();
-        render();
-      });
+    if (!data.entries.length) {
+      setState(
+        translate('lb.emptyTitle', 'Personne dans ce classement'),
+        translate('lb.emptyBody',
+          'Aucun pirate publié n’a encore de valeur ici. Synchronise ton profil avec l’extension pour y figurer.'));
+      return;
     }
+
+    setState('');
+    tableWrap.hidden = false;
+
+    /* The podium takes the top three; repeating them in the table below
+       would be the same information twice. */
+    const top = data.entries.slice(0, 3);
+    const hasPodium = top.length === 3;
+    renderPodium(top);
+    renderTable(hasPodium ? data.entries.slice(3) : data.entries);
+
+    if (hasPodium && data.entries.length === 3) tableWrap.hidden = true;
+
+    // Let the reveal animation pick up rows that did not exist at load.
+    document.dispatchEvent(new CustomEvent('sot:rendered'));
   }
 
-  document.getElementById('metric-tabs').addEventListener('click', (e) => {
-    const btn = e.target.closest('.chip-tab');
-    if (!btn) return;
-    document.querySelectorAll('.chip-tab').forEach((b) => b.classList.remove('active'));
-    btn.classList.add('active');
-    state.metric = btn.dataset.metric;
-    render();
-  });
+  async function init() {
+    try {
+      const res = await fetch(SOT.API_BASE + '/api/leaderboard/metrics', { cache: 'no-store' });
+      const data = await res.json();
+      state.available = (data.metrics || []).map((m) => m.key);
+    } catch (e) {
+      state.available = [];
+    }
 
-  document.getElementById('lb-search').addEventListener('input', (e) => {
-    state.filter = e.target.value;
-    render();
-  });
+    if (!state.available.length) {
+      setState(translate('error.apiDown', 'API injoignable'),
+               'Les classements viennent du serveur — il ne répond pas.');
+      return;
+    }
+    if (!state.available.includes(state.metric)) state.metric = state.available[0];
 
-  render();
-  document.addEventListener('sot:langchange', render);
+    renderMetrics();
+    load();
+  }
+
+  init();
+  document.addEventListener('sot:langchange', () => { renderMetrics(); load(); });
 })();
