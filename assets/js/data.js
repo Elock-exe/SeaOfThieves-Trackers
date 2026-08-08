@@ -157,13 +157,22 @@
     } catch (e) { /* nothing to undo */ }
   }
 
-  /** The last extension sync, or null. Used to tell a searched pirate apart
-   *  from the one whose account is actually linked here. */
+  /** This browser's own synced pirate, or null. Used to tell a searched
+   *  pirate apart from the one whose account is actually linked here.
+   *
+   *  Asks by name. It used to call /api/synced bare, from the days when the
+   *  server would hand back "the most recent snapshot" — which could only
+   *  ever be right on a machine with one account. That endpoint now requires
+   *  a handle and answers 400 without one, so every call was failing and the
+   *  link page told people they were not linked no matter how many times
+   *  they synced. */
   async function syncedIdentity() {
+    const owner = syncedOwner();
+    if (!owner) return null;   // nothing claimed here: we cannot know who you are
     try {
-      const snap = await call('/api/synced');
+      const snap = await call('/api/synced?handle=' + encodeURIComponent(owner));
       return {
-        handle: (snap.identity && snap.identity.handle) || null,
+        handle: (snap.identity && snap.identity.handle) || owner,
         snapshot: snap
       };
     } catch (e) {

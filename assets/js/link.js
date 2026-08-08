@@ -52,7 +52,7 @@
         return;
       }
 
-      stateEl.innerHTML = banner('', 'link.notLinkedStrong', 'link.notLinkedBody');
+      stateEl.innerHTML = banner('', 'link.noneStrong', 'link.noneBody');
       return;
     }
 
@@ -72,7 +72,7 @@
     } catch (err) {
       const KEY = {
         auth_expired: 'link.expiredBody',
-        not_linked: 'link.notLinkedBody',
+        not_linked: 'link.noneBody',
         rate_limited: 'error.rateLimited'
       };
       stateEl.innerHTML = banner('', 'link.failStrong', KEY[err.code] || 'link.failBody',

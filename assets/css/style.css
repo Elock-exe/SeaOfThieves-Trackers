@@ -310,9 +310,13 @@ button { font-family: inherit; cursor: pointer; }
   content: "";
   display: block;
   height: 88px;
-  aspect-ratio: 652 / 117;
+  aspect-ratio: 400 / 100;
   max-width: 100%;
-  background-color: #ffffff;
+  /* The artwork's own ink, sampled from its opaque pixels: a flat #959499
+     with no gradient, so the mask reproduces it exactly rather than
+     flattening a shade the design intended. Changing the wordmark's colour
+     is this one line. */
+  background-color: #959499;
   -webkit-mask: url('/assets/img/logo-wordmark.png') left center / contain no-repeat;
   mask: url('/assets/img/logo-wordmark.png') left center / contain no-repeat;
 }
