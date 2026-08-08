@@ -35,6 +35,26 @@
 
   <div id="status" class="status" hidden></div>
 
+  <label class="auto-row">
+    <input id="auto" type="checkbox" />
+    <span>Keep my stats up to date automatically</span>
+  </label>
+  <div id="auto-detail" class="auto-detail" hidden>
+    <label for="auto-mins">Sync every</label>
+    <select id="auto-mins">
+      <option value="15">15 minutes</option>
+      <option value="30">30 minutes</option>
+      <option value="60">1 hour</option>
+      <option value="180">3 hours</option>
+      <option value="720">12 hours</option>
+    </select>
+    <p class="field-note">
+      Runs in the background while your browser is open. Sea of Thieves stats
+      only change while you play, so a shorter interval will not show more —
+      it just checks sooner after a session ends.
+    </p>
+  </div>
+
   <details class="advanced">
     <summary>Advanced</summary>
     <label for="pirate">Pirate name</label>

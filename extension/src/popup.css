@@ -95,6 +95,48 @@ main { padding: 16px; }
 .status .hint { display: block; margin-top: 5px; color: var(--text-2); font-size: 12px; }
 .status a { color: inherit; }
 
+/* ---------- automatic refresh ---------- */
+.auto-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 14px;
+  font-size: 12.5px;
+  color: var(--text-1);
+  cursor: pointer;
+  user-select: none;
+}
+.auto-row input { accent-color: var(--red); flex: none; }
+
+.auto-detail { margin: 9px 0 0 25px; }
+.auto-detail label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-3);
+}
+.auto-detail select {
+  width: 100%;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 7px 9px;
+  color: var(--text-0);
+  font-family: inherit;
+  font-size: 12.5px;
+}
+.auto-detail select:focus { outline: none; border-color: var(--red); }
+
+/* Used here and in Advanced, where it had been shipping unstyled. */
+.field-note {
+  margin: 7px 0 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-3);
+}
+
 .advanced {
   margin-top: 16px;
   padding-top: 12px;
