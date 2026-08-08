@@ -235,7 +235,7 @@
           <strong>${t('profile.notLinkedTitle')}</strong>
           <p>${t('profile.notLinkedBody')}</p>
         </div>
-        <a class="btn-red" href="index.html">${t('profile.notLinkedCta')}</a>`;
+        <a class="btn-red" href="/">${t('profile.notLinkedCta')}</a>`;
     } else {
       cta.style.display = 'none';
       cta.innerHTML = '';
