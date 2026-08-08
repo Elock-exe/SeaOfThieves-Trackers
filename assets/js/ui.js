@@ -9,6 +9,13 @@
       <circle cx="13" cy="13" r="3.1" fill="#0f1923"/>
     </svg>`;
 
+  /* The wordmark is an image rather than styled text, so the script face
+     survives on machines that do not have it. The alt text carries the name
+     for screen readers and for search engines — replacing text with a picture
+     must not delete the words, only how they look. */
+  const WORDMARK =
+    `<span class="brand-wordmark" role="img" aria-label="Sea of Thieves Tracker"></span>`;
+
   const SEARCH_SVG = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
 
   const GLOBE_SVG = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 2.6 2.8 15.4 0 18M12 3c-2.8 2.6-2.8 15.4 0 18"/></svg>`;
@@ -31,11 +38,11 @@
     return `
     <div class="topbar">
       <div class="topbar-inner">
-        <a class="brand" href="index.html">${LOGO_SVG}<span>Sea of Thieves <span class="brand-sub">Tracker</span></span></a>
+        <a class="brand" href="/">${LOGO_SVG}${WORDMARK}</a>
         <div class="topbar-links">
           ${langPickerHTML()}
           <a href="https://www.seaofthieves.com" target="_blank" rel="noopener" data-i18n="top.officialSite">Official Site</a>
-          <a class="btn-track" href="index.html#search" data-i18n="top.track">Track a Pirate</a>
+          <a class="btn-track" href="/#search" data-i18n="top.track">Track a Pirate</a>
         </div>
       </div>
     </div>`;
@@ -43,12 +50,12 @@
 
   function subnavHTML(active) {
     const items = [
-      { href: 'index.html', label: 'Home', key: 'nav.home' },
-      { href: 'link.html', label: 'Link account', key: 'nav.link' },
-      { href: 'leaderboards.html', label: 'Leaderboards', key: 'nav.leaderboards' },
-      { href: 'index.html#voyages', label: 'Voyages Guide', key: 'nav.voyages' },
-      { href: 'index.html#companies', label: 'Trading Companies', key: 'nav.companies' },
-      { href: 'index.html#community', label: 'Community', key: 'nav.community' }
+      { href: '/', label: 'Home', key: 'nav.home' },
+      { href: '/link', label: 'Link account', key: 'nav.link' },
+      { href: '/leaderboards', label: 'Leaderboards', key: 'nav.leaderboards' },
+      { href: '/#voyages', label: 'Voyages Guide', key: 'nav.voyages' },
+      { href: '/#companies', label: 'Trading Companies', key: 'nav.companies' },
+      { href: '/#community', label: 'Community', key: 'nav.community' }
     ];
     const links = items.map((it) => {
       const isActive = it.label === active;
@@ -60,7 +67,7 @@
       <div class="subnav-inner">
         ${links}
         <div class="subnav-search">
-          <form id="nav-search-form" action="profile.html" method="get">
+          <form id="nav-search-form" action="/profile" method="get">
             <button type="submit" aria-label="Search" style="background:none;border:none;padding:0;display:flex;">${SEARCH_SVG}</button>
             <input type="search" name="player" data-i18n-attr="placeholder:nav.searchPlaceholder" placeholder="Find a pirate, e.g. CutlassClem#4821" autocomplete="off" />
           </form>
@@ -75,20 +82,20 @@
       <div class="container">
         <div class="footer-grid">
           <div class="footer-brand">
-            <a class="brand" href="index.html">${LOGO_SVG}<span>Sea of Thieves Tracker</span></a>
+            <a class="brand" href="/">${LOGO_SVG}${WORDMARK}</a>
             <p data-i18n="footer.tagline">Unofficial stats, leaderboards and voyage guides for Sea of Thieves pirates. Not affiliated with Rare or Microsoft.</p>
           </div>
           <div class="footer-cols">
             <div class="footer-col">
               <h4 data-i18n="footer.explore">Explore</h4>
-              <a href="index.html" data-i18n="nav.home">Home</a>
-              <a href="leaderboards.html" data-i18n="nav.leaderboards">Leaderboards</a>
-              <a href="profile.html" data-i18n="footer.profile">Player Profile</a>
+              <a href="/" data-i18n="nav.home">Home</a>
+              <a href="/leaderboards" data-i18n="nav.leaderboards">Leaderboards</a>
+              <a href="/profile" data-i18n="footer.profile">Player Profile</a>
             </div>
             <div class="footer-col">
               <h4 data-i18n="footer.guides">Guides</h4>
-              <a href="index.html#voyages" data-i18n="footer.voyageTypes">Voyage Types</a>
-              <a href="index.html#companies" data-i18n="nav.companies">Trading Companies</a>
+              <a href="/#voyages" data-i18n="footer.voyageTypes">Voyage Types</a>
+              <a href="/#companies" data-i18n="nav.companies">Trading Companies</a>
             </div>
             <div class="footer-col">
               <h4 data-i18n="footer.official">Official</h4>

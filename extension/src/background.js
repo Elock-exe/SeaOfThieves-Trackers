@@ -15,7 +15,7 @@
 const api = typeof browser !== 'undefined' ? browser : chrome;
 const isFirefox = typeof browser !== 'undefined' && !!browser.runtime;
 
-const DEFAULT_TRACKER = 'https://sot-tracker-api-ssi7.onrender.com';
+const DEFAULT_TRACKER = 'https://sot-tracker-api-8vqc.onrender.com';
 const SOT_URL = 'https://www.seaofthieves.com/profile';
 
 class SyncError extends Error {
@@ -330,34 +330,10 @@ async function collectByGroup(tabId) {
     return pingFor(tabId, 4);
   }
 
-  for (const name of groups) {
-    let r;
-    try {
-      r = await askGroup(name);
-    } catch (e) {
-      if (!(e instanceof SyncError)) throw e;
-
-      // Silence usually means the listener is gone, not that the endpoint is
-      // slow. Put it back and give this group one more chance.
-      let recovered = false;
-      try { recovered = await repairIfDead(); } catch (err) { throw err; }
-
-      if (recovered) {
-        try {
-          r = await askGroup(name);
-        } catch (e2) {
-          probes[name] = 'timeout';
-          tried.push(`${name}: no answer, even after re-attaching`);
-          continue;
-        }
-      } else {
-        probes[name] = 'timeout';
-        tried.push(`${name}: no answer in 10s`);
-        continue;
-      }
-    }
-
-    if (!r) { probes[name] = 'no reply'; tried.push(`${name}: empty reply`); continue; }
+  /* Reading one group's reply. Kept apart from the asking so the first pass
+     and the retry pass can share it verbatim. */
+  function record(name, r) {
+    if (!r) { probes[name] = 'no reply'; tried.push(`${name}: empty reply`); return; }
 
     /* One endpoint refusing is not a verdict on the session. Some of these
        are gated differently, and treating a single 401 as "signed out" used
@@ -368,13 +344,57 @@ async function collectByGroup(tabId) {
       signedOut = r.message;
       probes[name] = 'auth denied';
       tried.push(`${name}: ${r.message}`);
-      continue;
+      return;
     }
 
-    if (r.data !== undefined) { payloads[name] = r.data; probes[name] = r.path; continue; }
+    if (r.data !== undefined) { payloads[name] = r.data; probes[name] = r.path; return; }
 
     probes[name] = 'failed';
     if (r.tried) tried.push(...r.tried);
+  }
+
+  /* The groups read three independent endpoints, so waiting for each one
+     before starting the next spent three timeouts end to end when the whole
+     set could have been in flight at once. This is not extra load on Rare —
+     it is the same three reads, and the profile page itself issues them
+     concurrently on load. It only stops the sync idling between them. */
+  const first = await Promise.all(groups.map(async (name) => {
+    try {
+      return { name, r: await askGroup(name) };
+    } catch (e) {
+      if (!(e instanceof SyncError)) throw e;
+      return { name, stalled: true };
+    }
+  }));
+
+  const stalled = [];
+  for (const entry of first) {
+    if (entry.stalled) stalled.push(entry.name);
+    else record(entry.name, entry.r);
+  }
+
+  /* Silence usually means the listener is gone, not that the endpoint is
+     slow — and if it is gone, every group went quiet together. So repair
+     once for the whole batch rather than once per group, then retry only
+     what actually stalled. */
+  if (stalled.length) {
+    // A tab_closed thrown in here is fatal and is meant to propagate.
+    const recovered = await repairIfDead();
+
+    for (const name of stalled) {
+      if (!recovered) {
+        probes[name] = 'timeout';
+        tried.push(`${name}: no answer in 10s`);
+        continue;
+      }
+      try {
+        record(name, await askGroup(name));
+      } catch (e2) {
+        if (!(e2 instanceof SyncError)) throw e2;
+        probes[name] = 'timeout';
+        tried.push(`${name}: no answer, even after re-attaching`);
+      }
+    }
   }
 
   /* The gamertag lives in the page, not the payloads — grab it alongside. */
@@ -656,19 +676,100 @@ async function runSync() {
 }
 
 /* One sync at a time. A second click used to start a whole second run,
-   which meant a second hidden tab and two writes racing each other. */
+   which meant a second hidden tab and two writes racing each other. The
+   timer shares this lock with the button, so an auto-sync that lands while
+   someone is clicking joins the run in progress instead of racing it. */
 let inFlight = null;
 
-api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (!msg || msg.type !== 'sync') return false;
-
+function startSync() {
   if (!inFlight) {
     inFlight = withTimeout(runSync(), 240000, 'timeout',
       'Sync gave up after 4 minutes — nothing was left half-written')
       .finally(() => { inFlight = null; });
   }
+  return inFlight;
+}
 
-  const job = inFlight.catch((err) => ({
+/* ---------- automatic refresh ----------
+
+   Stats only move while the account is actually playing, so no amount of
+   extra requests per sync makes the numbers fresher — re-reading the same
+   endpoints twice in a row returns the same payload. What keeps a profile
+   current is syncing again later, which is what this does.
+
+   Off by default, and floored well above the alarms API minimum: this
+   drives an undocumented endpoint on Rare's own site with the player's
+   session, and a tight loop there earns a 429 (which the content script
+   already reports) or worse. */
+const AUTO_ALARM = 'sot-auto-sync';
+const DEFAULT_INTERVAL_MIN = 30;
+const MIN_INTERVAL_MIN = 15;
+
+async function autoSyncSettings() {
+  const stored = await api.storage.local.get(['autoSync', 'autoSyncMinutes']);
+  const minutes = Number(stored && stored.autoSyncMinutes);
+  return {
+    enabled: Boolean(stored && stored.autoSync),
+    minutes: Number.isFinite(minutes) && minutes >= MIN_INTERVAL_MIN
+      ? Math.round(minutes)
+      : DEFAULT_INTERVAL_MIN
+  };
+}
+
+async function applyAutoSync() {
+  if (!api.alarms) return null; // permission not granted in this build
+  const { enabled, minutes } = await autoSyncSettings();
+
+  await api.alarms.clear(AUTO_ALARM).catch(() => {});
+  if (!enabled) return { enabled: false, minutes };
+
+  api.alarms.create(AUTO_ALARM, { periodInMinutes: minutes, delayInMinutes: minutes });
+  return { enabled: true, minutes };
+}
+
+if (api.alarms) {
+  api.alarms.onAlarm.addListener((alarm) => {
+    if (!alarm || alarm.name !== AUTO_ALARM) return;
+    /* A background run has nobody watching it, so a failure must not surface
+       as an unhandled rejection — the last attempt is recorded in storage
+       either way and the popup shows it on open. */
+    startSync().catch(() => {});
+  });
+}
+
+// Re-arm after an update or a browser restart; alarms do not survive either.
+if (api.runtime.onInstalled) api.runtime.onInstalled.addListener(() => { applyAutoSync(); });
+if (api.runtime.onStartup) api.runtime.onStartup.addListener(() => { applyAutoSync(); });
+applyAutoSync();
+
+api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  /* Settings changes are answered here rather than written straight from the
+     popup, so the alarm is always re-armed by the same code that reads it. */
+  if (msg && msg.type === 'setAutoSync') {
+    const job = (async () => {
+      await api.storage.local.set({
+        autoSync: Boolean(msg.enabled),
+        autoSyncMinutes: Math.max(MIN_INTERVAL_MIN, Number(msg.minutes) || DEFAULT_INTERVAL_MIN)
+      });
+      const applied = await applyAutoSync();
+      return Object.assign({ ok: true, min: MIN_INTERVAL_MIN }, applied || await autoSyncSettings());
+    })();
+
+    if (isFirefox) return job;
+    job.then(sendResponse);
+    return true;
+  }
+
+  if (msg && msg.type === 'getAutoSync') {
+    const job = autoSyncSettings().then((s) => Object.assign({ min: MIN_INTERVAL_MIN }, s));
+    if (isFirefox) return job;
+    job.then(sendResponse);
+    return true;
+  }
+
+  if (!msg || msg.type !== 'sync') return false;
+
+  const job = startSync().catch((err) => ({
     ok: false,
     code: err.code || 'unknown',
     message: err.message || String(err),

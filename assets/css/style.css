@@ -101,6 +101,30 @@ button { font-family: inherit; cursor: pointer; }
   white-space: nowrap;
 }
 .brand svg { flex: none; }
+
+/* Height drives the size and width follows, so the lockup keeps its
+   proportions whatever the source file measures. The intrinsic width/height
+   on the tag itself reserves the space, so the topbar does not jolt sideways
+   when the image finishes loading. */
+/* The wordmark art is a single colour plus an alpha channel, and that colour
+   is pure black — invisible on a black topbar. Rather than ask for a
+   re-export, the PNG is used as a MASK: the alpha gives the letterforms, and
+   background-color gives the ink. The colour is now a CSS decision, so it can
+   follow the theme instead of being baked into a file.
+
+   aspect-ratio derives the width from the source's own 652x117, so swapping
+   the art for a differently proportioned file needs no measurement here. */
+.brand-wordmark {
+  flex: none;
+  display: block;
+  height: 26px;
+  aspect-ratio: 652 / 117;
+  max-width: 100%;
+  background-color: var(--text-0);
+  -webkit-mask: url('/assets/img/logo-wordmark.png') left center / contain no-repeat;
+  mask: url('/assets/img/logo-wordmark.png') left center / contain no-repeat;
+}
+
 .brand .brand-sub {
   font-family: var(--font-body);
   font-size: 15px;
@@ -1066,6 +1090,10 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
 @media (max-width: 640px) {
   .topbar-links .pill-status,
   .topbar-links a:not(.btn-track) { display: none; }
+  /* Shrink the wordmark rather than let the width cap do it: at 26px it
+     needed more room than a phone topbar has, so it was being scaled by a
+     constraint instead of by intent. */
+  .brand-wordmark { height: 20px; }
   .kpi-grid { grid-template-columns: 1fr; }
   .subnav-search form { width: 140px; }
   /* Four tracks, not three — the last one carries the distinction badge,

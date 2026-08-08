@@ -2,7 +2,7 @@
    Xbox Live provider (via OpenXBL) — public data, no signup.
 
    Gives: gamerscore + achievements for Sea of Thieves, and the
-   playtime Xbox exposes through the title history.
+   lifetime playtime Xbox keeps as the MinutesPlayed user stat.
    Needs: OPENXBL_API_KEY + the player's privacy settings allowing it.
 
    The Sea of Thieves title id is discovered from the player's own
@@ -27,17 +27,21 @@ function key() {
   return k;
 }
 
-async function get(path) {
-  const res = await fetch(BASE + path, {
-    headers: {
+async function request(path, init) {
+  /* The headers are merged LAST and on purpose. Spreading `init` over an
+     object that already held them let a caller passing Content-Type replace
+     the whole header set — taking X-Authorization with it, so the request
+     went out unauthenticated and OpenXBL answered as if nothing was there. */
+  const res = await fetch(BASE + path, Object.assign({}, init, {
+    headers: Object.assign({
       'X-Authorization': key(),
       'Accept': 'application/json',
       // Xbox Live rejects requests whose locale it can't parse, and OpenXBL
       // forwards the header verbatim — so it has to be a real locale.
       'Accept-Language': 'en-US',
       'User-Agent': 'sot-tracker/0.1'
-    }
-  });
+    }, (init && init.headers) || {})
+  }));
 
   if (res.status === 429) throw new ProviderError('rate_limited', 'OpenXBL rate limit hit', 429);
   if (res.status === 401 || res.status === 403) {
@@ -58,6 +62,18 @@ async function get(path) {
 
   // Some endpoints wrap the payload in `content`, others don't.
   return body && body.content !== undefined ? body.content : body;
+}
+
+function get(path) {
+  return request(path);
+}
+
+function post(path, payload) {
+  return request(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
 }
 
 /** Gamertag → XUID. A pure-digit input is treated as an XUID already. */
@@ -96,9 +112,6 @@ async function fetchTitleData(xuid) {
   if (!title) return null;
 
   const stats = title.achievement || {};
-  const minutes = Number(
-    (title.stats && title.stats.find && (title.stats.find((s) => s.name === 'MinutesPlayed') || {}).value) || 0
-  );
 
   return {
     titleId: title.titleId,
@@ -107,11 +120,47 @@ async function fetchTitleData(xuid) {
       total: Number(stats.totalGamerscore || 0)
     },
     progress: Number(stats.progressPercentage || 0),
-    minutesPlayed: minutes || null,
     lastPlayed: title.titleHistory && title.titleHistory.lastTimePlayed
       ? String(title.titleHistory.lastTimePlayed).slice(0, 10)
       : null
   };
+}
+
+/* Playtime is NOT on the title object. Reading it from `title.stats` — as
+   this did — could never work: that field is the object {sourceVersion: 3},
+   so `.find` is undefined and the whole expression collapsed to 0, which
+   then became a null playtime. Every Xbox profile has reported "no hours"
+   since the provider was written.
+
+   The real source is the user-stats endpoint, which has to be POSTed: the
+   stat names are a request body, not a path. It answers with
+     statlistscollection[0].stats[] = [{ name: 'MinutesPlayed', value: '33373' }]
+   and `value` is a STRING even though `type` says Integer. */
+async function fetchMinutesPlayed(xuid, titleId) {
+  if (!titleId) return null;
+
+  let data;
+  try {
+    data = await post('/player/stats', {
+      xuids: [String(xuid)],
+      stats: [{ name: 'MinutesPlayed', titleId: String(titleId) }]
+    });
+  } catch (e) {
+    return null; // hours are a nicety; never fail a whole snapshot over them
+  }
+
+  const collection = (data && data.statlistscollection) || [];
+  for (const group of collection) {
+    const stat = (group.stats || []).find(
+      (s) => String(s.name || '').toLowerCase() === 'minutesplayed'
+    );
+    // A title that simply doesn't report the stat comes back with no `value`.
+    if (stat && stat.value != null && stat.value !== '') {
+      const n = Number(stat.value);
+      if (Number.isFinite(n) && n > 0) return n;
+    }
+  }
+  return null;
 }
 
 async function fetchAchievements(xuid, titleId) {
@@ -152,7 +201,10 @@ async function fetchSnapshot(account) {
     throw new ProviderError('private', 'No Sea of Thieves data visible for this gamertag');
   }
 
-  const achievements = await fetchAchievements(xuid, title.titleId);
+  const [achievements, minutesPlayed] = await Promise.all([
+    fetchAchievements(xuid, title.titleId),
+    fetchMinutesPlayed(xuid, title.titleId)
+  ]);
 
   return {
     source: 'xbox',
@@ -168,8 +220,10 @@ async function fetchSnapshot(account) {
     milestones: null,
     commendations: null,
     season: null,
-    playtime: title.minutesPlayed
-      ? { totalHours: Math.round(title.minutesPlayed / 60), recentHours: null }
+    // Xbox reports a lifetime total only — there is no 2-week window here,
+    // which is why recentHours stays null where Steam can fill it.
+    playtime: minutesPlayed
+      ? { totalHours: Math.round(minutesPlayed / 60), recentHours: null }
       : null,
     achievements,
     gamerscore: title.gamerscore,

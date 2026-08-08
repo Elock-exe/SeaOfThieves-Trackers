@@ -9,8 +9,11 @@ const trackerInput = document.getElementById('tracker');
 const saveBtn = document.getElementById('save-tracker');
 const pirateInput = document.getElementById('pirate');
 const savePirateBtn = document.getElementById('save-pirate');
+const autoBox = document.getElementById('auto');
+const autoDetail = document.getElementById('auto-detail');
+const autoMins = document.getElementById('auto-mins');
 
-const DEFAULT_TRACKER = 'https://sot-tracker-api-ssi7.onrender.com';
+const DEFAULT_TRACKER = 'https://sot-tracker-api-8vqc.onrender.com';
 const SOT_ORIGIN = 'https://www.seaofthieves.com/*';
 
 /* Every failure names the thing the user can actually do about it. */
@@ -183,7 +186,47 @@ async function healTrackerBase(configured) {
   return { base: configured, corrected: null };
 }
 
+/* The worker owns the schedule — it is the only place that can arm an alarm,
+   and having the popup write the setting itself would let the two disagree
+   whenever the popup was closed before the worker read it. */
+async function pushAutoSync() {
+  const enabled = autoBox.checked;
+  const minutes = Number(autoMins.value) || 30;
+  autoDetail.hidden = !enabled;
+
+  try {
+    const res = await api.runtime.sendMessage({ type: 'setAutoSync', enabled, minutes });
+    if (res && res.enabled) {
+      show('ok', `Automatic sync on — every ${res.minutes} minutes.`);
+    } else {
+      show('', 'Automatic sync off. Use the button whenever you want an update.');
+    }
+  } catch (e) {
+    show('err', 'Could not save the schedule', { hints: [e.message] });
+  }
+}
+
+async function initAutoSync() {
+  try {
+    const s = await api.runtime.sendMessage({ type: 'getAutoSync' });
+    if (!s) return;
+    autoBox.checked = Boolean(s.enabled);
+    // A stored interval the dropdown doesn't offer would silently reset to
+    // its first option, so put it back only when it is one of the choices.
+    if ([...autoMins.options].some((o) => Number(o.value) === Number(s.minutes))) {
+      autoMins.value = String(s.minutes);
+    }
+    autoDetail.hidden = !s.enabled;
+  } catch (e) {
+    /* An older worker without the handler simply leaves the box unchecked. */
+  }
+}
+
+autoBox.addEventListener('change', pushAutoSync);
+autoMins.addEventListener('change', () => { if (autoBox.checked) pushAutoSync(); });
+
 async function init() {
+  await initAutoSync();
   const stored = await api.storage.local.get(['trackerBase', 'lastSync', 'pirateHandle']);
   trackerInput.value = stored.trackerBase || DEFAULT_TRACKER;
   pirateInput.value = stored.pirateHandle || '';

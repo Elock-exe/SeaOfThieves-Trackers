@@ -104,7 +104,7 @@
   function pirateLink(handle, cls) {
     const link = document.createElement('a');
     if (cls) link.className = cls;
-    link.href = 'profile.html?player=' + encodeURIComponent(handle);
+    link.href = '/profile?player=' + encodeURIComponent(handle);
     link.textContent = handle;      // textContent: a pirate name is user data
     return link;
   }

@@ -44,7 +44,7 @@
               Or, rang Sablier et réputation synchronisés depuis ton navigateur — aucun cookie à copier.
               ${(synced.handle || SOT.syncedOwner()) ? '' : '<div class="link-detail">Cette synchronisation n\'a pas de gamertag. Ouvre ton profil et clique « C\'est mon pirate » pour la rattacher.</div>'}
               <div class="link-actions">
-                <a class="btn-red" href="profile.html?player=me">${I18N.t('link.viewProfile')}</a>
+                <a class="btn-red" href="/profile?player=me">${I18N.t('link.viewProfile')}</a>
               </div>
             </div>
           </div>`;
@@ -65,7 +65,7 @@
       stateEl.innerHTML = banner(
         'live-banner', 'link.okStrong', 'link.okBody',
         `<div class="link-actions">
-           <a class="btn-red" href="profile.html?player=me">${I18N.t('link.viewProfile')}</a>
+           <a class="btn-red" href="/profile?player=me">${I18N.t('link.viewProfile')}</a>
          </div>`
       );
       if (me.probes) renderProbes(me.probes);

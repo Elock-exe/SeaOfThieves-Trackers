@@ -1,16 +1,17 @@
 {
   "manifest_version": 3,
   "name": "Sea of Thieves Tracker",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Sync your Sea of Thieves gold, Hourglass rank and reputation to your tracker. Your session never leaves this browser.",
   "permissions": [
     "storage",
     "tabs",
-    "scripting"
+    "scripting",
+    "alarms"
   ],
   "host_permissions": [
     "https://www.seaofthieves.com/*",
-    "https://sot-tracker-api-ssi7.onrender.com/*",
+    "https://sot-tracker-api-8vqc.onrender.com/*",
     "http://localhost:8787/*",
     "http://127.0.0.1:8787/*"
   ],

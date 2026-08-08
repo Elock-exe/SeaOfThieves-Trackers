@@ -53,18 +53,37 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  fs.readFile(full, (err, buf) => {
-    if (err) {
-      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-      res.end('Not found: ' + rel);
-      return;
-    }
+  /* Clean URLs, matching what Netlify does in production: /profile serves
+     profile.html. Without this every internal link 404s locally while
+     working perfectly once deployed — the worst way round to find a bug.
+     Only extensionless paths are tried this way, so a genuinely missing
+     asset still 404s as itself instead of being masked by a stray page. */
+  function send(file, buf) {
     res.writeHead(200, {
-      'Content-Type': TYPES[path.extname(full).toLowerCase()] || 'application/octet-stream',
+      'Content-Type': TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream',
       'Cache-Control': 'no-store, no-cache, must-revalidate',
       'Pragma': 'no-cache'
     });
     res.end(buf);
+  }
+
+  fs.readFile(full, (err, buf) => {
+    if (!err) { send(full, buf); return; }
+
+    if (path.extname(full)) {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Not found: ' + rel);
+      return;
+    }
+
+    fs.readFile(full + '.html', (err2, buf2) => {
+      if (err2) {
+        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('Not found: ' + rel);
+        return;
+      }
+      send(full + '.html', buf2);
+    });
   });
 });
 

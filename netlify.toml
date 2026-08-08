@@ -21,6 +21,45 @@
   to = "/404.html"
   status = 404
 
+# Clean URLs. Netlify already SERVES /profile from profile.html on its own,
+# which meant both spellings answered 200 and every page had two addresses —
+# links, shares and search engines split between them. These send the ugly
+# one to the pretty one for good.
+#
+# force = true is required, not optional: without it a redirect is skipped
+# whenever a real file matches the path, and profile.html is a real file, so
+# the rule would never fire. There is no loop risk — Netlify resolving
+# /profile to profile.html internally is not a fresh request for the .html.
+[[redirects]]
+  from = "/index.html"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/profile.html"
+  to = "/profile"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/leaderboards.html"
+  to = "/leaderboards"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/link.html"
+  to = "/link"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/privacy.html"
+  to = "/privacy"
+  status = 301
+  force = true
+
 [[headers]]
   for = "/*"
   [headers.values]

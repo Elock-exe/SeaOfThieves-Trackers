@@ -43,11 +43,11 @@
         ? `<span class="promo-tag promo-tag-on">${I18N.t('promo.linkedTag')}</span>
            <h3>${I18N.t('promo.linkedTitle')}</h3>
            <p>${I18N.t('promo.linkedBody')}</p>
-           <a class="btn-red" href="profile.html?player=me">${I18N.t('promo.linkedCta')}</a>`
+           <a class="btn-red" href="/profile?player=me">${I18N.t('promo.linkedCta')}</a>`
         : `<span class="promo-tag">${I18N.t('promo.tag')}</span>
            <h3>${I18N.t('promo.title')}</h3>
            <p>${I18N.t('promo.body')}</p>
-           <a class="btn-red" href="link.html">${I18N.t('promo.cta')}</a>`;
+           <a class="btn-red" href="/link">${I18N.t('promo.cta')}</a>`;
     }
 
     paint();
@@ -77,7 +77,7 @@
       const label = r.achTotal ? I18N.t('profile.achievements') : I18N.t('profile.totalPlaytime');
 
       return `
-        <a class="trio-card" href="profile.html?player=${encodeURIComponent(r.name)}">
+        <a class="trio-card" href="/profile?player=${encodeURIComponent(r.name)}">
           ${avatar}
           <div class="trio-name">${r.name}</div>
           <div class="trio-label">${label}</div>

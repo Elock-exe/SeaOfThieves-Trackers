@@ -22,27 +22,114 @@ ressemble à un identifiant.
 
 ---
 
-## Installer (mode développeur, gratuit)
+## Installer pour toi (mode développeur, gratuit)
+
+Construis d'abord les paquets — c'est cette étape qui met le bon manifeste
+sous le nom `manifest.json` que les deux navigateurs exigent :
+
+```bash
+npm run build:ext
+```
+
+Tu obtiens `dist/sot-tracker-chrome.zip` et `dist/sot-tracker-firefox.zip`.
+
+### Chrome / Edge
+
+1. Décompresse `dist/sot-tracker-chrome.zip`
+2. Ouvre `chrome://extensions` (ou `edge://extensions/`)
+3. Active **« Mode développeur »**
+4. **« Charger l'élément décompressé »** → choisis le dossier décompressé
 
 ### Firefox
 
 1. Ouvre `about:debugging#/runtime/this-firefox`
-2. Clique **« Charger un module complémentaire temporaire… »**
-3. Sélectionne le fichier `extension/manifest.firefox.json`
+2. **« Charger un module complémentaire temporaire… »**
+3. Sélectionne `dist/sot-tracker-firefox.zip`
 
-> Le chargement temporaire disparaît à la fermeture de Firefox. C'est normal
-> pour du test — il faudra publier sur addons.mozilla.org (gratuit) pour une
-> installation permanente.
+> Le chargement temporaire disparaît à la fermeture de Firefox. Pour une
+> installation permanente, il faut passer par un store — voir plus bas.
 
-### Edge
+---
 
-1. Ouvre `edge://extensions/`
-2. Active **« Mode développeur »** (en bas à gauche)
-3. Renomme `manifest.chromium.json` en `manifest.json`
-4. Clique **« Charger l'élément décompressé »** et choisis le dossier `extension/`
+## Publier pour tout le monde
 
-> Le même dossier fonctionnera sur Chrome le jour où tu voudras — Edge et
-> Chrome partagent le format Chromium.
+Le mode développeur ne sert qu'à toi : Chrome le désactive à chaque
+redémarrage sur les profils gérés, et Firefox l'oublie en fermant. Pour que
+n'importe qui installe l'extension en un clic, il faut passer par un store.
+
+Les trois acceptent le **même paquet** que `npm run build:ext` produit.
+
+| Store | Coût | Paquet | Délai typique |
+|---|---|---|---|
+| **Chrome Web Store** | 5 $ une fois, à vie | `sot-tracker-chrome.zip` | 1 à 5 jours |
+| **Firefox (AMO)** | gratuit | `sot-tracker-firefox.zip` | quelques heures à 2 jours |
+| **Edge Add-ons** | gratuit | `sot-tracker-chrome.zip` | 3 à 7 jours |
+
+### Ce qu'il faut préparer une seule fois
+
+- **Une icône 128×128** — déjà là (`icons/icon-128.png`)
+- **Des captures d'écran** — 1280×800 ou 640×400. Une capture du popup et une
+  de la page profil du tracker suffisent.
+- **Une politique de confidentialité accessible publiquement** — obligatoire
+  dès qu'une extension touche à des données de compte. Tu en as déjà une :
+  `https://sottracker.fr/privacy`.
+- **Une justification pour chaque permission.** C'est la partie qui fait
+  recaler les gens. Réponses prêtes à coller :
+
+  | Permission | Justification |
+  |---|---|
+  | `storage` | Mémoriser le nom de pirate, l'adresse du tracker et la clé de compte locale. |
+  | `tabs` | Retrouver l'onglet seaofthieves.com déjà ouvert pour y lire le profil. |
+  | `scripting` | Réinjecter le script de lecture dans un onglet ouvert avant l'installation. |
+  | `alarms` | Déclencher la synchronisation périodique quand l'utilisateur l'active. |
+  | `host_permissions` seaofthieves.com | Lire le profil du joueur, en same-origin, avec sa propre session. |
+  | `host_permissions` tracker | Publier les statistiques (et **uniquement** elles). |
+
+> **Le point qui compte pour un relecteur :** le cookie de session n'est jamais
+> lu, copié ni transmis. Le script de contenu laisse le navigateur l'attacher
+> et n'y accède pas. Dis-le explicitement dans le formulaire — c'est la
+> première question qu'ils se posent sur une extension qui lit un compte de jeu.
+
+### Chrome Web Store
+
+1. Crée un compte développeur sur
+   [chrome.google.com/webstore/devconsole](https://chrome.google.com/webstore/devconsole)
+   et paie les 5 $ (une fois, définitif)
+2. **« Nouvel élément »** → dépose `dist/sot-tracker-chrome.zip`
+3. Remplis fiche, captures, politique de confidentialité, justifications
+4. Soumets
+
+### Firefox (AMO)
+
+1. Compte sur [addons.mozilla.org/developers](https://addons.mozilla.org/developers/)
+2. **« Soumettre un nouveau module »** → **« Sur ce site »** → dépose
+   `dist/sot-tracker-firefox.zip`
+3. Le linter de Mozilla passe tout de suite : s'il râle, c'est presque
+   toujours le manifeste ou un nom d'entrée ZIP — que `tools/build-extension.js`
+   vérifie déjà avant de te laisser envoyer quoi que ce soit
+
+> **« Sur ce site »** = listé publiquement dans le catalogue.
+> **« Sur mon propre site »** = Mozilla te renvoie un `.xpi` signé que tu
+> héberges toi-même. C'est la seule façon d'avoir une installation permanente
+> hors catalogue — Chrome n'a pas d'équivalent.
+
+### Edge Add-ons
+
+1. Compte sur
+   [partner.microsoft.com/dashboard/microsoftedge](https://partner.microsoft.com/dashboard/microsoftedge)
+2. Dépose le **même** zip que Chrome — Edge lit le format Chromium
+
+### À chaque mise à jour
+
+Incrémente `version` dans **les deux** manifestes (ils doivent rester
+identiques — le build t'avertit sinon), relance `npm run build:ext`, renvoie
+le zip. Un store refuse un paquet dont la version n'a pas augmenté.
+
+> Rappel de conception : l'extension envoie le **JSON brut** de Rare, et c'est
+> le serveur qui le normalise. Si Rare change la forme de ses données, tu
+> corriges le serveur et tout le monde en profite immédiatement — sans
+> republier ni repasser par une validation. Ne republie que pour changer le
+> comportement de l'extension elle-même.
 
 ---
 
@@ -57,6 +144,26 @@ C'est tout. Aucun cookie à copier.
 
 Si ton API n'est pas sur `http://localhost:8787`, change l'adresse dans
 **Advanced → Tracker address**.
+
+### Garder les stats à jour toutes seules
+
+Coche **« Keep my stats up to date automatically »** et choisis un intervalle.
+L'extension resynchronise en arrière-plan tant que le navigateur est ouvert.
+
+Désactivé par défaut, et l'intervalle ne descend pas sous 15 minutes — pour
+une raison qui vaut d'être comprise :
+
+> **Multiplier les requêtes ne rend pas les chiffres plus frais.** Les stats
+> de Rare ne bougent que quand tu joues ; relire les mêmes endpoints deux fois
+> d'affilée renvoie exactement la même charge utile. Ce qui maintient un profil
+> à jour, c'est de resynchroniser *plus tard*, pas *plus souvent dans la même
+> seconde*. Et comme cette API n'est ni publique ni documentée, une boucle
+> serrée s'y fait rate-limiter (HTTP 429) — l'extension le signale déjà.
+
+Ce qui a vraiment été accéléré, c'est le sync lui-même : les trois groupes
+(`overview`, `reputation`, `ledger`) partent désormais **en parallèle** au lieu
+de s'attendre l'un l'autre. Même nombre de requêtes, à peu près un tiers du
+temps d'attente.
 
 ---
 
