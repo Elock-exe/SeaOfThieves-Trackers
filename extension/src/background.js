@@ -697,19 +697,27 @@ function startSync() {
    endpoints twice in a row returns the same payload. What keeps a profile
    current is syncing again later, which is what this does.
 
-   Off by default, and floored well above the alarms API minimum: this
+   ON by default. It was off, which was the wrong call: an add-on whose
+   entire purpose is keeping a profile current should not require a click
+   to do it, and shipping it dormant meant people re-synced by hand and
+   concluded the feature did not exist.
+
+   The interval is floored well above the alarms API minimum, though: this
    drives an undocumented endpoint on Rare's own site with the player's
    session, and a tight loop there earns a 429 (which the content script
    already reports) or worse. */
 const AUTO_ALARM = 'sot-auto-sync';
-const DEFAULT_INTERVAL_MIN = 30;
+const DEFAULT_INTERVAL_MIN = 60;
 const MIN_INTERVAL_MIN = 15;
 
 async function autoSyncSettings() {
   const stored = await api.storage.local.get(['autoSync', 'autoSyncMinutes']);
   const minutes = Number(stored && stored.autoSyncMinutes);
   return {
-    enabled: Boolean(stored && stored.autoSync),
+    /* Absent means "never chosen", which takes the default. Only an explicit
+       false counts as switching it off — otherwise every update would undo
+       someone's decision to disable it. */
+    enabled: stored && stored.autoSync !== undefined ? Boolean(stored.autoSync) : true,
     minutes: Number.isFinite(minutes) && minutes >= MIN_INTERVAL_MIN
       ? Math.round(minutes)
       : DEFAULT_INTERVAL_MIN

@@ -259,20 +259,6 @@
 
     /* The extension is the supported route now; the cookie steps below are
        kept only as a fallback. */
-    'link.extTitle': "How to link — browser extension",
-    'link.extStep1': "Load the extension: open",
-    'link.extStep1b': "turn on Developer mode, then \"Load unpacked\" and pick the",
-    'link.extStep1c': "folder in this project",
-    'link.extStep2': "Sign in at",
-    'link.extStep2b': "and open your profile page",
-    'link.extStep3': "Click the extension icon, then \"Sync my profile\"",
-    'link.extNote': "That is all. The extension reads your stats from the page you are already signed in on, and sends only the stats to this tracker. Your session cookie stays in the browser — it is never read, copied, or transmitted.",
-    'link.extWarn1': "The extension never handles your password and never sends your session anywhere. It runs the requests inside the Sea of Thieves page itself, where the browser attaches your cookie exactly as it does for the site.",
-    'link.extWarn2': "Only stats leave the page: gold, Hourglass rank, reputation.",
-    'link.extWarn3': "They are sent to your own API on localhost, and stored on this machine.",
-    'link.extWarn4': "The API refuses any payload containing a credential-like field.",
-    'link.extWarn5': "Nothing is uploaded anywhere else — there is no remote server in this project.",
-    'link.extWarn6': "Rare offers no third-party sign-in, so this is an unofficial route and can stop working without notice.",
     'link.manualTitle': "Old method — pasting the session cookie by hand (no longer needed)",
     'link.manualIntro': "The extension replaced this. It is kept only in case you prefer running the API without a browser extension.",
 
@@ -284,7 +270,27 @@
     'link.step5b': "file next to",
     'link.step6': "Restart the API (Ctrl+C in its terminal, then npm start)",
     'link.filePath': "File to edit",
+
+    /* Replaces the old link.ext* keys. Those told people to load an unpacked
+       folder, and promised the stats went to their own machine and that no
+       remote server existed. Both stopped being true, so the keys were
+       removed in every language rather than left to be read as a promise. */
+    'link.installTitle': "Install the extension",
+    'link.installFirefox': "Add to Firefox",
+    'link.installOther': "Chrome and Edge are still in review. Those browsers only install extensions from their own stores, so there is nothing to download in the meantime.",
+    'link.installStep1': "Sign in at",
+    'link.installStep1b': "and leave the tab open",
+    'link.installStep2': "Click the extension icon, then \"Sync my profile\"",
+    'link.installStep3': "That is the last time you need to do it — the extension re-syncs on its own every hour",
+    'link.installNote': "The extension reads your stats from the page you are already signed in on. Your session cookie stays in the browser: it is never read, copied, or transmitted.",
+
     'link.warnTitle': "Before you do this",
+    'link.dataWarn1': "The extension never handles your password and never sends your session anywhere. It runs the requests inside the Sea of Thieves page itself, where the browser attaches your cookie exactly as it does for the site.",
+    'link.dataWarn2': "Only stats leave the page: gold, Hourglass rank, reputation, commendations.",
+    'link.dataWarn3': "They are sent to this site's API and stored in its database, so your profile can be shown and ranked here.",
+    'link.dataWarn4': "Published stats are public: anyone who knows your pirate name can look them up.",
+    'link.dataWarn5': "The API refuses any payload containing a credential-like field.",
+    'link.dataWarn6': "Rare offers no third-party sign-in, so this is an unofficial route and can stop working without notice.",
     'link.warn1': "That cookie is a session token. Anyone holding it can act as you on the Sea of Thieves website — treat it like a password.",
     'link.warn2': "It stays in .env on this machine, which is git-ignored.",
     'link.warn3': "It is never sent to your browser and never written to a log.",
@@ -1234,20 +1240,6 @@
     'link.sub': "Débloque l’or, le rang Sablier, la réputation et les commendations — les données que Rare ne sert qu’au compte connecté.",
     'link.howTitle': "Comment lier",
 
-    'link.extTitle': "Comment lier — extension de navigateur",
-    'link.extStep1': "Charge l'extension : ouvre",
-    'link.extStep1b': "active le mode développeur, puis « Charger l'extension non empaquetée » et choisis le dossier",
-    'link.extStep1c': "de ce projet",
-    'link.extStep2': "Connecte-toi sur",
-    'link.extStep2b': "et ouvre ta page de profil",
-    'link.extStep3': "Clique l'icône de l'extension, puis « Sync my profile »",
-    'link.extNote': "C'est tout. L'extension lit tes stats depuis la page où tu es déjà connecté, et n'envoie que les stats à ce tracker. Ton cookie de session reste dans le navigateur — il n'est jamais lu, copié ni transmis.",
-    'link.extWarn1': "L'extension ne manipule jamais ton mot de passe et n'envoie ta session nulle part. Elle exécute les requêtes dans la page Sea of Thieves elle-même, où le navigateur attache ton cookie exactement comme il le fait pour le site.",
-    'link.extWarn2': "Seules les stats quittent la page : or, rang Sablier, réputation.",
-    'link.extWarn3': "Elles vont vers ta propre API sur localhost, et sont stockées sur cette machine.",
-    'link.extWarn4': "L'API refuse toute charge contenant un champ ressemblant à un identifiant.",
-    'link.extWarn5': "Rien n'est envoyé ailleurs — ce projet n'a aucun serveur distant.",
-    'link.extWarn6': "Rare ne propose pas de connexion tierce : cette voie est non officielle et peut cesser de fonctionner sans préavis.",
     'link.manualTitle': "Ancienne méthode — coller le cookie de session à la main (devenue inutile)",
     'link.manualIntro': "L'extension l'a remplacée. Elle n'est conservée que si tu préfères faire tourner l'API sans extension de navigateur.",
 
@@ -1259,7 +1251,23 @@
     'link.step5b': "à côté de",
     'link.step6': "Relance l’API (Ctrl+C dans son terminal, puis npm start)",
     'link.filePath': "Fichier à modifier",
+
+    'link.installTitle': "Installer l’extension",
+    'link.installFirefox': "Ajouter à Firefox",
+    'link.installOther': "Chrome et Edge sont encore en validation. Ces navigateurs n’installent que depuis leur propre store, il n’y a donc rien à télécharger en attendant.",
+    'link.installStep1': "Connecte-toi sur",
+    'link.installStep1b': "et laisse l’onglet ouvert",
+    'link.installStep2': "Clique l’icône de l’extension, puis « Sync my profile »",
+    'link.installStep3': "C’est la dernière fois que tu as à le faire — l’extension resynchronise toute seule toutes les heures",
+    'link.installNote': "L’extension lit tes stats depuis la page où tu es déjà connecté. Ton cookie de session reste dans le navigateur : il n’est jamais lu, copié ni transmis.",
+
     'link.warnTitle': "À savoir avant",
+    'link.dataWarn1': "L’extension ne manipule jamais ton mot de passe et n’envoie ta session nulle part. Elle exécute les requêtes depuis la page Sea of Thieves elle-même, où le navigateur attache ton cookie exactement comme il le fait pour le site.",
+    'link.dataWarn2': "Seules les statistiques quittent la page : or, rang Sablier, réputation, hauts faits.",
+    'link.dataWarn3': "Elles sont envoyées à l’API de ce site et conservées dans sa base de données, pour que ton profil puisse y être affiché et classé.",
+    'link.dataWarn4': "Les stats publiées sont publiques : quiconque connaît ton nom de pirate peut les consulter.",
+    'link.dataWarn5': "L’API refuse toute charge utile contenant un champ ressemblant à un identifiant.",
+    'link.dataWarn6': "Rare ne propose aucune connexion tierce : c’est donc une voie non officielle, qui peut cesser de fonctionner sans préavis.",
     'link.warn1': "Ce cookie est un jeton de session. Quiconque le possède peut agir en ton nom sur le site Sea of Thieves — traite-le comme un mot de passe.",
     'link.warn2': "Il reste dans .env sur cette machine, qui est exclu de Git.",
     'link.warn3': "Il n’est jamais envoyé au navigateur ni écrit dans un log.",
