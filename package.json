@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node --env-file-if-exists=.env server/index.js",
     "site": "node server/static.js",
-    "build:ext": "node tools/build-extension.js"
+    "build:ext": "node tools/build-extension.js",
+    "build:logo": "node tools/make-store-logo.js extension/store/logo-300.png"
   },
   "engines": {
     "node": ">=20.12"
