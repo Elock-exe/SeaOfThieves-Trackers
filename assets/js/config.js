@@ -25,7 +25,7 @@
 
   window.SOT_API_BASE = LOCAL
     ? 'http://localhost:8787'
-    : 'https://sot-tracker-api-ssi7.onrender.com';
+    : 'https://sot-tracker-api-8vqc.onrender.com';
 
   /* An HTTPS page cannot call http://localhost — browsers block it as
      mixed content. That combination can only come from a misedit here,

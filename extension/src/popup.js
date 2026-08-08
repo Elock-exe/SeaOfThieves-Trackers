@@ -13,7 +13,7 @@ const autoBox = document.getElementById('auto');
 const autoDetail = document.getElementById('auto-detail');
 const autoMins = document.getElementById('auto-mins');
 
-const DEFAULT_TRACKER = 'https://sot-tracker-api-ssi7.onrender.com';
+const DEFAULT_TRACKER = 'https://sot-tracker-api-8vqc.onrender.com';
 const SOT_ORIGIN = 'https://www.seaofthieves.com/*';
 
 /* Every failure names the thing the user can actually do about it. */
