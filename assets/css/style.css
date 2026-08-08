@@ -102,29 +102,6 @@ button { font-family: inherit; cursor: pointer; }
 }
 .brand svg { flex: none; }
 
-/* Height drives the size and width follows, so the lockup keeps its
-   proportions whatever the source file measures. The intrinsic width/height
-   on the tag itself reserves the space, so the topbar does not jolt sideways
-   when the image finishes loading. */
-/* The wordmark art is a single colour plus an alpha channel, and that colour
-   is pure black — invisible on a black topbar. Rather than ask for a
-   re-export, the PNG is used as a MASK: the alpha gives the letterforms, and
-   background-color gives the ink. The colour is now a CSS decision, so it can
-   follow the theme instead of being baked into a file.
-
-   aspect-ratio derives the width from the source's own 652x117, so swapping
-   the art for a differently proportioned file needs no measurement here. */
-.brand-wordmark {
-  flex: none;
-  display: block;
-  height: 26px;
-  aspect-ratio: 652 / 117;
-  max-width: 100%;
-  background-color: var(--text-0);
-  -webkit-mask: url('/assets/img/logo-wordmark.png') left center / contain no-repeat;
-  mask: url('/assets/img/logo-wordmark.png') left center / contain no-repeat;
-}
-
 .brand .brand-sub {
   font-family: var(--font-body);
   font-size: 15px;
@@ -310,6 +287,36 @@ button { font-family: inherit; cursor: pointer; }
   letter-spacing: 1.5px;
   text-transform: uppercase;
 }
+/* The hero title is the drawn wordmark rather than set type. The heading text
+   stays in the markup — data-i18n keeps translating it, screen readers and
+   search engines still read it — and font-size: 0 collapses only its
+   appearance, leaving the artwork to a ::before that the translation cannot
+   overwrite.
+
+   The art is one colour plus an alpha channel, and that colour is pure black:
+   invisible on this background. So the PNG is a MASK, with background-color
+   supplying the ink — which puts the colour in the stylesheet instead of
+   baking it into a file that would need re-exporting to change.
+
+   aspect-ratio carries the source's own 652x117, so replacing the art with a
+   differently proportioned file needs no measurement here. */
+.hero h1.hero-wordmark {
+  font-size: 0;
+  line-height: 0;
+  letter-spacing: 0;
+  margin-bottom: 18px;
+}
+.hero h1.hero-wordmark::before {
+  content: "";
+  display: block;
+  height: 88px;
+  aspect-ratio: 652 / 117;
+  max-width: 100%;
+  background-color: #ffffff;
+  -webkit-mask: url('/assets/img/logo-wordmark.png') left center / contain no-repeat;
+  mask: url('/assets/img/logo-wordmark.png') left center / contain no-repeat;
+}
+
 .hero p.lede {
   font-size: 16px;
   color: var(--text-2);
@@ -1085,15 +1092,29 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .two-col { grid-template-columns: 1fr; }
   .hero h1 { font-size: 42px; }
+  .hero h1.hero-wordmark::before { height: 60px; }
   .subnav-search form { width: 180px; }
 }
 @media (max-width: 640px) {
   .topbar-links .pill-status,
   .topbar-links a:not(.btn-track) { display: none; }
-  /* Shrink the wordmark rather than let the width cap do it: at 26px it
-     needed more room than a phone topbar has, so it was being scaled by a
-     constraint instead of by intent. */
-  .brand-wordmark { height: 20px; }
+  /* On a phone the brand and the links together are wider than the screen,
+     which pushed the language menu off the right edge and gave the whole
+     page a horizontal scroll — from an element that is not even visible.
+     Dropping the second word is enough to fit; the compass and "Sea of
+     Thieves" still identify the site, and the full name stays in the
+     document title and the footer. */
+  .brand .brand-sub { display: none; }
+  /* Dropping the word alone still left the row ~31px over the 327px a phone
+     actually offers once the bar's padding is taken out. The rest comes off
+     the spacing rather than the type, so nothing gets harder to read. */
+  .topbar-inner { padding-left: 16px; padding-right: 16px; }
+  .topbar-links { gap: 12px; }
+  .topbar-links .btn-track { padding-left: 14px; padding-right: 14px; }
+  /* Sized down on purpose rather than left to the width cap: at 60px the
+     wordmark is wider than a phone, so it would be scaled by a constraint
+     instead of by intent. */
+  .hero h1.hero-wordmark::before { height: 44px; }
   .kpi-grid { grid-template-columns: 1fr; }
   .subnav-search form { width: 140px; }
   /* Four tracks, not three — the last one carries the distinction badge,

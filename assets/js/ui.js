@@ -9,13 +9,6 @@
       <circle cx="13" cy="13" r="3.1" fill="#0f1923"/>
     </svg>`;
 
-  /* The wordmark is an image rather than styled text, so the script face
-     survives on machines that do not have it. The alt text carries the name
-     for screen readers and for search engines — replacing text with a picture
-     must not delete the words, only how they look. */
-  const WORDMARK =
-    `<span class="brand-wordmark" role="img" aria-label="Sea of Thieves Tracker"></span>`;
-
   const SEARCH_SVG = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
 
   const GLOBE_SVG = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 2.6 2.8 15.4 0 18M12 3c-2.8 2.6-2.8 15.4 0 18"/></svg>`;
@@ -38,7 +31,7 @@
     return `
     <div class="topbar">
       <div class="topbar-inner">
-        <a class="brand" href="/">${LOGO_SVG}${WORDMARK}</a>
+        <a class="brand" href="/">${LOGO_SVG}<span>Sea of Thieves <span class="brand-sub">Tracker</span></span></a>
         <div class="topbar-links">
           ${langPickerHTML()}
           <a href="https://www.seaofthieves.com" target="_blank" rel="noopener" data-i18n="top.officialSite">Official Site</a>
@@ -82,7 +75,7 @@
       <div class="container">
         <div class="footer-grid">
           <div class="footer-brand">
-            <a class="brand" href="/">${LOGO_SVG}${WORDMARK}</a>
+            <a class="brand" href="/">${LOGO_SVG}<span>Sea of Thieves Tracker</span></a>
             <p data-i18n="footer.tagline">Unofficial stats, leaderboards and voyage guides for Sea of Thieves pirates. Not affiliated with Rare or Microsoft.</p>
           </div>
           <div class="footer-cols">
