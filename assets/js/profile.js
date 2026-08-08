@@ -210,6 +210,15 @@
     if (p.gamerscore) {
       pills.push(`<span class="meta-pill">${SOT.formatNumber(p.gamerscore.earned)}/${SOT.formatNumber(p.gamerscore.total)} G</span>`);
     }
+    /* Hours belong up here next to the gamerscore, not only in the panel
+       further down: it is the first number people compare, and it reads as
+       missing when the header shows everything else about the account.
+       Only Steam and Xbox report it, so it stays absent rather than zero
+       for a pirate we know only through their linked Rare account. */
+    if (p.playtime && p.playtime.totalHours) {
+      pills.push(`<span class="meta-pill" title="${t('profile.totalPlaytime')}">` +
+        `${SOT.formatNumber(p.playtime.totalHours)} h</span>`);
+    }
     if (p.pirateLegend) {
       pills.push(`<span class="meta-pill meta-legend">★ ${t('profile.pirateLegend')}</span>`);
     }
