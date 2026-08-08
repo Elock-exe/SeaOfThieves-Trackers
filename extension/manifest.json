@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Sea of Thieves Tracker",
-  "version": "0.3.0",
-  "description": "Sync your Sea of Thieves gold, Hourglass rank and reputation to your tracker. Your session never leaves this browser.",
+  "//name": "Named after sottracker.fr, not after the game. 'Sea of Thieves' is Rare's mark, and a store — Microsoft's above all — reads a trademark in the NAME as a claim of affiliation. Describing what the tool does is fine; being called it is not.",
+  "name": "SotTracker",
+  "version": "0.4.0",
+  "description": "Unofficial tracker for Sea of Thieves. Syncs your gold, Hourglass rank and reputation to sottracker.fr.",
   "permissions": [
     "storage",
     "tabs",
