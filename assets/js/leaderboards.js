@@ -61,6 +61,18 @@
         emblems: { i18n: 'profile.emblems', tone: 'gold' },
         totalLevels: { i18n: 'profile.totalLevels', tone: 'steel' }
       }
+    },
+    /* Its own group on purpose. Every board above needs a linked account,
+       which needs the extension, which needs a desktop browser — so a
+       console player could not appear on any of them. This one ranks
+       public Steam/Xbox data, so it is open to anyone, and saying so is
+       worth a heading of its own. */
+    {
+      key: 'lb.group.open',
+      fallback: 'Sans compte lié',
+      metrics: {
+        playtimeHours: { i18n: 'metric.playtimeHours', tone: 'teal' }
+      }
     }
   ];
 

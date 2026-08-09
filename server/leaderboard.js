@@ -40,7 +40,14 @@ const METRICS = {
   huntersCall:     { label: "Hunter's Call",      pick: (s) => faction(s, 'HuntersCall') },
 
   emblems:         { label: 'Emblems unlocked',   pick: emblems },
-  totalLevels:     { label: 'Total company levels', pick: totalLevels }
+  totalLevels:     { label: 'Total company levels', pick: totalLevels },
+
+  /* The only board a console player can reach. Every metric above is read
+     from a snapshot, and snapshots come from the extension — so a pirate
+     who cannot run it could not appear anywhere, however much they played.
+     Playtime is public Steam/Xbox data, remembered from lookups, so it
+     ranks anyone the site has ever been asked about. */
+  playtimeHours:   { label: 'Playtime (hours)', source: 'public' }
 };
 
 function cur(snap, key) {
@@ -115,15 +122,29 @@ async function rank(metric, limit) {
     throw err;
   }
 
-  const rows = await currentStandings();
+  /* Two different populations, so two different reads. The snapshot boards
+     rank pirates who published; the public boards rank everyone the site
+     has been asked about, linked or not. `total` counts the population the
+     board was drawn from, not the whole site. */
+  const rows = def.source === 'public'
+    ? await require('./db').allPublicPlayers()
+    : await currentStandings();
+
   const entries = rows
-    .map((rec) => ({
-      handle: rec.handle,
-      value: def.pick(rec.snapshot),
-      capturedAt: rec.capturedAt,
-      avatar: (rec.snapshot && rec.snapshot.identity && rec.snapshot.identity.avatar) || null
-    }))
-    .filter((e) => e.value != null)
+    .map((rec) => (def.source === 'public'
+      ? {
+        handle: rec.handle,
+        value: typeof rec.playtimeHours === 'number' ? rec.playtimeHours : null,
+        capturedAt: rec.seenAt || null,
+        avatar: rec.avatar || null
+      }
+      : {
+        handle: rec.handle,
+        value: def.pick(rec.snapshot),
+        capturedAt: rec.capturedAt,
+        avatar: (rec.snapshot && rec.snapshot.identity && rec.snapshot.identity.avatar) || null
+      }))
+    .filter((e) => e.value != null && e.handle)
     .sort((a, b) => b.value - a.value)
     .slice(0, limit || 100)
     .map((e, i) => Object.assign({ rank: i + 1 }, e));

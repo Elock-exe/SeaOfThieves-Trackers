@@ -27,6 +27,7 @@ const DIR = path.join(__dirname, '..', 'data');
 const SNAPSHOTS = path.join(DIR, 'snapshots.jsonl');
 const ACCOUNTS = path.join(DIR, 'accounts.json');
 const VIEWS = path.join(DIR, 'views.json');
+const PLAYERS = path.join(DIR, 'players.json');
 
 const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const SUPABASE_KEY = process.env.SUPABASE_KEY || '';
@@ -111,6 +112,35 @@ const fileDriver = {
       return Number(map[String(handle).toLowerCase()]) || 0;
     } catch (e) {
       return 0;
+    }
+  },
+
+  /* Public Steam/Xbox stats, remembered from lookups.
+
+     Why this exists: the leaderboards rank snapshots, and snapshots come
+     from the extension — so every board was closed to anyone who cannot
+     run it, which is every console player. Playtime and achievements are
+     the only two numbers this project can read for anybody, and they were
+     being fetched, displayed, and thrown away.
+
+     Only what the platform already publishes is kept, and only for
+     gamertags someone has actually looked up. */
+  async putPublicPlayer(rec) {
+    ensureDir();
+    let map = {};
+    try {
+      map = JSON.parse(fs.readFileSync(PLAYERS, 'utf8'));
+    } catch (e) { /* first lookup */ }
+    map[String(rec.handle).toLowerCase()] = rec;
+    fs.writeFileSync(PLAYERS, JSON.stringify(map, null, 2), 'utf8');
+    return rec;
+  },
+
+  async allPublicPlayers() {
+    try {
+      return Object.values(JSON.parse(fs.readFileSync(PLAYERS, 'utf8')));
+    } catch (e) {
+      return [];
     }
   },
 
@@ -244,6 +274,43 @@ const supabaseDriver = {
       return Number(rows && rows[0] && rows[0].count) || 0;
     } catch (e) {
       return 0;
+    }
+  },
+
+  /* Same "missing table is not an error" rule as views: a deployment that
+     has not run the migration loses the playtime board, not the site. */
+  async putPublicPlayer(rec) {
+    try {
+      await rest('players', {
+        method: 'POST',
+        headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: {
+          handle: String(rec.handle).toLowerCase(),
+          display_handle: rec.handle,
+          playtime_hours: rec.playtimeHours,
+          avatar: rec.avatar,
+          source: rec.source,
+          seen_at: rec.seenAt
+        }
+      });
+      return rec;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  async allPublicPlayers() {
+    try {
+      const rows = await rest('players?select=display_handle,playtime_hours,avatar,source,seen_at');
+      return (rows || []).map((r) => ({
+        handle: r.display_handle,
+        playtimeHours: r.playtime_hours,
+        avatar: r.avatar,
+        source: r.source,
+        seenAt: r.seen_at
+      }));
+    } catch (e) {
+      return [];
     }
   },
 

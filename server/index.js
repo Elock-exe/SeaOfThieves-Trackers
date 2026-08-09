@@ -198,6 +198,26 @@ async function handlePlayer(req, res, url) {
   winner.foundOn = hits.map((h) => h.source);
 
   console.log(`[api] ${id} → ${winner.source} (${Date.now() - started}ms)`);
+
+  /* Remember the public numbers so the playtime board has a population.
+     Fetched, shown and then discarded until now, which is why a console
+     player could not appear on any leaderboard — every other metric comes
+     from a snapshot only the extension can produce.
+
+     Not awaited, and never allowed to fail the lookup: the profile the
+     visitor asked for matters more than the board. */
+  if (winner.playtime && typeof winner.playtime.totalHours === 'number') {
+    Promise.resolve()
+      .then(() => require('./db').putPublicPlayer({
+        handle: (winner.identity && winner.identity.handle) || id,
+        playtimeHours: winner.playtime.totalHours,
+        avatar: (winner.identity && winner.identity.avatar) || null,
+        source: winner.source,
+        seenAt: new Date().toISOString()
+      }))
+      .catch(() => { /* a board is not worth a 500 */ });
+  }
+
   return send(res, 200, winner);
 }
 
