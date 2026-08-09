@@ -1096,14 +1096,14 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
 .panel-body.padded { padding: 18px; }
 
 /* ---------- top-3 podiums on the home page ---------- */
-.podium-block { margin-top: 22px; }
-.podium-head {
+.top3-block { margin-top: 22px; }
+.top3-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
-.podium-pick {
+.top3-pick {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1115,11 +1115,11 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   color: var(--text-3);
   cursor: pointer;
 }
-.podium-pick:hover { color: var(--text-0); border-color: var(--text-3); }
+.top3-pick:hover { color: var(--text-0); border-color: var(--text-3); }
 
 /* Anchored to the block rather than the button so it cannot be clipped by
    the narrow column it opens in. */
-.podium-menu {
+.top3-menu {
   position: relative;
   margin: 8px 0 12px;
   padding: 8px;
@@ -1129,7 +1129,7 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   max-height: 240px;
   overflow-y: auto;
 }
-.podium-opt {
+.top3-opt {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1139,13 +1139,13 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   cursor: pointer;
   border-radius: 4px;
 }
-.podium-opt:hover { background: rgba(255, 255, 255, 0.04); }
-.podium-opt input { accent-color: var(--red); flex: none; }
+.top3-opt:hover { background: rgba(255, 255, 255, 0.04); }
+.top3-opt input { accent-color: var(--red); flex: none; }
 /* At the cap the unpickable ones say so, instead of ignoring the click. */
-.podium-opt.is-full { opacity: 0.4; cursor: not-allowed; }
+.top3-opt.is-full { opacity: 0.4; cursor: not-allowed; }
 
-.podium + .podium { margin-top: 14px; }
-.podium-title {
+.top3 + .top3 { margin-top: 14px; }
+.top3-title {
   display: block;
   font-size: 11px;
   text-transform: uppercase;
@@ -1153,8 +1153,8 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   color: var(--text-3);
   margin-bottom: 6px;
 }
-.podium-title:hover { color: var(--red); }
-.podium-row {
+.top3-title:hover { color: var(--red); }
+.top3-row {
   display: grid;
   grid-template-columns: 22px 26px 1fr auto;
   align-items: center;
@@ -1164,8 +1164,8 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   color: var(--text-1);
   font-size: 13px;
 }
-.podium-row:hover { background: rgba(255, 255, 255, 0.04); color: var(--text-0); }
-.podium-rank {
+.top3-row:hover { background: rgba(255, 255, 255, 0.04); color: var(--text-0); }
+.top3-rank {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1176,10 +1176,10 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   color: #0f1923;
   background: var(--text-3);
 }
-.podium-rank.r1 { background: #ffd76a; }
-.podium-rank.r2 { background: #cfd6dd; }
-.podium-rank.r3 { background: #d59b6a; }
-.podium-pic {
+.top3-rank.r1 { background: #ffd76a; }
+.top3-rank.r2 { background: #cfd6dd; }
+.top3-rank.r3 { background: #d59b6a; }
+.top3-pic {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1192,8 +1192,8 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   color: #fff;
   letter-spacing: 0.3px;
 }
-.podium-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.podium-value { font-variant-numeric: tabular-nums; color: var(--text-2); }
+.top3-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.top3-value { font-variant-numeric: tabular-nums; color: var(--text-2); }
 
 /* ---------- responsive ---------- */
 @media (max-width: 960px) {

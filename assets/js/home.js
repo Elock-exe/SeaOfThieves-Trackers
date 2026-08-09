@@ -131,8 +131,8 @@
   }
 
   async function renderPodiums() {
-    const block = document.getElementById('podium-block');
-    const list = document.getElementById('podium-list');
+    const block = document.getElementById('top3-block');
+    const list = document.getElementById('top3-list');
     if (!block || !list) return;
 
     const chosen = picked().filter((k) => allMetrics.some((m) => m.key === k));
@@ -163,20 +163,20 @@
     if (!live.length) { block.hidden = true; return; }
 
     list.innerHTML = live.map((b) => `
-      <div class="podium">
-        <a class="podium-title" href="/leaderboards?metric=${encodeURIComponent(b.key)}">${metricLabel(b.key)}</a>
+      <div class="top3">
+        <a class="top3-title" href="/leaderboards?metric=${encodeURIComponent(b.key)}">${metricLabel(b.key)}</a>
         ${b.rows.map((r, i) => {
           /* Same fallback the recent cards use: initials on a colour derived
              from the name, so a row is never a blank circle. */
           const pic = r.avatar
-            ? `<span class="podium-pic" style="background:center/cover no-repeat url('${r.avatar}')"></span>`
-            : `<span class="podium-pic" style="background:${SOT.avatarColor(r.name)}">${SOT.initials(r.name)}</span>`;
+            ? `<span class="top3-pic" style="background:center/cover no-repeat url('${r.avatar}')"></span>`
+            : `<span class="top3-pic" style="background:${SOT.avatarColor(r.name)}">${SOT.initials(r.name)}</span>`;
           return `
-          <a class="podium-row" href="/profile?player=${encodeURIComponent(r.name)}">
-            <span class="podium-rank r${i + 1}">${i + 1}</span>
+          <a class="top3-row" href="/profile?player=${encodeURIComponent(r.name)}">
+            <span class="top3-rank r${i + 1}">${i + 1}</span>
             ${pic}
-            <span class="podium-name">${r.name}</span>
-            <span class="podium-value">${SOT.formatCompact(r.value)}</span>
+            <span class="top3-name">${r.name}</span>
+            <span class="top3-value">${SOT.formatCompact(r.value)}</span>
           </a>`;
         }).join('')}
       </div>`).join('');
@@ -184,7 +184,7 @@
   }
 
   function renderMenu() {
-    const menu = document.getElementById('podium-menu');
+    const menu = document.getElementById('top3-menu');
     if (!menu) return;
     const chosen = picked();
 
@@ -192,7 +192,7 @@
       const on = chosen.includes(m.key);
       // At the cap, the unchecked ones go quiet rather than silently doing nothing.
       const full = !on && chosen.length >= MAX_PICKED;
-      return `<label class="podium-opt${full ? ' is-full' : ''}">
+      return `<label class="top3-opt${full ? ' is-full' : ''}">
           <input type="checkbox" value="${m.key}" ${on ? 'checked' : ''} ${full ? 'disabled' : ''} />
           <span>${m.label}</span>
         </label>`;
@@ -224,8 +224,8 @@
     renderMenu();
     await renderPodiums();
 
-    const btn = document.getElementById('podium-pick');
-    const menu = document.getElementById('podium-menu');
+    const btn = document.getElementById('top3-pick');
+    const menu = document.getElementById('top3-menu');
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       menu.hidden = !menu.hidden;
