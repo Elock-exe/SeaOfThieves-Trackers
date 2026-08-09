@@ -749,20 +749,58 @@ async function autoSyncSettings() {
   };
 }
 
-async function applyAutoSync() {
+/**
+ * Arms the alarm, and — the important part — leaves an already-correct one
+ * alone.
+ *
+ * This used to clear and recreate on every call, and it is called whenever
+ * this script starts. Under MV3 that is constantly: the background context
+ * is an event page, torn down when idle and restarted for each event, so
+ * opening the popup or receiving a message runs this file again from the
+ * top. Every one of those restarts reset a 60-minute countdown to 60
+ * minutes. The script woke far more often than that, so the deadline was
+ * never reached and the alarm could not fire — not "rarely", never. Only
+ * the button ever worked, which is exactly how it behaved.
+ *
+ * @param force  rebuild even if one exists — used when the interval changes,
+ *               since that is the one case where the old alarm is wrong.
+ */
+async function applyAutoSync(force) {
   if (!api.alarms) return null; // permission not granted in this build
   const { enabled, minutes } = await autoSyncSettings();
 
-  await api.alarms.clear(AUTO_ALARM).catch(() => {});
-  if (!enabled) return { enabled: false, minutes };
+  const existing = await Promise.resolve(api.alarms.get(AUTO_ALARM)).catch(() => null);
 
+  if (!enabled) {
+    if (existing) await api.alarms.clear(AUTO_ALARM).catch(() => {});
+    return { enabled: false, minutes };
+  }
+
+  if (existing && !force && existing.periodInMinutes === minutes) {
+    return { enabled: true, minutes, kept: true };
+  }
+
+  await api.alarms.clear(AUTO_ALARM).catch(() => {});
   api.alarms.create(AUTO_ALARM, { periodInMinutes: minutes, delayInMinutes: minutes });
   return { enabled: true, minutes };
 }
 
+/* Alarms do not survive the browser being closed, and neither does the
+   time spent shut down. Without this, closing Firefox overnight means the
+   stats are as old as the last session — so a run is scheduled shortly
+   after startup to catch up, rather than waiting out a fresh hour. */
+const CATCHUP_ALARM = 'sot-catchup';
+
+async function scheduleCatchup() {
+  if (!api.alarms) return;
+  const { enabled } = await autoSyncSettings();
+  if (!enabled) return;
+  api.alarms.create(CATCHUP_ALARM, { delayInMinutes: 1 });
+}
+
 if (api.alarms) {
   api.alarms.onAlarm.addListener((alarm) => {
-    if (!alarm || alarm.name !== AUTO_ALARM) return;
+    if (!alarm || (alarm.name !== AUTO_ALARM && alarm.name !== CATCHUP_ALARM)) return;
     /* A background run has nobody watching it, so a failure must not surface
        as an unhandled rejection — the last attempt is recorded in storage
        either way and the popup shows it on open. */
@@ -771,8 +809,16 @@ if (api.alarms) {
 }
 
 // Re-arm after an update or a browser restart; alarms do not survive either.
-if (api.runtime.onInstalled) api.runtime.onInstalled.addListener(() => { applyAutoSync(); });
-if (api.runtime.onStartup) api.runtime.onStartup.addListener(() => { applyAutoSync(); });
+/* An update replaces the code but not the alarm, so a stale period would
+   otherwise outlive the change: force a rebuild here, and only here. */
+if (api.runtime.onInstalled) {
+  api.runtime.onInstalled.addListener(() => { applyAutoSync(true); scheduleCatchup(); });
+}
+if (api.runtime.onStartup) {
+  api.runtime.onStartup.addListener(() => { applyAutoSync(); scheduleCatchup(); });
+}
+/* Runs on every script start, which is often — hence the "leave a correct
+   alarm alone" rule above. Its job is to arm one if none exists at all. */
 applyAutoSync();
 
 api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -784,7 +830,9 @@ api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         autoSync: Boolean(msg.enabled),
         autoSyncMinutes: Math.max(MIN_INTERVAL_MIN, Number(msg.minutes) || DEFAULT_INTERVAL_MIN)
       });
-      const applied = await applyAutoSync();
+      // Forced: someone just chose this, so it takes effect now rather than
+      // at the end of a period they no longer want.
+      const applied = await applyAutoSync(true);
       return Object.assign({ ok: true, min: MIN_INTERVAL_MIN }, applied || await autoSyncSettings());
     })();
 
