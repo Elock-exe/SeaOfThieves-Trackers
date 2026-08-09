@@ -222,11 +222,25 @@
     if (p.pirateLegend) {
       pills.push(`<span class="meta-pill meta-legend">★ ${t('profile.pirateLegend')}</span>`);
     }
+    /* Filled in once the count comes back, so a slow or missing counter
+       never delays the rest of the header. */
+    pills.push(`<span class="meta-pill" id="p-views" hidden></span>`);
     // Status badges, so linked/unlinked reads the same everywhere.
     pills.push(p.linked
       ? SOTBadge.badge(t('profile.linked'), 'success')
       : SOTBadge.badge(t('profile.notLinked'), 'expired'));
     document.getElementById('p-meta').innerHTML = pills.join('');
+
+    /* Deliberately not awaited: the count is the least important thing on
+       this page, and the header should not wait on a write. */
+    SOT.countView(p.name).then((views) => {
+      const el = document.getElementById('p-views');
+      if (!el || !views) return;   // 0 or null: say nothing rather than "0 views"
+      el.textContent = SOT.formatNumber(views) + ' ' +
+        t(views === 1 ? 'profile.viewOne' : 'profile.views');
+      el.title = t('profile.viewsHint');
+      el.hidden = false;
+    });
 
     /* ---------- unlinked: explain rather than show nothing ---------- */
     const cta = document.getElementById('link-cta');

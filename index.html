@@ -45,6 +45,11 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 2.6 2.8 15.4 0 18M12 3c-2.8 2.6-2.8 15.4 0 18"/></svg>
           <div><span class="hs-label" data-i18n="hero.serverStatus">Server Status</span><span class="hs-value" data-i18n="hero.serversOnline">All Servers Online</span></div>
         </div>
+        <div class="hs-divider" id="hs-pirates-divider" hidden></div>
+        <div class="hs-item" id="hs-pirates" hidden>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+          <div><span class="hs-label" data-i18n="hero.linkedPirates">Linked pirates</span><span class="hs-value" id="hs-pirates-value">—</span></div>
+        </div>
       </div>
     </div>
 
@@ -52,6 +57,18 @@
       <div class="promo-card" id="promo-card"></div>
       <div class="section-label" data-i18n="recent.title">Recently viewed</div>
       <div class="top-trio" id="top-trio"></div>
+
+      <div class="podium-block" id="podium-block" hidden>
+        <div class="section-label podium-head">
+          <span data-i18n="podium.title">Top 3</span>
+          <button type="button" id="podium-pick" class="podium-pick"
+                  data-i18n-attr="title:podium.choose" title="Choose leaderboards">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
+          </button>
+        </div>
+        <div class="podium-menu" id="podium-menu" hidden></div>
+        <div id="podium-list"></div>
+      </div>
     </div>
   </div>
 </section>

@@ -368,6 +368,38 @@ const server = http.createServer(async (req, res) => {
      The handle is now required. */
   /* Rankings across every published pirate. Public, like the profiles
      they are built from. */
+  /* How far along the project is, in one number. Cheap enough to answer
+     on every homepage load, and the only figure a visitor can use to judge
+     whether the leaderboards are worth reading yet. */
+  if (url.pathname === '/api/stats') {
+    try {
+      return send(res, 200, { pirates: await require('./db').countPirates() });
+    } catch (err) {
+      return fail(res, err);
+    }
+  }
+
+  /* A view is a POST because it changes something. GET would let a link
+     preview, a prefetch or a crawler inflate the count without a human
+     ever seeing the page. */
+  if (url.pathname === '/api/views') {
+    const handle = url.searchParams.get('handle');
+    if (!handle) {
+      return send(res, 400, {
+        error: { code: 'handle_required', message: 'Name the pirate: /api/views?handle=YourPirate' }
+      });
+    }
+    try {
+      const db = require('./db');
+      const views = req.method === 'POST'
+        ? await db.bumpViews(handle)
+        : await db.viewsFor(handle);
+      return send(res, 200, { handle, views: views == null ? 0 : views });
+    } catch (err) {
+      return fail(res, err);
+    }
+  }
+
   if (url.pathname === '/api/leaderboard/metrics') {
     return send(res, 200, { metrics: leaderboard.metrics() });
   }

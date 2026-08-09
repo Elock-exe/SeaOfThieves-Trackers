@@ -26,6 +26,7 @@ const path = require('path');
 const DIR = path.join(__dirname, '..', 'data');
 const SNAPSHOTS = path.join(DIR, 'snapshots.jsonl');
 const ACCOUNTS = path.join(DIR, 'accounts.json');
+const VIEWS = path.join(DIR, 'views.json');
 
 const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const SUPABASE_KEY = process.env.SUPABASE_KEY || '';
@@ -87,6 +88,37 @@ const fileDriver = {
     map[id] = rec;
     fs.writeFileSync(ACCOUNTS, JSON.stringify(map, null, 2), 'utf8');
     return rec;
+  },
+
+  /* Views are keyed lower-case for the same reason snapshots are matched
+     with ilike: Rare treats gamertags case-insensitively, and a counter
+     that splits "Vyros" from "vyros" would quietly halve itself. */
+  async bumpViews(handle) {
+    ensureDir();
+    let map = {};
+    try {
+      map = JSON.parse(fs.readFileSync(VIEWS, 'utf8'));
+    } catch (e) { /* first view ever */ }
+    const key = String(handle).toLowerCase();
+    map[key] = (Number(map[key]) || 0) + 1;
+    fs.writeFileSync(VIEWS, JSON.stringify(map, null, 2), 'utf8');
+    return map[key];
+  },
+
+  async viewsFor(handle) {
+    try {
+      const map = JSON.parse(fs.readFileSync(VIEWS, 'utf8'));
+      return Number(map[String(handle).toLowerCase()]) || 0;
+    } catch (e) {
+      return 0;
+    }
+  },
+
+  /** Distinct pirates who have ever published — the "how far along is this"
+   *  number, not a row count. */
+  async countPirates() {
+    const all = await this.snapshotsFor(null);
+    return new Set(all.map((r) => String(r.handle || '').toLowerCase()).filter(Boolean)).size;
   }
 };
 
@@ -178,6 +210,49 @@ const supabaseDriver = {
       body: Object.assign({ id }, rec)
     });
     return rec;
+  },
+
+  /* Read then upsert, because PostgREST cannot express "count = count + 1"
+     without a stored procedure, and this project keeps its schema to plain
+     tables. Two views landing in the same instant can therefore cost one
+     of them — an acceptable trade for a view counter, and not one for
+     anything that must balance.
+
+     A missing `views` table is treated as "no views yet" rather than an
+     error: the rest of the profile is worth more than the counter, and a
+     deployment that has not run the migration should degrade, not break. */
+  async bumpViews(handle) {
+    const key = String(handle).toLowerCase();
+    try {
+      const rows = await rest(`views?handle=eq.${encodeURIComponent(key)}&limit=1`);
+      const next = (Number(rows && rows[0] && rows[0].count) || 0) + 1;
+      await rest('views', {
+        method: 'POST',
+        headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: { handle: key, count: next }
+      });
+      return next;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  async viewsFor(handle) {
+    try {
+      const rows = await rest(
+        `views?handle=eq.${encodeURIComponent(String(handle).toLowerCase())}&limit=1`);
+      return Number(rows && rows[0] && rows[0].count) || 0;
+    } catch (e) {
+      return 0;
+    }
+  },
+
+  async countPirates() {
+    // Only the handle column travels: the snapshots themselves are large.
+    const rows = await rest('snapshots?select=handle');
+    return new Set((rows || [])
+      .map((r) => String(r.handle || '').toLowerCase())
+      .filter(Boolean)).size;
   }
 };
 

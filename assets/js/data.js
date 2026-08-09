@@ -445,8 +445,49 @@
     return String(name || '?').slice(0, 2).toUpperCase();
   }
 
+  /* Counted once per browser session per pirate. Without the guard a
+     refresh, a back button or a language switch would each read as another
+     visitor, and the number would measure reloads rather than interest. */
+  const VIEWED_KEY = 'sot-viewed';
+
+  async function countView(handle) {
+    if (!handle) return null;
+    const key = String(handle).toLowerCase();
+    let seen = [];
+    try { seen = JSON.parse(sessionStorage.getItem(VIEWED_KEY) || '[]'); } catch (e) { /* first view */ }
+
+    const method = seen.includes(key) ? 'GET' : 'POST';
+    if (method === 'POST') {
+      seen.push(key);
+      try { sessionStorage.setItem(VIEWED_KEY, JSON.stringify(seen)); } catch (e) { /* private mode */ }
+    }
+
+    try {
+      const res = await fetch(
+        API_BASE + '/api/views?handle=' + encodeURIComponent(handle),
+        { method, cache: 'no-store' });
+      if (!res.ok) return null;
+      const body = await res.json();
+      return typeof body.views === 'number' ? body.views : null;
+    } catch (e) {
+      return null;   // a missing counter must never cost the profile
+    }
+  }
+
+  /** How many pirates have ever published. Null when the API cannot say. */
+  async function projectStats() {
+    try {
+      const body = await call('/api/stats');
+      return { pirates: Number(body.pirates) || 0 };
+    } catch (e) {
+      return null;
+    }
+  }
+
   global.SOT = {
     API_BASE,
+    countView,
+    projectStats,
     playerFromQuery,
     platformFromQuery,
     apiHealth,

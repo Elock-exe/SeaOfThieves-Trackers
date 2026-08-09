@@ -309,16 +309,17 @@ button { font-family: inherit; cursor: pointer; }
 .hero h1.hero-wordmark::before {
   content: "";
   display: block;
-  height: 240px;
+  height: 140px;
   aspect-ratio: 400 / 100;
   max-width: 100%;
+  margin-inline: auto;
   /* The artwork's own ink, sampled from its opaque pixels: a flat #959499
      with no gradient, so the mask reproduces it exactly rather than
      flattening a shade the design intended. Changing the wordmark's colour
      is this one line. */
   background-color: #959499;
-  -webkit-mask: url('/assets/img/logo-wordmark.png') left center / contain no-repeat;
-  mask: url('/assets/img/logo-wordmark.png') left center / contain no-repeat;
+  -webkit-mask: url('/assets/img/logo-wordmark.png') center / contain no-repeat;
+  mask: url('/assets/img/logo-wordmark.png') center / contain no-repeat;
 }
 
 .hero p.lede {
@@ -1090,13 +1091,100 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
 .panel-body { padding: 6px 0; }
 .panel-body.padded { padding: 18px; }
 
+/* ---------- top-3 podiums on the home page ---------- */
+.podium-block { margin-top: 22px; }
+.podium-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.podium-pick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  flex: none;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-3);
+  cursor: pointer;
+}
+.podium-pick:hover { color: var(--text-0); border-color: var(--text-3); }
+
+/* Anchored to the block rather than the button so it cannot be clipped by
+   the narrow column it opens in. */
+.podium-menu {
+  position: relative;
+  margin: 8px 0 12px;
+  padding: 8px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.podium-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 4px;
+  font-size: 12.5px;
+  color: var(--text-1);
+  cursor: pointer;
+  border-radius: 4px;
+}
+.podium-opt:hover { background: rgba(255, 255, 255, 0.04); }
+.podium-opt input { accent-color: var(--red); flex: none; }
+/* At the cap the unpickable ones say so, instead of ignoring the click. */
+.podium-opt.is-full { opacity: 0.4; cursor: not-allowed; }
+
+.podium + .podium { margin-top: 14px; }
+.podium-title {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+.podium-title:hover { color: var(--red); }
+.podium-row {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--text-1);
+  font-size: 13px;
+}
+.podium-row:hover { background: rgba(255, 255, 255, 0.04); color: var(--text-0); }
+.podium-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f1923;
+  background: var(--text-3);
+}
+.podium-rank.r1 { background: #ffd76a; }
+.podium-rank.r2 { background: #cfd6dd; }
+.podium-rank.r3 { background: #d59b6a; }
+.podium-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.podium-value { font-variant-numeric: tabular-nums; color: var(--text-2); }
+
 /* ---------- responsive ---------- */
 @media (max-width: 960px) {
   .card-grid { grid-template-columns: 1fr; }
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .two-col { grid-template-columns: 1fr; }
   .hero h1 { font-size: 42px; }
-  .hero h1.hero-wordmark::before { height: 164px; }
+  .hero h1.hero-wordmark::before { height: 104px; }
   .subnav-search form { width: 180px; }
 }
 @media (max-width: 640px) {
@@ -1118,7 +1206,7 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   /* Sized down on purpose rather than left to the width cap: at 60px the
      wordmark is wider than a phone, so it would be scaled by a constraint
      instead of by intent. */
-  .hero h1.hero-wordmark::before { height: 80px; }
+  .hero h1.hero-wordmark::before { height: 68px; }
   .kpi-grid { grid-template-columns: 1fr; }
   .subnav-search form { width: 140px; }
   /* Four tracks, not three — the last one carries the distinction badge,
@@ -1134,9 +1222,21 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   gap: 44px;
   align-items: start;
 }
-/* No anchor beside the title any more, so no gap to leave for it either —
-   the row is a single column now and the wordmark starts at the margin. */
-.hero-head { display: flex; align-items: center; margin-bottom: 30px; }
+/* A grid item will not shrink below its content unless told to: min-width
+   defaults to auto. So a wide wordmark did not overflow — it widened its
+   own column and took the space out of the one beside it, which is why the
+   promo card ended up two words per line. The ratio above is meant to be
+   the ratio, whatever is dropped into either side. */
+.hero-grid > * { min-width: 0; }
+
+/* No anchor beside the title any more, so no gap to leave for it either. */
+.hero-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-bottom: 30px;
+}
 .hero-head h1 { font-size: 44px; margin: 0; letter-spacing: 1px; }
 .hero-head .lede { margin: 6px 0 0; font-size: 15px; }
 
@@ -1335,7 +1435,6 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
 @media (max-width: 960px) {
   .hero-grid { grid-template-columns: 1fr; gap: 28px; }
   .hero-head h1 { font-size: 34px; }
-  .hero-mark { width: 48px; height: 48px; }
 }
 @media (max-width: 640px) {
   .top-trio { grid-template-columns: 1fr; }
