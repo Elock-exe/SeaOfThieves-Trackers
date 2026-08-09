@@ -273,7 +273,8 @@ const supabaseDriver = {
         `views?handle=eq.${encodeURIComponent(String(handle).toLowerCase())}&limit=1`);
       return Number(rows && rows[0] && rows[0].count) || 0;
     } catch (e) {
-      return 0;
+      // null, not 0: a table we cannot read is not a pirate nobody opened.
+      return null;
     }
   },
 

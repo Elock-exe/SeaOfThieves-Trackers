@@ -235,7 +235,11 @@
        this page, and the header should not wait on a write. */
     SOT.countView(p.name).then((views) => {
       const el = document.getElementById('p-views');
-      if (!el || !views) return;   // 0 or null: say nothing rather than "0 views"
+      /* Zero is shown; unknown is not. A pirate nobody has opened yet is a
+         fact worth printing, and it is the honest starting point for a
+         counter — but null means the counter could not be read at all, and
+         printing "0" for that would state something untrue. */
+      if (!el || typeof views !== 'number') return;
       el.textContent = SOT.formatNumber(views) + ' ' +
         t(views === 1 ? 'profile.viewOne' : 'profile.views');
       el.title = t('profile.viewsHint');

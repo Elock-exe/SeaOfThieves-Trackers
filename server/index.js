@@ -411,10 +411,13 @@ const server = http.createServer(async (req, res) => {
     }
     try {
       const db = require('./db');
+      /* null travels as null. Flattening it to 0 made "nobody has opened
+         this" and "the counter is not available" the same answer, and the
+         page cannot show an honest zero if it cannot tell them apart. */
       const views = req.method === 'POST'
         ? await db.bumpViews(handle)
         : await db.viewsFor(handle);
-      return send(res, 200, { handle, views: views == null ? 0 : views });
+      return send(res, 200, { handle, views: typeof views === 'number' ? views : null });
     } catch (err) {
       return fail(res, err);
     }
