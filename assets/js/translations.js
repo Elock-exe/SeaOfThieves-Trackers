@@ -288,6 +288,8 @@
     /* Was "start the local API with npm start" — the free host sleeps when
        idle, so the first visitor after a quiet spell is exactly who saw it,
        and there is nothing for them to start. */
+    'api.waking': "The tracker is waking up — this can take up to a minute after a quiet period.",
+    'api.wakeFailed': "The server did not answer in time. Reload in a moment.",
     'link.apiDownStrong': "The tracker is not answering.",
     'link.apiDownBody': "It may be waking up — that takes up to a minute after a quiet period. Reload in a moment.",
 
@@ -1262,6 +1264,8 @@
     'link.step6': "Relance l’API (Ctrl+C dans son terminal, puis npm start)",
     'link.filePath': "Fichier à modifier",
 
+    'api.waking': "Le tracker se réveille — cela peut prendre jusqu’à une minute après une période creuse.",
+    'api.wakeFailed': "Le serveur n’a pas répondu à temps. Recharge la page dans un instant.",
     'link.apiDownStrong': "Le tracker ne répond pas.",
     'link.apiDownBody': "Il est peut-être en train de se réveiller — cela prend jusqu’à une minute après une période creuse. Recharge dans un instant.",
 

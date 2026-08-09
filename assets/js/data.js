@@ -67,10 +67,32 @@
     return err;
   }
 
+  /* The API sleeps when idle — free hosting — and the first request after a
+     quiet spell wakes it, which can take the better part of a minute. An
+     unbounded fetch turns that into a spinner with no end and no
+     explanation, which reads as a broken site rather than a slow one.
+     So: a ceiling above the cold start, and a nudge to whoever is waiting
+     once it stops looking instantaneous. */
+  const WAKE_BUDGET_MS = 70000;
+  const SLOW_AFTER_MS = 2500;
+
+  async function apiFetch(path, opts) {
+    const o = opts || {};
+    const ctl = new AbortController();
+    const cap = setTimeout(() => ctl.abort(), o.timeout || WAKE_BUDGET_MS);
+    const slow = o.onSlow ? setTimeout(o.onSlow, SLOW_AFTER_MS) : null;
+    try {
+      return await fetch(API_BASE + path, { cache: 'no-store', signal: ctl.signal });
+    } finally {
+      clearTimeout(cap);
+      if (slow) clearTimeout(slow);
+    }
+  }
+
   async function call(path) {
     let res;
     try {
-      res = await fetch(API_BASE + path, { cache: 'no-store' });
+      res = await apiFetch(path);
     } catch (e) {
       const err = new Error('The local API is not running');
       err.code = 'api_down';
@@ -486,6 +508,7 @@
 
   global.SOT = {
     API_BASE,
+    apiFetch,
     countView,
     projectStats,
     playerFromQuery,

@@ -267,7 +267,24 @@
 
   /* ---------- data ---------- */
 
-  async function load() {
+  /* Says "waking up" once the wait stops looking instantaneous, so a cold
+     start reads as a slow server rather than a broken page. */
+  function sayWaking() {
+    setState(translate('lb.loading', 'Chargement…'),
+             translate('api.waking',
+               'Le tracker se réveille — cela peut prendre jusqu’à une minute après une période creuse.'));
+  }
+
+  async function fetchBoard(metric) {
+    const res = await SOT.apiFetch(
+      '/api/leaderboard?metric=' + encodeURIComponent(metric) + '&limit=50',
+      { onSlow: sayWaking });
+    const body = await res.json();
+    if (!res.ok) throw new Error((body.error && body.error.message) || 'HTTP ' + res.status);
+    return body;
+  }
+
+  async function load(prefetched) {
     setState(translate('lb.loading', 'Chargement…'));
     podiumEl.replaceChildren();
     bodyEl.replaceChildren();
@@ -275,12 +292,15 @@
 
     let data;
     try {
-      const res = await fetch(SOT.API_BASE + '/api/leaderboard?metric=' +
-        encodeURIComponent(state.metric) + '&limit=50', { cache: 'no-store' });
-      data = await res.json();
-      if (!res.ok) throw new Error((data.error && data.error.message) || 'HTTP ' + res.status);
+      data = prefetched || await fetchBoard(state.metric);
     } catch (e) {
-      setState(translate('error.apiDown', 'Classements indisponibles'), e.message);
+      const aborted = e && e.name === 'AbortError';
+      setState(
+        translate('error.apiDown', 'Classements indisponibles'),
+        aborted
+          ? translate('api.wakeFailed',
+              'Le serveur n’a pas répondu à temps. Recharge la page dans un instant.')
+          : e.message);
       return;
     }
 
@@ -311,23 +331,43 @@
   }
 
   async function init() {
-    try {
-      const res = await fetch(SOT.API_BASE + '/api/leaderboard/metrics', { cache: 'no-store' });
-      const data = await res.json();
-      state.available = (data.metrics || []).map((m) => m.key);
-    } catch (e) {
-      state.available = [];
-    }
+    setState(translate('lb.loading', 'Chargement…'));
+
+    /* Both requests go out together. They used to run one after the other,
+       so a sleeping server was paid for twice: the metric list woke it, and
+       only then did the board start loading. The board does not depend on
+       the list — the list only decides whether the requested metric is a
+       real one, which is checked below, after both have landed. */
+    const [metricsResult, boardResult] = await Promise.allSettled([
+      SOT.apiFetch('/api/leaderboard/metrics', { onSlow: sayWaking }).then((r) => r.json()),
+      fetchBoard(state.metric)
+    ]);
+
+    state.available = metricsResult.status === 'fulfilled'
+      ? ((metricsResult.value.metrics || []).map((m) => m.key))
+      : [];
 
     if (!state.available.length) {
+      const err = metricsResult.reason;
       setState(translate('error.apiDown', 'API injoignable'),
-               'Les classements viennent du serveur — il ne répond pas.');
+        err && err.name === 'AbortError'
+          ? translate('api.wakeFailed',
+              'Le serveur n’a pas répondu à temps. Recharge la page dans un instant.')
+          : 'Les classements viennent du serveur — il ne répond pas.');
       return;
     }
-    if (!state.available.includes(state.metric)) state.metric = state.available[0];
 
     renderMetrics();
-    load();
+
+    /* The board we already have is only usable if it is the one still
+       wanted — an unknown metric in the URL falls back to the first real
+       one, and that needs a fresh request. */
+    if (!state.available.includes(state.metric)) {
+      state.metric = state.available[0];
+      renderMetrics();
+      return load();
+    }
+    load(boardResult.status === 'fulfilled' ? boardResult.value : null);
   }
 
   init();
