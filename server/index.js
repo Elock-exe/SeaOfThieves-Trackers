@@ -132,6 +132,43 @@ async function lookupOne(provider, id) {
   return provider.fetchSnapshot(identity);
 }
 
+/** Files a pirate's public hours, so the playtime board can rank them. */
+function storePublic(snap, fallbackHandle) {
+  if (!snap || !snap.playtime || typeof snap.playtime.totalHours !== 'number') return null;
+  return require('./db').putPublicPlayer({
+    handle: (snap.identity && snap.identity.handle) || fallbackHandle,
+    playtimeHours: snap.playtime.totalHours,
+    avatar: (snap.identity && snap.identity.avatar) || null,
+    source: snap.source,
+    seenAt: new Date().toISOString()
+  });
+}
+
+/* Linked pirates were reaching the playtime board only if somebody happened
+   to search them by name — their own syncs carry no hours, because Rare does
+   not report any. So the one group guaranteed to be on every other board was
+   the group missing from this one.
+
+   A sync now looks the pirate up on the public side too. Fire and forget:
+   the extension is waiting on this request, and an hours figure is not worth
+   making it wait, nor worth failing a sync that already succeeded. */
+function recordPublicPlaytime(handle) {
+  if (!handle) return;
+  const usable = Object.values(PROVIDERS).filter((p) => p.isConfigured());
+  if (!usable.length) return;
+
+  Promise.allSettled(usable.map((p) => lookupOne(p, handle)))
+    .then((results) => {
+      const hit = results
+        .filter((r) => r.status === 'fulfilled')
+        .map((r) => r.value)
+        .find((s) => s && s.playtime && typeof s.playtime.totalHours === 'number');
+      if (hit) return storePublic(hit, handle);
+      return null;
+    })
+    .catch(() => { /* the board can wait for the next sync */ });
+}
+
 /** How useful a snapshot is, for picking a winner when both platforms answer. */
 function richness(snap) {
   let n = 0;
@@ -206,17 +243,9 @@ async function handlePlayer(req, res, url) {
 
      Not awaited, and never allowed to fail the lookup: the profile the
      visitor asked for matters more than the board. */
-  if (winner.playtime && typeof winner.playtime.totalHours === 'number') {
-    Promise.resolve()
-      .then(() => require('./db').putPublicPlayer({
-        handle: (winner.identity && winner.identity.handle) || id,
-        playtimeHours: winner.playtime.totalHours,
-        avatar: (winner.identity && winner.identity.avatar) || null,
-        source: winner.source,
-        seenAt: new Date().toISOString()
-      }))
-      .catch(() => { /* a board is not worth a 500 */ });
-  }
+  Promise.resolve()
+    .then(() => storePublic(winner, id))
+    .catch(() => { /* a board is not worth a 500 */ });
 
   return send(res, 200, winner);
 }
@@ -361,6 +390,7 @@ const server = http.createServer(async (req, res) => {
       });
 
       console.log(`[api] /sync ok — ${handle} (${count} snapshots${auth.first ? ', new account' : ''})`);
+      recordPublicPlaytime(handle);
       return send(res, 200, { ok: true, handle, snapshots: count, probes: bundle.probes });
     } catch (err) {
       return fail(res, err);
