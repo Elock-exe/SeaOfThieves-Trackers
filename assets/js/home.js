@@ -104,7 +104,11 @@
      shows up here without touching this file. Which ones are on screen is
      the reader's choice, kept in this browser. */
   const PICKED_KEY = 'sot-podium-metrics';
-  const DEFAULT_METRICS = ['gold', 'doubloons', 'servants'];
+  /* The Hourglass allegiance, both sides of it. Gold and doubloons rank
+     whoever has played longest, which says little; allegiance is the one
+     board that ranks PvP results, so it is the one worth leading with.
+     Every other metric is a click away in the picker. */
+  const DEFAULT_METRICS = ['servants', 'guardians'];
   const MAX_PICKED = 4;
 
   let allMetrics = [];
