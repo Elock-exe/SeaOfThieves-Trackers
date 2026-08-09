@@ -1,0 +1,52 @@
+# Keeps the API from falling asleep.
+#
+# Render's free plan spins a service down after ~15 minutes without
+# traffic, and the next visitor pays for the wake-up — up to a minute of
+# "loading" before anything appears. On a site nobody has heard of yet,
+# that is almost every visitor: the first one after a quiet spell is the
+# one deciding whether to come back.
+#
+# A request every ten minutes keeps it warm. /api/health is the cheapest
+# route there is — it reads no data and touches no provider.
+#
+# Two things worth knowing before relying on this:
+#
+#   * GitHub's scheduler is best-effort. A cron here can be late by five
+#     or fifteen minutes under load, which occasionally lets the service
+#     nap. If that matters, an external pinger (cron-job.org, UptimeRobot)
+#     fires far more punctually — this file is the version that needs no
+#     third-party account.
+#
+#   * GitHub disables scheduled workflows on a repository with no commits
+#     for 60 days. If the API starts sleeping again months from now, this
+#     is the first place to look.
+#
+# The real fix is Render's paid tier, which does not sleep at all. This is
+# a workaround, and it stops being needed the moment the site has enough
+# traffic to keep itself awake.
+
+name: Keep the API awake
+
+on:
+  schedule:
+    # Every ten minutes: comfortably inside the ~15 minute idle window,
+    # with room for the scheduler running late.
+    - cron: '*/10 * * * *'
+  # So it can be fired by hand after a deploy, without waiting for the tick.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake the API
+        run: |
+          # --max-time 90 rather than curl's default: a cold start is the
+          # case this exists for, so timing out on one would be perverse.
+          # -f makes an HTTP error an exit code; -sS keeps the log quiet
+          # unless something actually goes wrong.
+          curl -fsS --max-time 90 \
+            https://sot-tracker-api-8vqc.onrender.com/api/health
