@@ -312,7 +312,11 @@ button { font-family: inherit; cursor: pointer; }
   height: 140px;
   aspect-ratio: 400 / 100;
   max-width: 100%;
+  /* Centred, then nudged left. The wordmark's own art carries more empty
+     space on its right than its left — that flourish off the R — so true
+     centring reads as sitting slightly too far right. */
   margin-inline: auto;
+  transform: translateX(-26px);
   /* The artwork's own ink, sampled from its opaque pixels: a flat #959499
      with no gradient, so the mask reproduces it exactly rather than
      flattening a shade the design intended. Changing the wordmark's colour
@@ -1152,7 +1156,7 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
 .podium-title:hover { color: var(--red); }
 .podium-row {
   display: grid;
-  grid-template-columns: 22px 1fr auto;
+  grid-template-columns: 22px 26px 1fr auto;
   align-items: center;
   gap: 9px;
   padding: 6px 8px;
@@ -1175,6 +1179,19 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
 .podium-rank.r1 { background: #ffd76a; }
 .podium-rank.r2 { background: #cfd6dd; }
 .podium-rank.r3 { background: #d59b6a; }
+.podium-pic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex: none;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.3px;
+}
 .podium-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .podium-value { font-variant-numeric: tabular-nums; color: var(--text-2); }
 

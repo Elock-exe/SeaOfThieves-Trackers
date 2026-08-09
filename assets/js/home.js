@@ -147,7 +147,7 @@
            page reads it too. Guessing wrong here rendered three podiums of
            "undefined" while every request came back 200. */
         const rows = (body.entries || []).slice(0, 3)
-          .map((r) => ({ name: r.handle, value: r.value }))
+          .map((r) => ({ name: r.handle, value: r.value, avatar: r.avatar }))
           .filter((r) => r.name);
         return rows.length ? { key, rows } : null;
       } catch (e) {
@@ -161,12 +161,20 @@
     list.innerHTML = live.map((b) => `
       <div class="podium">
         <a class="podium-title" href="/leaderboards?metric=${encodeURIComponent(b.key)}">${metricLabel(b.key)}</a>
-        ${b.rows.map((r, i) => `
+        ${b.rows.map((r, i) => {
+          /* Same fallback the recent cards use: initials on a colour derived
+             from the name, so a row is never a blank circle. */
+          const pic = r.avatar
+            ? `<span class="podium-pic" style="background:center/cover no-repeat url('${r.avatar}')"></span>`
+            : `<span class="podium-pic" style="background:${SOT.avatarColor(r.name)}">${SOT.initials(r.name)}</span>`;
+          return `
           <a class="podium-row" href="/profile?player=${encodeURIComponent(r.name)}">
             <span class="podium-rank r${i + 1}">${i + 1}</span>
+            ${pic}
             <span class="podium-name">${r.name}</span>
             <span class="podium-value">${SOT.formatCompact(r.value)}</span>
-          </a>`).join('')}
+          </a>`;
+        }).join('')}
       </div>`).join('');
     block.hidden = false;
   }
