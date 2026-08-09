@@ -227,7 +227,8 @@ autoMins.addEventListener('change', () => { if (autoBox.checked) pushAutoSync();
 
 async function init() {
   await initAutoSync();
-  const stored = await api.storage.local.get(['trackerBase', 'lastSync', 'pirateHandle']);
+  const stored = await api.storage.local.get(
+    ['trackerBase', 'lastSync', 'lastAttempt', 'pirateHandle']);
   trackerInput.value = stored.trackerBase || DEFAULT_TRACKER;
   pirateInput.value = stored.pirateHandle || '';
 
@@ -240,7 +241,26 @@ async function init() {
       { hints: [healed.corrected + ' has no API — now using ' + healed.base + '.'] });
   }
 
-  if (stored.lastSync) {
+  /* A failed run that is newer than the last success is the thing worth
+     saying. Showing "last synced <old date>" on its own is how an hourly
+     sync could break and still look healthy for a day. */
+  const attempt = stored.lastAttempt;
+  const failedSince = attempt && !attempt.ok &&
+    (!stored.lastSync || attempt.at > stored.lastSync.at);
+
+  if (failedSince && !healed.corrected) {
+    const when = new Date(attempt.at).toLocaleString();
+    show('err', 'Automatic sync is failing — last tried ' + when, {
+      hints: [
+        attempt.message || '',
+        HINTS[attempt.code] || HINTS.unknown,
+        stored.lastSync
+          ? 'Stats on the tracker are from ' + new Date(stored.lastSync.at).toLocaleString() + '.'
+          : ''
+      ]
+    });
+    if (stored.lastSync) renderProbes(stored.lastSync.probes, stored.lastSync.phases);
+  } else if (stored.lastSync) {
     // Don't clobber the correction notice — it is the more useful message.
     if (!healed.corrected) {
       const when = new Date(stored.lastSync.at).toLocaleString();

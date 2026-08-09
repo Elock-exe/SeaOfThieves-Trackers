@@ -681,10 +681,35 @@ async function runSync() {
    someone is clicking joins the run in progress instead of racing it. */
 let inFlight = null;
 
+/* Every attempt is recorded, not just the ones that work.
+   `lastSync` holds the last SUCCESS — the popup has always shown it — so a
+   run that failed left the previous success on screen and looked like
+   nothing had gone wrong. An automatic sync failing quietly every hour is
+   worse than one that never runs: the stats sit there looking current. */
+async function recordAttempt(outcome) {
+  try {
+    await api.storage.local.set({ lastAttempt: outcome });
+  } catch (e) { /* storage full or blocked — nothing to do about it here */ }
+}
+
 function startSync() {
   if (!inFlight) {
     inFlight = withTimeout(runSync(), 240000, 'timeout',
       'Sync gave up after 4 minutes — nothing was left half-written')
+      .then(
+        (res) => {
+          recordAttempt({ at: new Date().toISOString(), ok: true });
+          return res;
+        },
+        (err) => {
+          recordAttempt({
+            at: new Date().toISOString(),
+            ok: false,
+            code: err.code || 'unknown',
+            message: err.message || String(err)
+          });
+          throw err;
+        })
       .finally(() => { inFlight = null; });
   }
   return inFlight;
