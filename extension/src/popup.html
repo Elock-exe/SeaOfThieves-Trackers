@@ -66,6 +66,16 @@
       it — a second install cannot overwrite someone else's pirate.
     </p>
 
+    <label for="acct">Account key</label>
+    <input id="acct" type="text" spellcheck="false" autocomplete="off" />
+    <button id="save-acct" class="btn btn-ghost">Save key</button>
+    <p class="field-note">
+      This key is what proves a sync is yours. It is generated here and never
+      leaves this browser except to the tracker. Reinstalling the extension
+      makes a new one, and the old pirate then refuses to update — so copy
+      this somewhere safe, and paste it back after a reinstall.
+    </p>
+
     <label for="tracker">Tracker address</label>
     <input id="tracker" type="url" spellcheck="false" placeholder="http://localhost:8787" />
     <button id="save-tracker" class="btn btn-ghost">Save</button>

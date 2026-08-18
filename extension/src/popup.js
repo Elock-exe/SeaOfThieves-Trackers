@@ -12,6 +12,8 @@ const savePirateBtn = document.getElementById('save-pirate');
 const autoBox = document.getElementById('auto');
 const autoDetail = document.getElementById('auto-detail');
 const autoMins = document.getElementById('auto-mins');
+const acctInput = document.getElementById('acct');
+const saveAcctBtn = document.getElementById('save-acct');
 
 const DEFAULT_TRACKER = 'https://sot-tracker-api-8vqc.onrender.com';
 const SOT_ORIGIN = 'https://www.seaofthieves.com/*';
@@ -22,7 +24,7 @@ const HINTS = {
   signed_out: 'Open seaofthieves.com and sign in, then sync again.',
   no_content_script: 'Reload the seaofthieves.com tab (F5), then sync again.',
   no_handle: 'Set your pirate name above, then sync again.',
-  handle_taken: 'That pirate is already published by another install. Use your own name, or clear the extension data if this is you.',
+  handle_taken: "This pirate belongs to another install. If it is yours, paste that install's account key under Advanced — reinstalling makes a new key, and the tracker cannot tell the difference.",
   no_account_key: 'The extension could not identify itself. Reload it on chrome://extensions.',
   no_reply: 'Reload the seaofthieves.com tab and try again.',
   timeout: 'Sync ran too long and was stopped. Try again; if it repeats, check the service worker console.',
@@ -228,7 +230,12 @@ autoMins.addEventListener('change', () => { if (autoBox.checked) pushAutoSync();
 async function init() {
   await initAutoSync();
   const stored = await api.storage.local.get(
-    ['trackerBase', 'lastSync', 'lastAttempt', 'pirateHandle']);
+    ['trackerBase', 'lastSync', 'lastAttempt', 'pirateHandle', 'accountKey']);
+  /* Shown so it can be written down. The key is the only thing tying a
+     pirate to this install, and until now it was invisible and
+     unrecoverable: a reinstall generated a new one and the tracker then
+     refused the sync as an impostor, with no way back. */
+  acctInput.value = stored.accountKey || '';
   trackerInput.value = stored.trackerBase || DEFAULT_TRACKER;
   pirateInput.value = stored.pirateHandle || '';
 
@@ -345,6 +352,20 @@ btn.addEventListener('click', async () => {
   } finally {
     btn.disabled = false;
   }
+});
+
+saveAcctBtn.addEventListener('click', async () => {
+  const value = acctInput.value.trim();
+  if (!value) {
+    show('err', 'An account key cannot be empty', {
+      hints: ['Paste the key from your other install, or reload the extension to generate a new one.']
+    });
+    return;
+  }
+  await api.storage.local.set({ accountKey: value });
+  show('ok', 'Account key saved.', {
+    hints: ['Sync again — this install will now publish as whoever owns that key.']
+  });
 });
 
 savePirateBtn.addEventListener('click', async () => {
