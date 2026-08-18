@@ -35,4 +35,10 @@ async function history(handle, limit) {
   return limit ? all.slice(-limit) : all;
 }
 
-module.exports = { append, latest, history, readAll, describe: db.describe };
+/** One row per pirate, newest first. Bounded by the number of pirates
+    rather than by how long they have been syncing. */
+async function standings() {
+  return db.latestPerHandle();
+}
+
+module.exports = { append, latest, history, readAll, standings, describe: db.describe };

@@ -92,21 +92,18 @@ function totalLevels(snap) {
   return seen ? n : null;
 }
 
-/** The most recent snapshot for each pirate. */
-async function currentStandings() {
-  const all = await store.readAll();
-  const latest = new Map();
+/* The most recent snapshot for each pirate.
 
-  for (const rec of all) {
-    if (!rec || !rec.handle) continue;
-    const key = String(rec.handle).toLowerCase();
-    const prev = latest.get(key);
-    // Rows arrive in insertion order; keep the last one seen per pirate.
-    if (!prev || String(rec.capturedAt || '') >= String(prev.capturedAt || '')) {
-      latest.set(key, rec);
-    }
-  }
-  return [...latest.values()];
+   This used to read every snapshot ever written and pick the latest per
+   handle here. Each row is about a megabyte, and a sync adds one per pirate
+   per hour, so the query grew by megabytes a day — until Postgres started
+   cancelling it (57014, statement timeout) and every board returned 500.
+
+   The store now asks for one row per pirate. The work follows the number of
+   pirates, not the length of their history, which is the difference between
+   a board that gets slower as the site is used and one that does not. */
+async function currentStandings() {
+  return store.standings();
 }
 
 /**

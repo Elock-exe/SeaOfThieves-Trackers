@@ -149,6 +149,21 @@ const fileDriver = {
   async countPirates() {
     const all = await this.snapshotsFor(null);
     return new Set(all.map((r) => String(r.handle || '').toLowerCase()).filter(Boolean)).size;
+  },
+
+  /** One row per pirate: their most recent snapshot. */
+  async latestPerHandle() {
+    const all = await this.snapshotsFor(null);
+    const latest = new Map();
+    for (const rec of all) {
+      if (!rec || !rec.handle) continue;
+      const key = String(rec.handle).toLowerCase();
+      const prev = latest.get(key);
+      if (!prev || String(rec.capturedAt || '') >= String(prev.capturedAt || '')) {
+        latest.set(key, rec);
+      }
+    }
+    return [...latest.values()];
   }
 };
 
@@ -321,6 +336,40 @@ const supabaseDriver = {
     return new Set((rows || [])
       .map((r) => String(r.handle || '').toLowerCase())
       .filter(Boolean)).size;
+  },
+
+  /* One row per pirate, their newest.
+
+     The leaderboards used to read every snapshot ever written and pick the
+     latest per handle in memory. Each row is around a megabyte — the
+     reputation payload alone is a thousand kilobytes — and a sync adds one
+     per pirate per hour, so the query grew by megabytes a day until Postgres
+     started cancelling it: 57014, statement timeout. Every board 500'd, and
+     the database reported itself unhealthy under the load.
+
+     Now the size of the answer follows the number of pirates, not the length
+     of their history. The handle list is fetched first because that column
+     alone is tiny, then one bounded query each — N small reads instead of one
+     unbounded one. */
+  async latestPerHandle() {
+    const index = await rest('snapshots?select=handle');
+    const handles = [...new Set((index || [])
+      .map((r) => String(r.handle || '').trim())
+      .filter(Boolean)
+      .map((h) => h.toLowerCase()))];
+
+    const rows = await Promise.all(handles.map(async (h) => {
+      try {
+        const hit = await rest('snapshots?handle=ilike.' + encodeURIComponent(h) +
+          '&order=captured_at.desc&limit=1');
+        const r = hit && hit[0];
+        return r ? { handle: r.handle, capturedAt: r.captured_at, snapshot: r.snapshot } : null;
+      } catch (e) {
+        return null;   // one unreadable pirate must not empty the board
+      }
+    }));
+
+    return rows.filter(Boolean);
   }
 };
 
