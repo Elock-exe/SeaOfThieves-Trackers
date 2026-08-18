@@ -106,6 +106,66 @@ async function currentStandings() {
   return store.standings();
 }
 
+/* Every board is the same read sorted differently, and that read is the
+   expensive part: about a megabyte per pirate, fetched from a database on
+   another continent. Switching metrics repeated all of it to change a sort
+   order, which is where the wait between tabs came from.
+
+   So the standings are read once and ALL boards are computed from them in
+   one pass. What is kept is the finished boards — a few hundred bytes each —
+   and the megabytes are discarded immediately, which is why this cache costs
+   almost nothing to hold.
+
+   Sixty seconds because syncs land every thirty minutes at best: a board can
+   be a minute stale without anyone being able to tell, and a sync clears the
+   cache anyway. */
+const CACHE_MS = 60000;
+let cache = null;   // { at, boards: { metric -> {entries, total} } }
+
+function computeAll(rows, publicRows) {
+  const boards = {};
+  for (const [key, def] of Object.entries(METRICS)) {
+    const source = def.source === 'public' ? publicRows : rows;
+    const entries = source
+      .map((rec) => (def.source === 'public'
+        ? {
+          handle: rec.handle,
+          value: typeof rec.playtimeHours === 'number' ? rec.playtimeHours : null,
+          capturedAt: rec.seenAt || null,
+          avatar: rec.avatar || null
+        }
+        : {
+          handle: rec.handle,
+          value: def.pick(rec.snapshot),
+          capturedAt: rec.capturedAt,
+          avatar: (rec.snapshot && rec.snapshot.identity && rec.snapshot.identity.avatar) || null
+        }))
+      .filter((e) => e.value != null && e.handle)
+      .sort((a, b) => b.value - a.value)
+      .map((e, i) => Object.assign({ rank: i + 1 }, e));
+
+    boards[key] = { entries, total: source.length };
+  }
+  return boards;
+}
+
+async function boards() {
+  if (cache && Date.now() - cache.at < CACHE_MS) return cache.boards;
+
+  const [rows, publicRows] = await Promise.all([
+    currentStandings(),
+    require('./db').allPublicPlayers()
+  ]);
+
+  cache = { at: Date.now(), boards: computeAll(rows, publicRows) };
+  return cache.boards;
+}
+
+/** Called when a sync lands, so a fresh number is never a minute late. */
+function invalidate() {
+  cache = null;
+}
+
 /**
  * @param {string} metric  a key of METRICS
  * @param {number} limit
@@ -119,38 +179,19 @@ async function rank(metric, limit) {
     throw err;
   }
 
-  /* Two different populations, so two different reads. The snapshot boards
-     rank pirates who published; the public boards rank everyone the site
-     has been asked about, linked or not. `total` counts the population the
-     board was drawn from, not the whole site. */
-  const rows = def.source === 'public'
-    ? await require('./db').allPublicPlayers()
-    : await currentStandings();
+  const all = await boards();
+  const board = all[metric];
 
-  const entries = rows
-    .map((rec) => (def.source === 'public'
-      ? {
-        handle: rec.handle,
-        value: typeof rec.playtimeHours === 'number' ? rec.playtimeHours : null,
-        capturedAt: rec.seenAt || null,
-        avatar: rec.avatar || null
-      }
-      : {
-        handle: rec.handle,
-        value: def.pick(rec.snapshot),
-        capturedAt: rec.capturedAt,
-        avatar: (rec.snapshot && rec.snapshot.identity && rec.snapshot.identity.avatar) || null
-      }))
-    .filter((e) => e.value != null && e.handle)
-    .sort((a, b) => b.value - a.value)
-    .slice(0, limit || 100)
-    .map((e, i) => Object.assign({ rank: i + 1 }, e));
-
-  return { metric, label: def.label, entries, total: rows.length };
+  return {
+    metric,
+    label: def.label,
+    entries: board.entries.slice(0, limit || 100),
+    total: board.total
+  };
 }
 
 function metrics() {
   return Object.entries(METRICS).map(([key, m]) => ({ key, label: m.label }));
 }
 
-module.exports = { rank, metrics, METRICS };
+module.exports = { rank, metrics, invalidate, METRICS };

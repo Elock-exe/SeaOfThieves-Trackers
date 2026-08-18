@@ -188,6 +188,33 @@ function bestError(errors) {
   )[0];
 }
 
+/* A gamertag's public stats change when someone plays, not when someone
+   looks. Steam and Xbox were called afresh for every request, including the
+   same name typed twice a minute apart — and Xbox alone can take seven
+   seconds to answer.
+
+   Five minutes: long enough that browsing a few profiles is instant, short
+   enough that a player who just finished a session sees it. Keyed
+   case-insensitively, because gamertags are. */
+const LOOKUP_TTL_MS = 5 * 60 * 1000;
+const lookupCache = new Map();   // key -> { at, snapshot }
+
+function cachedLookup(key) {
+  const hit = lookupCache.get(key);
+  if (!hit) return null;
+  if (Date.now() - hit.at > LOOKUP_TTL_MS) { lookupCache.delete(key); return null; }
+  return hit.snapshot;
+}
+
+function rememberLookup(key, snapshot) {
+  /* Bounded so a crawler walking gamertags cannot grow this without end.
+     Oldest first: a Map iterates in insertion order. */
+  if (lookupCache.size > 500) {
+    lookupCache.delete(lookupCache.keys().next().value);
+  }
+  lookupCache.set(key, { at: Date.now(), snapshot });
+}
+
 async function handlePlayer(req, res, url) {
   const requested = String(url.searchParams.get('platform') || 'auto').toLowerCase();
   const id = url.searchParams.get('id');
@@ -213,6 +240,13 @@ async function handlePlayer(req, res, url) {
     });
   }
 
+  const cacheKey = requested + ':' + String(id).toLowerCase();
+  const cached = cachedLookup(cacheKey);
+  if (cached) {
+    console.log(`[api] ${id} → cache`);
+    return send(res, 200, cached);
+  }
+
   const started = Date.now();
   const settled = await Promise.allSettled(
     usable.map((n) => lookupOne(PROVIDERS[n], id))
@@ -235,6 +269,7 @@ async function handlePlayer(req, res, url) {
   winner.foundOn = hits.map((h) => h.source);
 
   console.log(`[api] ${id} → ${winner.source} (${Date.now() - started}ms)`);
+  rememberLookup(cacheKey, winner);
 
   /* Remember the public numbers so the playtime board has a population.
      Fetched, shown and then discarded until now, which is why a console
@@ -409,6 +444,9 @@ async function handle(req, res) {
       });
 
       console.log(`[api] /sync ok — ${handle} (${count} snapshots${auth.first ? ', new account' : ''})`);
+      /* A board a minute stale is fine; a board stale straight after the
+         sync that changed it is what someone would notice. */
+      leaderboard.invalidate();
       recordPublicPlaytime(handle);
       return send(res, 200, { ok: true, handle, snapshots: count, probes: bundle.probes });
     } catch (err) {
@@ -560,6 +598,15 @@ process.on('unhandledRejection', (reason) => {
 
 process.on('uncaughtException', (err) => {
   console.error('[api] uncaught exception —', (err && err.stack) || err);
+});
+
+/* Not everything should be survived. Failing to bind the port means there
+   is no server at all — swallowing that leaves a process that is up, idle
+   and useless, which a host reads as healthy. The guard above exists for
+   requests going wrong, not for startup. */
+server.on('error', (err) => {
+  console.error('[api] cannot listen on port ' + PORT + ' —', (err && err.message) || err);
+  process.exit(1);
 });
 
 server.listen(PORT, () => {
