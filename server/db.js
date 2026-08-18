@@ -151,6 +151,23 @@ const fileDriver = {
     return new Set(all.map((r) => String(r.handle || '').toLowerCase()).filter(Boolean)).size;
   },
 
+  /** The newest snapshot for one pirate. */
+  async latestFor(handle) {
+    const all = await this.snapshotsFor(handle);
+    return all.length ? all[all.length - 1] : null;
+  },
+
+  /** Just the numbers the history chart plots, oldest first. */
+  async historyFor(handle, limit) {
+    const all = await this.snapshotsFor(handle);
+    const rows = limit ? all.slice(-limit) : all;
+    return rows.map((r) => ({
+      capturedAt: r.capturedAt,
+      currencies: (r.snapshot && r.snapshot.currencies) || null,
+      hourglass: (r.snapshot && r.snapshot.hourglass) || null
+    }));
+  },
+
   /** One row per pirate: their most recent snapshot. */
   async latestPerHandle() {
     const all = await this.snapshotsFor(null);
@@ -336,6 +353,41 @@ const supabaseDriver = {
     return new Set((rows || [])
       .map((r) => String(r.handle || '').toLowerCase())
       .filter(Boolean)).size;
+  },
+
+  /* The newest snapshot for one pirate, fetched as one row.
+
+     store.latest() used to pull a pirate's entire history and keep the last
+     element. At roughly a megabyte a snapshot and one sync an hour, the most
+     active account was also the slowest to open — and eventually the one
+     that timed out. Ordering in the database and taking a single row costs
+     the same whether a pirate synced twice or ten thousand times. */
+  async latestFor(handle) {
+    const rows = await rest('snapshots?handle=ilike.' + encodeURIComponent(handle) +
+      '&order=captured_at.desc&limit=1');
+    const r = rows && rows[0];
+    return r ? { handle: r.handle, capturedAt: r.captured_at, snapshot: r.snapshot } : null;
+  },
+
+  /* The history chart plots three numbers — gold, doubloons, Hourglass
+     level — and this used to fetch up to a hundred whole snapshots to find
+     them. At a megabyte each that is a hundred megabytes crossing the
+     Atlantic to draw a line.
+
+     PostgREST can reach inside the JSON, so only those keys travel. The
+     rows come back newest first, because that is what a limit should keep,
+     and are reversed here for a chart that reads left to right. */
+  async historyFor(handle, limit) {
+    const rows = await rest('snapshots?handle=ilike.' + encodeURIComponent(handle) +
+      '&select=captured_at,snapshot->currencies,snapshot->hourglass' +
+      '&order=captured_at.desc&limit=' + Math.max(1, Math.min(Number(limit) || 100, 500)));
+    return (rows || [])
+      .map((r) => ({
+        capturedAt: r.captured_at,
+        currencies: r.currencies || null,
+        hourglass: r.hourglass || null
+      }))
+      .reverse();
   },
 
   /* One row per pirate, their newest.

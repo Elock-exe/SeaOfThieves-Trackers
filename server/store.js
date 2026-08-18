@@ -25,14 +25,12 @@ async function readAll() {
 
 /** Most recent snapshot for one pirate. */
 async function latest(handle) {
-  const all = await db.snapshotsFor(handle);
-  return all.length ? all[all.length - 1] : null;
+  return db.latestFor(handle);
 }
 
 /** Chronological history, for progression curves. */
 async function history(handle, limit) {
-  const all = await db.snapshotsFor(handle);
-  return limit ? all.slice(-limit) : all;
+  return db.historyFor(handle, limit);
 }
 
 /** One row per pirate, newest first. Bounded by the number of pirates

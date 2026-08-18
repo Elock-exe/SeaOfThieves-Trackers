@@ -520,11 +520,13 @@ async function handle(req, res) {
     const limit = Number(url.searchParams.get('limit') || 100);
     return send(res, 200, {
       handle: handle || null,
+      /* The store hands back only these keys now, not whole snapshots —
+         drawing a three-line chart never needed a megabyte a point. */
       points: (await store.history(handle, limit)).map((r) => ({
         at: r.capturedAt,
-        gold: r.snapshot.currencies ? r.snapshot.currencies.gold : null,
-        doubloons: r.snapshot.currencies ? r.snapshot.currencies.doubloons : null,
-        hourglassLevel: r.snapshot.hourglass ? r.snapshot.hourglass.level : null
+        gold: r.currencies ? r.currencies.gold : null,
+        doubloons: r.currencies ? r.currencies.doubloons : null,
+        hourglassLevel: r.hourglass ? r.hourglass.level : null
       }))
     });
   }
