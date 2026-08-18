@@ -250,7 +250,26 @@ async function handlePlayer(req, res, url) {
   return send(res, 200, winner);
 }
 
-const server = http.createServer(async (req, res) => {
+/* One net around every route.
+   /api/synced awaited store.latest() with no try/catch of its own, so when
+   Supabase answered 522 the handler's promise rejected with nobody holding
+   it — and an unhandled rejection ends the process in Node. A database
+   hiccup therefore took the whole API down, and it stayed down until Render
+   noticed and restarted it.
+
+   Individual routes still catch what they can explain. This exists for
+   everything they do not, including routes not written yet: a request may
+   fail, the server may not. */
+const server = http.createServer((req, res) => {
+  handle(req, res).catch((err) => {
+    console.error('[api] unhandled in', req.url, '—', (err && err.message) || err);
+    try {
+      if (!res.headersSent) fail(res, err);
+    } catch (e) { /* the socket is gone; nothing left to answer with */ }
+  });
+});
+
+async function handle(req, res) {
   cors(req, res);
 
   if (req.method === 'OPTIONS') {
@@ -524,6 +543,21 @@ const server = http.createServer(async (req, res) => {
   }
 
   send(res, 404, { error: { code: 'not_found', message: 'Unknown route' } });
+}
+
+/* Last resort. The wrapper above should mean nothing reaches here, but
+   "should" is how the API went down the first time: a rejected promise
+   nobody was holding, and Node ends the process on those by default.
+
+   A tracker losing a request is a bad minute. A tracker whose process dies
+   is an outage for everyone until the host notices — and on a free plan,
+   the restart is a cold start on top. Log it and stay up. */
+process.on('unhandledRejection', (reason) => {
+  console.error('[api] unhandled rejection —', (reason && reason.message) || reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[api] uncaught exception —', (err && err.stack) || err);
 });
 
 server.listen(PORT, () => {
