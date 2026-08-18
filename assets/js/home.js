@@ -130,6 +130,23 @@
     return (m && m.label) || key;
   }
 
+  /* Shown while the boards load. The block used to stay hidden until the
+     data arrived, and on a sleeping free host that is several seconds of
+     nothing at all — which reads as a broken page rather than a slow one.
+     Placeholder rows keep the space, and the layout does not jump when the
+     real ones land. */
+  function showSkeleton(count) {
+    const block = document.getElementById('top3-block');
+    const list = document.getElementById('top3-list');
+    if (!block || !list) return;
+    list.innerHTML = Array.from({ length: count || 2 }, () => `
+      <div class="top3 is-loading">
+        <span class="top3-title skel skel-title"></span>
+        ${'<span class="top3-row skel skel-row"></span>'.repeat(3)}
+      </div>`).join('');
+    block.hidden = false;
+  }
+
   async function renderPodiums() {
     const block = document.getElementById('top3-block');
     const list = document.getElementById('top3-list');
@@ -137,6 +154,8 @@
 
     const chosen = picked().filter((k) => allMetrics.some((m) => m.key === k));
     if (!chosen.length) { block.hidden = true; return; }
+
+    showSkeleton(chosen.length);
 
     /* One request per board, in parallel. A board that fails is dropped
        rather than replaced by an error — the others are still worth

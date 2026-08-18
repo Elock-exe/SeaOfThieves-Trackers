@@ -1195,6 +1195,30 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
 .top3-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .top3-value { font-variant-numeric: tabular-nums; color: var(--text-2); }
 
+/* Loading placeholders for the top-3 block. A shimmer rather than a
+   spinner: it occupies the shape the content will take, so nothing jumps
+   when the real rows arrive. */
+.skel {
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.09) 37%,
+    rgba(255,255,255,0.04) 63%);
+  background-size: 400% 100%;
+  animation: skel-sweep 1.4s ease-in-out infinite;
+}
+.skel-title { width: 45%; height: 11px; margin-bottom: 10px; }
+.skel-row { height: 32px; margin-bottom: 6px; }
+@keyframes skel-sweep {
+  from { background-position: 100% 50%; }
+  to   { background-position: 0 50%; }
+}
+/* One looping animation on the page is enough; this one is decorative. */
+@media (prefers-reduced-motion: reduce) {
+  .skel { animation: none; }
+}
+
 /* ---------- responsive ---------- */
 @media (max-width: 960px) {
   .card-grid { grid-template-columns: 1fr; }
