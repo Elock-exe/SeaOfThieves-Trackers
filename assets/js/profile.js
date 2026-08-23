@@ -23,7 +23,14 @@
     return;
   }
 
-  const [rawName] = rawQuery.split('#');
+  /* The whole name, suffix included. This used to cut at the '#' and keep
+     only what came before, on the assumption that "#9267" was decoration —
+     it is not. On Xbox that suffix is part of the gamertag, and the search
+     fails without it: "mrhossam#9267" resolves, "mrhossam" does not.
+
+     So the site never worked for the very format its own search box offers
+     as an example. */
+  const rawName = rawQuery;
 
   /* Show a failure the visitor can act on, rather than a blank page. */
   function showError(code, query) {
