@@ -12,6 +12,7 @@ const savePirateBtn = document.getElementById('save-pirate');
 const autoBox = document.getElementById('auto');
 const autoDetail = document.getElementById('auto-detail');
 const autoMins = document.getElementById('auto-mins');
+const notifyBox = document.getElementById('notify');
 const acctInput = document.getElementById('acct');
 const saveAcctBtn = document.getElementById('save-acct');
 
@@ -227,8 +228,38 @@ async function initAutoSync() {
 autoBox.addEventListener('change', pushAutoSync);
 autoMins.addEventListener('change', () => { if (autoBox.checked) pushAutoSync(); });
 
+/* Optional permission, so it can only be asked for from a click — which is
+   why this lives in the popup rather than being turned on with the setting
+   it belongs to. Unchecking revokes it rather than just remembering a
+   preference: a permission nobody uses should not stay granted. */
+async function initNotify() {
+  try {
+    notifyBox.checked = await api.permissions.contains({ permissions: ['notifications'] });
+  } catch (e) {
+    notifyBox.disabled = true;   // browser without optional permissions
+  }
+}
+
+notifyBox.addEventListener('change', async () => {
+  try {
+    if (notifyBox.checked) {
+      const ok = await api.permissions.request({ permissions: ['notifications'] });
+      notifyBox.checked = ok;
+      show(ok ? 'ok' : '', ok
+        ? 'Reminders on — you will hear from this only if syncing stops.'
+        : 'Reminders stay off.');
+    } else {
+      await api.permissions.remove({ permissions: ['notifications'] });
+      show('', 'Reminders off. The icon still shows a badge when a sync fails.');
+    }
+  } catch (e) {
+    show('err', 'Could not change that', { hints: [e.message] });
+  }
+});
+
 async function init() {
   await initAutoSync();
+  await initNotify();
   const stored = await api.storage.local.get(
     ['trackerBase', 'lastSync', 'lastAttempt', 'pirateHandle', 'accountKey']);
   /* Shown so it can be written down. The key is the only thing tying a

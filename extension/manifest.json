@@ -8,8 +8,7 @@
     "storage",
     "tabs",
     "scripting",
-    "alarms",
-    "notifications"
+    "alarms"
   ],
   "host_permissions": [
     "https://www.seaofthieves.com/*",
@@ -43,5 +42,9 @@
   "background": {
     "service_worker": "src/background.js"
   },
-  "//host_permissions": "Exactly what a sync touches: the game site to read stats, the tracker to publish them, localhost for development. Self-hosting a tracker elsewhere means adding that origin here."
+  "//host_permissions": "Exactly what a sync touches: the game site to read stats, the tracker to publish them, localhost for development. Self-hosting a tracker elsewhere means adding that origin here.",
+  "optional_permissions": [
+    "notifications"
+  ],
+  "//optional_permissions": "Optional on purpose: a new REQUIRED permission makes browsers hold the update back until the user accepts it, and the people this release is for are precisely those who never open the extension. The badge needs no permission and ships to everyone; reminders are opt-in from the popup."
 }

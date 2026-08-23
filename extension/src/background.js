@@ -724,6 +724,16 @@ const REASON = {
 async function maybeNotify(outcome) {
   if (!api.notifications || !api.notifications.create) return;
 
+  /* Optional permission: the object exists whether or not it was granted,
+     so asking the browser is the only way to know. Never prompt from here —
+     a request needs a click, and this runs in the background. */
+  try {
+    const granted = await api.permissions.contains({ permissions: ['notifications'] });
+    if (!granted) return;
+  } catch (e) {
+    return;
+  }
+
   const stored = await api.storage.local.get(['lastSync', 'lastNotified']);
   const lastOk = stored.lastSync ? Date.parse(stored.lastSync.at) : 0;
   const lastNote = Number(stored.lastNotified) || 0;
