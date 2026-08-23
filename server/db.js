@@ -224,6 +224,31 @@ async function rest(pathAndQuery, options) {
   }
 }
 
+/* How many rows match, without fetching any of them.
+
+   PostgREST answers `Content-Range: 0-0/42` when asked to count, so an
+   empty page and a header replace the whole result set. This exists
+   because counting used to mean downloading: appendSnapshot read every
+   snapshot a pirate had ever made just to return their length. */
+async function count(pathAndQuery) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + pathAndQuery, {
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: 'Bearer ' + SUPABASE_KEY,
+      Prefer: 'count=exact',
+      Range: '0-0'
+    }
+  });
+  if (!res.ok) {
+    const err = new Error(`Supabase ${res.status} while counting`);
+    err.code = 'store_unavailable';
+    throw err;
+  }
+  const range = res.headers.get('content-range') || '';
+  const total = Number(range.split('/')[1]);
+  return Number.isFinite(total) ? total : 0;
+}
+
 const supabaseDriver = {
   name: 'supabase',
 
@@ -237,7 +262,12 @@ const supabaseDriver = {
         snapshot: rec.snapshot
       }
     });
-    return (await this.snapshotsFor(rec.handle)).length;
+    /* A count, not a download. This line used to be
+       `(await this.snapshotsFor(rec.handle)).length` — every snapshot that
+       pirate had ever made, roughly a megabyte each, fetched and parsed so
+       the reply could say "you now have 41". The most loyal user was the
+       one whose syncs failed first, and eventually they timed out. */
+    return count('snapshots?handle=ilike.' + encodeURIComponent(rec.handle) + '&select=handle');
   },
 
   async snapshotsFor(handle) {
