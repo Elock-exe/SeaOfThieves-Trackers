@@ -686,10 +686,84 @@ let inFlight = null;
    run that failed left the previous success on screen and looked like
    nothing had gone wrong. An automatic sync failing quietly every hour is
    worse than one that never runs: the stats sit there looking current. */
+/* A badge costs no permission and needs nobody to open anything. A failing
+   sync is invisible otherwise: the popup has said so since 0.6.0, but that
+   is behind a click nobody makes on an add-on meant to run by itself. */
+function paintBadge(ok) {
+  if (!api.action || !api.action.setBadgeText) return;
+  try {
+    api.action.setBadgeText({ text: ok ? '' : '!' });
+    if (api.action.setBadgeBackgroundColor) {
+      api.action.setBadgeBackgroundColor({ color: '#ff4655' });
+    }
+    if (api.action.setTitle) {
+      api.action.setTitle({
+        title: ok ? 'SotTracker' : 'SotTracker — sync is failing, click for details'
+      });
+    }
+  } catch (e) { /* older browsers: the badge is a nicety */ }
+}
+
+/* Notified at most once a day, and only once the published stats have gone
+   properly stale. A reminder every hour would be noise; a reminder that
+   names the actual reason is something a person can act on.
+
+   Most failures are the same one — the Sea of Thieves session expires after
+   a while, and every background sync has been hitting a login page since. */
+const NOTIFY_AFTER_MS = 2 * 24 * 60 * 60 * 1000;   // stats older than two days
+const NOTIFY_EVERY_MS = 24 * 60 * 60 * 1000;       // and at most once a day
+
+const REASON = {
+  signed_out: 'You are signed out of seaofthieves.com. Sign in and it will resume on its own.',
+  no_handle: 'Open SotTracker and set your pirate name once.',
+  handle_taken: 'This pirate belongs to another install. Open SotTracker for how to fix it.',
+  tab_closed: 'The Sea of Thieves tab closed mid-sync.',
+  tracker_down: 'The tracker did not answer. It may just be waking up.'
+};
+
+async function maybeNotify(outcome) {
+  if (!api.notifications || !api.notifications.create) return;
+
+  const stored = await api.storage.local.get(['lastSync', 'lastNotified']);
+  const lastOk = stored.lastSync ? Date.parse(stored.lastSync.at) : 0;
+  const lastNote = Number(stored.lastNotified) || 0;
+  const now = Date.now();
+
+  // Fresh stats, or already nagged today: say nothing.
+  if (now - lastOk < NOTIFY_AFTER_MS) return;
+  if (now - lastNote < NOTIFY_EVERY_MS) return;
+
+  const days = lastOk ? Math.floor((now - lastOk) / 86400000) : null;
+  const age = days ? `Your stats are ${days} days old. ` : '';
+
+  try {
+    await api.notifications.create('sot-stale', {
+      type: 'basic',
+      iconUrl: api.runtime.getURL('icons/icon-128.png'),
+      title: 'SotTracker cannot sync',
+      message: age + (REASON[outcome.code] || 'Open SotTracker to see why.')
+    });
+    await api.storage.local.set({ lastNotified: now });
+  } catch (e) { /* notifications denied or unavailable */ }
+}
+
 async function recordAttempt(outcome) {
   try {
     await api.storage.local.set({ lastAttempt: outcome });
   } catch (e) { /* storage full or blocked — nothing to do about it here */ }
+
+  paintBadge(outcome.ok);
+  if (!outcome.ok) await maybeNotify(outcome);
+}
+
+/* Clicking the notification opens the page that fixes it in almost every
+   case: being signed out is what a stale sync usually means. */
+if (api.notifications && api.notifications.onClicked) {
+  api.notifications.onClicked.addListener((id) => {
+    if (id !== 'sot-stale') return;
+    api.tabs.create({ url: SOT_URL });
+    api.notifications.clear(id);
+  });
 }
 
 function startSync() {
@@ -820,6 +894,17 @@ if (api.runtime.onStartup) {
 /* Runs on every script start, which is often — hence the "leave a correct
    alarm alone" rule above. Its job is to arm one if none exists at all. */
 applyAutoSync();
+
+/* The badge lives in the browser UI, not in storage, so it is gone every
+   time this script restarts — which under MV3 is constantly. Repaint it
+   from the last recorded attempt, or a failing sync would look healthy
+   again the moment the worker idled. */
+(async () => {
+  try {
+    const stored = await api.storage.local.get('lastAttempt');
+    if (stored && stored.lastAttempt) paintBadge(stored.lastAttempt.ok);
+  } catch (e) { /* nothing recorded yet */ }
+})();
 
 api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   /* Settings changes are answered here rather than written straight from the
