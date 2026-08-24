@@ -106,18 +106,48 @@
     });
   }
 
+  /* Two independent sources, and either one is enough to draw a profile.
+     This used to give up the moment the public lookup threw, so a pirate
+     whose Steam or Xbox profile is private became unreachable — including
+     from the leaderboards they were sitting on, with their gold on screen
+     one click earlier. The published stats were there the whole time;
+     nothing asked for them.
+
+     Only a pirate with neither is genuinely not found. */
   async function boot(plat, id) {
     showLoading(id);
+
+    let profile = null;
+    let publicErr = null;
+
     try {
-      let profile = await SOT.lookupPlayer(plat, id);
-      profile = await mergeSynced(profile);
-      hideLoading();
-      SOT.rememberPlayer(profile);
-      start(profile);
+      profile = await SOT.lookupPlayer(plat, id);
     } catch (err) {
-      hideLoading();
-      showError(err.code, id);
+      publicErr = err;
     }
+
+    try {
+      if (profile) {
+        profile = await mergeSynced(profile);
+      } else {
+        const snapshot = await SOT.syncedFor(id);
+        if (snapshot) {
+          // No playtime or achievements here — those are the public half.
+          profile = Object.assign(SOT.normalizeSynced(snapshot), { name: id });
+        }
+      }
+    } catch (e) {
+      /* The synced half is a bonus when the public half already worked, and
+         the last hope when it did not. Either way it must not throw away a
+         profile we can already render. */
+    }
+
+    hideLoading();
+
+    if (!profile) return showError(publicErr && publicErr.code, id);
+
+    SOT.rememberPlayer(profile);
+    start(profile);
   }
 
   async function bootLinked() {
