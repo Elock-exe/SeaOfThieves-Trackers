@@ -188,8 +188,40 @@
     document.getElementById('p-tag').textContent = p.tag ? '#' + p.tag : '';
 
     renderAll();
-    document.addEventListener('sot:langchange', renderAll);
+    renderClaim();
+    document.addEventListener('sot:langchange', () => { renderAll(); renderClaim(); });
   }
+
+  /* Which pirate belongs to this browser.
+
+     The site needs it because a snapshot carries a handle, not an identity —
+     nothing in it says "this is the person reading". The extension knows, but
+     it cannot tell the page: separate storage, separate origin.
+
+     This button was removed once as redundant, and that quietly broke the
+     link page: it asks syncedIdentity() who you are, syncedIdentity() reads
+     the claimed owner, and nothing had written one since. The page could not
+     say "linked" to anybody, and told them to click a button that no longer
+     existed. */
+  function renderClaim() {
+    const btn = document.getElementById('p-claim');
+    if (!btn || !p) return;
+
+    // Only worth offering on a pirate that has actually published something,
+    // and only when this browser does not already call them its own.
+    const owner = SOT.syncedOwner();
+    const already = owner && owner.toLowerCase() === String(p.name).toLowerCase();
+    btn.hidden = !p.linked || already;
+    btn.querySelector('span').textContent = I18N.t('profile.claim');
+  }
+
+  document.getElementById('p-claim').addEventListener('click', async () => {
+    const btn = document.getElementById('p-claim');
+    btn.disabled = true;
+    await SOT.claimSynced(p.name);
+    btn.querySelector('span').textContent = I18N.t('profile.claimed');
+    setTimeout(() => { btn.hidden = true; btn.disabled = false; }, 1500);
+  });
 
   /* The tabs are built from what the sections rendered, so they have to run
      after them — and again on a language change, since the labels move. */
