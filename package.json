@@ -8,7 +8,8 @@
     "site": "node server/static.js",
     "build:ext": "node tools/build-extension.js",
     "build:logo": "node tools/make-store-logo.js extension/store/logo-300.png",
-    "test:alarm": "node tools/test-alarm.js"
+    "test:alarm": "node tools/test-alarm.js",
+    "build:og": "node tools/make-og-image.js assets/img/og-card.png"
   },
   "engines": {
     "node": ">=20.12"
