@@ -2920,3 +2920,31 @@ button[type="submit"]:active { transform: scale(0.97); }
   .import-step-n { width: 36px; height: 36px; font-size: 16px; }
   .import-bm { font-size: 14px; padding: 11px 18px; }
 }
+
+/* The message that appears when someone clicks the bookmarklet instead of
+   dragging it. Clicking is what everybody tries first, so this is the most
+   likely first interaction on the page — it has to answer, not sit there. */
+.import-hint {
+  margin: 12px 0 4px;
+  padding: 11px 14px;
+  background: rgba(216, 161, 58, .1);
+  border: 1px solid rgba(216, 161, 58, .38);
+  border-left: 3px solid var(--gold);
+  border-radius: 8px;
+  color: var(--gold-soft);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.import-hint.pulse { animation: import-hint-in .32s ease; }
+
+@keyframes import-hint-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Someone who has asked not to see motion still needs to read the message,
+   so only the movement goes. */
+@media (prefers-reduced-motion: reduce) {
+  .import-hint.pulse { animation: none; }
+}

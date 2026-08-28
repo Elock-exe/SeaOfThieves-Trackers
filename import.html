@@ -43,9 +43,10 @@
           <h2 data-i18n="import.s1Title">Drag this to your bookmarks bar</h2>
           <p data-i18n="import.s1Body">It is a bookmark that runs a script. Not a download, not an extension.</p>
           <p class="import-drop">
-            <a class="import-bm" id="bm" draggable="true" onclick="return false;"
+            <a class="import-bm" id="bm" draggable="true"
                href="javascript:(function(){if(window.__sotImportRunning){return}var d=document,s=d.createElement('script');s.src='https://sottracker.fr/assets/js/importer.js?v='+Date.now();s.onerror=function(){alert('SotTracker: the importer could not load. Check your connection, or use the browser extension instead.')};(d.body||d.documentElement).appendChild(s);})();">&#9875; Import SoT Profile</a>
           </p>
+          <p class="import-hint" id="bm-hint" hidden></p>
           <p class="import-tip" data-i18n="import.s1Tip">No bookmarks bar? Press Ctrl+Shift+B (Cmd+Shift+B on Mac).</p>
         </div>
       </li>
@@ -138,6 +139,28 @@
   var box = document.getElementById('bm-code');
   var btn = document.getElementById('bm-copy');
   if (!a || !box) return;
+
+  /* Cliquer ici ne peut rien faire d'utile : la page courante n'est pas
+     seaofthieves.com, donc le script n'aurait aucune session a lire. Mais
+     cliquer est le premier geste de tout le monde devant un bouton, alors
+     autant expliquer plutot que rester muet. */
+  var hint = document.getElementById('bm-hint');
+
+  function dire(cle) {
+    if (!hint) return;
+    hint.textContent = I18N.t(cle);
+    hint.hidden = false;
+    hint.classList.remove('pulse');
+    void hint.offsetWidth;          // relance l'animation
+    hint.classList.add('pulse');
+  }
+
+  a.addEventListener('click', function (e) {
+    e.preventDefault();
+    dire('import.hintClick');
+  });
+
+  a.addEventListener('dragend', function () { dire('import.hintDrag'); });
 
   box.value = a.getAttribute('href');
   box.addEventListener('click', function () { box.select(); });
