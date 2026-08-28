@@ -186,31 +186,131 @@
      purpose: this is not a public API, so it does not get hammered. */
   function firstThatWorks(paths) {
     var signedOut = false;
+    var tried = [];
     return paths.reduce(function (chain, path) {
       return chain.then(function (acc) {
         if (acc && acc.data !== undefined) return acc;
         return getJSON(path).then(function (r) {
           if (r.data !== undefined) return { data: r.data, path: path };
+          tried.push(path + ' -> ' + r.error);
           if (r.error === 'signed_out') signedOut = true;
           return null;
         });
       });
     }, Promise.resolve(null)).then(function (hit) {
-      return hit || { signedOut: signedOut };
+      return hit || { signedOut: signedOut, tried: tried };
     });
   }
 
-  /* The gamertag is in none of the three payloads, but the page displays
-     it. Text only: no ids, nothing from the session. */
-  function pageMeta() {
-    var out = { title: document.title || '', path: location.pathname };
+  /* When the guessed paths all miss, the page itself is the authority: it
+     has already called the real ones, and the browser kept a list. Reading
+     its own resource timings turns "which endpoint is it now?" from
+     guesswork into observation — and Rare can rename these whenever they
+     like without telling anybody.
+
+     This is lifted from the extension's content script, which has had it
+     from the start. Leaving it out of the importer is why a failure here
+     was a dead end rather than a diagnosis. */
+  function discover() {
     try {
-      var el = document.querySelector(
-        '[class*="gamertag" i], [class*="playerName" i], [data-gamertag], .profile-name, h1');
-      var text = el && el.textContent ? el.textContent.trim() : '';
-      if (text && text.length <= 40) out.name = text;
-    } catch (e) { /* the title alone is enough to work with */ }
-    return out;
+      var seen = performance.getEntriesByType('resource')
+        .map(function (e) { return e.name; })
+        .filter(function (n) { return n.indexOf('/api/') !== -1; })
+        .map(function (n) { try { return new URL(n).pathname; } catch (e) { return n; } });
+      return seen.filter(function (v, i) { return seen.indexOf(v) === i; }).slice(0, 40);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /* The gamertag is in none of the three payloads, so it has to come off
+     the page — and guessing it was wrong.
+
+     The old selector ended in a bare `h1`, and on Rare's profile the first
+     h1 is a news heading, not a pirate. People were publishing their stats
+     under "Dernieres publications".
+
+     The extension never had this problem because it never guesses: its
+     popup asks for the pirate name once and reuses it (background.js,
+     saved.handle). The bookmarklet has no popup, so it asks here instead —
+     once, then remembers. A suggestion is still offered, but nothing is
+     published on the strength of it alone. */
+  var NAME_STORAGE = 'sot-tracker-handle';
+
+  function storedHandle() {
+    try { return localStorage.getItem(NAME_STORAGE) || ''; } catch (e) { return ''; }
+  }
+
+  function rememberHandle(name) {
+    try { localStorage.setItem(NAME_STORAGE, name); } catch (e) { /* private mode */ }
+  }
+
+  /* Only the places a gamertag actually lives. No `h1` fallback: a wrong
+     suggestion is worse than none, because it is the one people accept
+     without reading. */
+  function suggestName() {
+    var picks = ['[data-gamertag]', '[class*="gamertag" i]', '[class*="playerName" i]', '.profile-name'];
+    for (var i = 0; i < picks.length; i++) {
+      try {
+        var el = document.querySelector(picks[i]);
+        var text = el && el.textContent ? el.textContent.trim() : '';
+        if (text && text.length <= 40) return text;
+      } catch (e) { /* selector unsupported here, try the next */ }
+    }
+    return '';
+  }
+
+  function pageMeta(name) {
+    return { title: document.title || '', path: location.pathname, name: name };
+  }
+
+  /* Asked once, then never again on this browser. The whole point is that
+     nothing is published under a name nobody confirmed — one wrong guess
+     claims a pirate entry that then has to be untangled by hand. */
+  function askHandle(suggestion) {
+    return new Promise(function (resolve) {
+      step(70, 'Which pirate is this?', '');
+
+      var form = document.createElement('div');
+      form.style.cssText = 'margin-top:14px';
+
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.value = suggestion || '';
+      input.placeholder = 'Your pirate name';
+      input.maxLength = 40;
+      input.autocomplete = 'off';
+      input.style.cssText = 'width:100%;padding:11px 12px;font-size:15px;text-align:center;' +
+        'background:#0a121a;color:#e8e8ee;border:1px solid #2c3f52;border-radius:8px;' +
+        'box-sizing:border-box;outline:none';
+
+      var note = document.createElement('div');
+      note.textContent = 'Exactly as it appears in game, suffix included.';
+      note.style.cssText = 'font-size:12px;color:#8fa0b3;margin-top:8px';
+
+      var go = document.createElement('button');
+      go.textContent = 'Publish';
+      go.style.cssText = 'margin-top:14px;padding:10px 26px;background:#ff4655;color:#fff;' +
+        'border:0;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer';
+
+      function submit() {
+        var v = input.value.trim();
+        if (!v) { input.style.borderColor = '#ff4655'; input.focus(); return; }
+        rememberHandle(v);
+        form.remove();
+        resolve(v);
+      }
+
+      go.onclick = submit;
+      input.onkeydown = function (e) { if (e.key === 'Enter') submit(); };
+
+      form.appendChild(input);
+      form.appendChild(note);
+      form.appendChild(go);
+      box.appendChild(form);
+      input.focus();
+      input.select();
+    });
   }
 
   /* ---------------- the account key ---------------- */
@@ -247,32 +347,81 @@
   var probes = {};
   var signedOut = false;
 
+  var tried = [];
+
+  function collectGroup(name, paths, pct) {
+    step(pct, null, 'Reading ' + (LABEL[name] || name) + '…');
+    return firstThatWorks(paths).then(function (r) {
+      if (r && r.data !== undefined) { payloads[name] = r.data; probes[name] = r.path; return true; }
+      probes[name] = 'failed';
+      if (r && r.signedOut) signedOut = true;
+      if (r && r.tried) tried = tried.concat(r.tried);
+      return false;
+    });
+  }
+
   GROUPS.reduce(function (chain, name, i) {
     return chain.then(function () {
-      step(10 + Math.round((i / GROUPS.length) * 55), null, 'Reading ' + (LABEL[name] || name) + '…');
-      return firstThatWorks(ENDPOINTS[name]).then(function (r) {
-        if (r && r.data !== undefined) { payloads[name] = r.data; probes[name] = r.path; }
-        else { probes[name] = 'failed'; if (r && r.signedOut) signedOut = true; }
-      });
+      return collectGroup(name, ENDPOINTS[name], 10 + Math.round((i / GROUPS.length) * 45));
     });
   }, Promise.resolve()).then(function () {
+
+    /* Nothing from the paths we guessed. Before giving up, ask the page
+       which ones IT called — those are the real ones by definition. Rare
+       renames these without notice, and a guessed list is only ever right
+       until they do. */
+    if (Object.keys(payloads).length || signedOut) return null;
+
+    /* 'profile' alone: every candidate path contains it, and a pattern
+       with no escapes cannot be broken by one. */
+    var real = discover().filter(function (p) { return /profile/i.test(p); });
+    if (!real.length) return null;
+
+    step(58, null, 'Trying other paths…');
+
+    return GROUPS.reduce(function (chain, name) {
+      return chain.then(function () {
+        if (payloads[name]) return null;
+        /* Match a discovered path to the group by name: the overview call
+           contains 'overview', and so on. Anything unmatched is left alone
+           rather than posted to a group it does not belong to. */
+        var hint = { overview: /overview|summary/i, reputation: /reputation/i, ledger: /balance|ledger/i }[name];
+        var candidates = real.filter(function (p) { return hint.test(p); });
+        if (!candidates.length) return null;
+        return collectGroup(name, candidates, 62);
+      });
+    }, Promise.resolve());
+
+  }).then(function () {
 
     if (!Object.keys(payloads).length) {
       if (signedOut) {
         return finish('You are not signed in',
-          'Sign in on seaofthieves.com, open your profile overview, then click the bookmark again.',
+          'Sign in, open your profile, and click the bookmark again.',
           null, true);
       }
-      return finish('Nothing answered',
-        'Rare returned no data. Make sure you are on your profile overview page and try again.',
+      finish('Nothing answered',
+        'You are signed in, but Rare returned nothing.',
         null, true);
+      showDiagnosis(tried, discover());
+      return null;
     }
 
-    var meta = pageMeta();
-    var handle = meta.name || null;
-    payloads.page = meta;
+    /* Known already? Then straight through — asking every time would make
+       a one-click tool a two-click one for no gain. */
+    var known = storedHandle();
+    var ask = known ? Promise.resolve(known) : askHandle(suggestName());
 
-    step(75, 'Sending your stats…', handle ? 'Publishing as ' + handle : '');
+    return ask.then(function (handle) {
+      payloads.page = pageMeta(handle);
+      step(80, 'Sending…', handle);
+      return send(handle);
+    });
+  }).catch(function (e) {
+    finish('Something went wrong', (e && e.message) || String(e), null, true);
+  });
+
+  function send(handle) {
 
     var key = accountKey();
 
@@ -295,7 +444,7 @@
       if (r.status === 200 && r.body && r.body.ok) {
         var name = r.body.handle || handle;
         finish('Imported',
-          name ? name + ' is up to date on SotTracker.' : 'Your stats are up to date.',
+          name ? name + ' is up to date.' : 'Your stats are up to date.',
           SITE + '/profile?player=' + encodeURIComponent(name || ''));
         showKey(key);
         return;
@@ -306,8 +455,7 @@
          bug — but it looks like a bug unless it says so. */
       if (r.status === 409) {
         return finish('That pirate is already taken',
-          'Another browser already publishes ' + (handle || 'this pirate') +
-          '. If that was you, run this from that browser, or paste its account key here first.',
+          'Another browser already publishes ' + (handle || 'this pirate') + '.',
           null, true);
       }
 
@@ -315,13 +463,42 @@
       finish('Could not send', err.message || ('The server answered ' + r.status), null, true);
     }).catch(function (e) {
       finish('Could not reach SotTracker',
-        'The API did not answer. It sleeps when unused and can take up to a minute to wake — try again shortly.',
+        'The server may be waking up. Try again in a minute.',
         null, true);
     });
+  }
 
-  }).catch(function (e) {
-    finish('Something went wrong', (e && e.message) || String(e), null, true);
-  });
+  /* Folded shut on purpose. Somebody whose import failed wants to know what
+     to do next, not read a list of HTTP paths. But if the problem reaches
+     us, that list is the only thing that makes it fixable — so it is here,
+     one click away, with a button that copies it. */
+  function showDiagnosis(tried, seen) {
+    var lines = []
+      .concat(tried.length ? ['Tried:'] : [], tried)
+      .concat(seen.length ? ['', 'This page called:'] : [], seen.slice(0, 20));
+    if (!lines.length) return;
+
+    var wrap = document.createElement('details');
+    wrap.style.cssText = 'margin-top:16px;text-align:left;font-size:12px;color:#8fa0b3';
+
+    var head = document.createElement('summary');
+    head.textContent = 'Details';
+    head.style.cssText = 'cursor:pointer;outline:none';
+
+    var pre = document.createElement('textarea');
+    pre.readOnly = true;
+    var NL = String.fromCharCode(10);
+    pre.value = location.pathname + NL + NL + lines.join(NL);
+    pre.rows = 8;
+    pre.onclick = function () { pre.select(); };
+    pre.style.cssText = 'width:100%;margin-top:8px;padding:8px;font-family:monospace;' +
+      'font-size:11px;background:#0a121a;color:#e8e8ee;border:1px solid #26323f;' +
+      'border-radius:6px;box-sizing:border-box;resize:vertical';
+
+    wrap.appendChild(head);
+    wrap.appendChild(pre);
+    box.appendChild(wrap);
+  }
 
   /* The key is shown once, folded away, for anyone who wants to keep it or
      move to another browser. Never sent anywhere but the sync request. */
@@ -335,8 +512,7 @@
 
     var body = document.createElement('div');
     body.style.cssText = 'margin-top:8px;line-height:1.5';
-    body.textContent = 'Keep this if you want to publish the same pirate from another browser. ' +
-      'Anyone who has it can update your entry, so do not post it anywhere.';
+    body.textContent = 'Needed to publish the same pirate from another browser. Do not share it.';
 
     var code = document.createElement('input');
     code.readOnly = true;
