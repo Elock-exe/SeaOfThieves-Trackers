@@ -1,3 +1,6 @@
+/* SotTracker — sottracker.fr
+   Creator: Vyros__
+   https://github.com/Elock-exe/SeaOfThieves-Trackers */
 /* Build the 1200x630 card that Discord, Reddit and Twitter show when someone
    shares a link.
  *

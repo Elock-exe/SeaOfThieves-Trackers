@@ -1,3 +1,6 @@
+/* SotTracker — sottracker.fr
+   Creator: Vyros__
+   https://github.com/Elock-exe/SeaOfThieves-Trackers */
 /* ============================================================
    Local API for the SoT Tracker.
 
@@ -21,6 +24,7 @@ const rare = require('./providers/rare');
 const store = require('./store');
 const accounts = require('./accounts');
 const leaderboard = require('./leaderboard');
+const trim = require('./trim');
 
 /* Only the public sources are searchable by name — Rare's API can never
    return anyone but the authenticated account, so it stays out of this map. */
@@ -39,7 +43,15 @@ const EXTRA_ORIGINS = String(process.env.SITE_ORIGIN || '')
   .map((s) => s.trim().replace(/\/+$/, ''))
   .filter(Boolean);
 
-const ALLOWED_ORIGIN = /^(http:\/\/(localhost|127\.0\.0\.1)(:\d+)?|moz-extension:\/\/.+|chrome-extension:\/\/.+)$/;
+/* seaofthieves.com is here because the bookmarklet importer runs inside
+   that page - same reason the extension content script does. Without it
+   the browser blocks the sync as cross-origin and the import dies at the
+   last step, after all the reading has already worked.
+
+   It widens nothing that was not already open: the extension pattern
+   below admits any extension at all. Every /sync still has to present an
+   account key, and that is what decides whose stats may be written. */
+const ALLOWED_ORIGIN = /^(http:\/\/(localhost|127\.0\.0\.1)(:\d+)?|https:\/\/(www\.)?seaofthieves\.com|moz-extension:\/\/.+|chrome-extension:\/\/.+)$/;
 
 function originAllowed(origin) {
   if (!origin) return false;
@@ -416,7 +428,10 @@ async function handle(req, res) {
     }
 
     try {
-      const snapshot = rare.normalizePayloads(bundle.payloads, bundle.probes);
+      /* Trimmed before it is stored, not when it is read: the 1.17 MB of
+         Rare's payload that nothing displays would otherwise be fetched and
+         parsed on every leaderboard build. See server/trim.js. */
+      const snapshot = trim.trim(rare.normalizePayloads(bundle.payloads, bundle.probes));
 
       /* The pirate these stats belong to: whatever the extension read off
          the page, or what its owner typed. Without it there is nothing to

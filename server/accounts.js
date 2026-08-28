@@ -1,3 +1,6 @@
+/* SotTracker — sottracker.fr
+   Creator: Vyros__
+   https://github.com/Elock-exe/SeaOfThieves-Trackers */
 /* ============================================================
    Accounts — who is allowed to write stats for which pirate.
 

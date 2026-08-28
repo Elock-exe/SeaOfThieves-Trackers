@@ -1,3 +1,6 @@
+/* SotTracker — sottracker.fr
+   Creator: Vyros__
+   https://github.com/Elock-exe/SeaOfThieves-Trackers */
 /* Shared chrome: topbar, subnav, footer, search wiring. */
 (function (global) {
   'use strict';
@@ -44,6 +47,7 @@
   function subnavHTML(active) {
     const items = [
       { href: '/', label: 'Home', key: 'nav.home' },
+      { href: '/import', label: 'Import account', key: 'nav.import' },
       { href: '/link', label: 'Link account', key: 'nav.link' },
       { href: '/leaderboards', label: 'Leaderboards', key: 'nav.leaderboards' },
       { href: '/#voyages', label: 'Voyages Guide', key: 'nav.voyages' },

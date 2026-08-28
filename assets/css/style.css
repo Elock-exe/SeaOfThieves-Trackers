@@ -1,3 +1,6 @@
+/* SotTracker — sottracker.fr
+   Creator: Vyros__
+   https://github.com/Elock-exe/SeaOfThieves-Trackers */
 /* ============================================================
    SEA OF THIEVES TRACKER — design system
    Structure borrowed from tracker.gg (sticky double navbar,
@@ -2772,3 +2775,148 @@ button[type="submit"]:active { transform: scale(0.97); }
 .lb-empty span { font-size: 13px; color: var(--text-3); }
 
 .promo-tag-on { background: #3fd08a; color: #06120d; }
+
+/* ============================================================
+   Import page (the bookmarklet route)
+
+   The whole point of this page is that it looks less demanding than the
+   extension page, so the steps are numbered and the draggable bookmark is
+   the only thing that reads as a control. Nothing here asks to be
+   installed.
+   ============================================================ */
+
+.import-steps {
+  list-style: none;
+  margin: 0 0 28px;
+  padding: 0;
+  display: grid;
+  gap: 18px;
+}
+
+.import-step {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 16px;
+  align-items: start;
+  background: var(--bg-1);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 20px 22px;
+}
+
+/* Grid items default to min-width:auto, so a long line inside one refuses
+   to shrink and pushes the card past its container instead of wrapping. */
+.import-step > * { min-width: 0; }
+
+.import-step-n {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--teal);
+  background: rgba(255, 70, 85, .1);
+  border: 1px solid rgba(255, 70, 85, .3);
+}
+
+.import-step-body h2 {
+  margin: 4px 0 6px;
+  font-size: 17px;
+}
+
+.import-step-body p { margin: 0 0 10px; }
+.import-step-body p:last-child { margin-bottom: 0; }
+
+.import-tip {
+  font-size: 13px;
+  color: var(--text-2, #8fa0b3);
+}
+
+/* The draggable bookmark. Deliberately styled as something you pick up
+   rather than something you press: grab cursor, dashed edge, and a click
+   that does nothing (the href is a javascript: URL, and running it on this
+   page would do nothing useful). */
+.import-drop {
+  margin: 14px 0 10px;
+}
+
+.import-bm {
+  display: inline-block;
+  padding: 12px 24px;
+  background: linear-gradient(180deg, var(--teal), var(--teal-dim));
+  color: var(--on-accent);
+  border: 2px dashed rgba(255, 255, 255, .45);
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  cursor: grab;
+  user-select: none;
+  box-shadow: 0 6px 18px rgba(255, 70, 85, .25);
+}
+
+.import-bm:active { cursor: grabbing; }
+
+.import-bm:hover {
+  border-style: solid;
+  box-shadow: 0 8px 24px rgba(255, 70, 85, .38);
+}
+
+.import-mobile {
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 28px;
+  background: var(--bg-1);
+}
+
+.import-mobile > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.import-mobile-body { padding-top: 12px; }
+.import-mobile-body ol { margin: 0 0 14px; padding-left: 20px; }
+.import-mobile-body li { margin-bottom: 6px; }
+
+.import-code {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  background: var(--bg-0);
+  color: var(--text-0);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  resize: vertical;
+}
+
+.import-promise, .import-alt { margin-bottom: 22px; }
+
+.promise-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.promise-list li {
+  margin-bottom: 10px;
+  line-height: 1.55;
+}
+
+.promise-list li:last-child { margin-bottom: 0; }
+.promise-list b { color: var(--text-0); }
+
+@media (max-width: 560px) {
+  .import-step {
+    grid-template-columns: 36px 1fr;
+    gap: 12px;
+    padding: 16px 16px;
+  }
+  .import-step-n { width: 36px; height: 36px; font-size: 16px; }
+  .import-bm { font-size: 14px; padding: 11px 18px; }
+}

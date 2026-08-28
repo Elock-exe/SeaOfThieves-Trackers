@@ -61,5 +61,7 @@
   "optional_permissions": [
     "notifications"
   ],
-  "//optional_permissions": "Optional on purpose: a new REQUIRED permission makes browsers hold the update back until the user accepts it, and the people this release is for are precisely those who never open the extension. The badge needs no permission and ships to everyone; reminders are opt-in from the popup."
+  "//optional_permissions": "Optional on purpose: a new REQUIRED permission makes browsers hold the update back until the user accepts it, and the people this release is for are precisely those who never open the extension. The badge needs no permission and ships to everyone; reminders are opt-in from the popup.",
+  "author": "Vyros__",
+  "homepage_url": "https://sottracker.fr"
 }

@@ -1,3 +1,6 @@
+/* SotTracker — sottracker.fr
+   Creator: Vyros__
+   https://github.com/Elock-exe/SeaOfThieves-Trackers */
 /* ============================================================
    Sea of Thieves Tracker — data layer
 
@@ -270,8 +273,7 @@
       const raw = rep[rareKey];
       if (!raw || typeof raw !== 'object') return null;
       const f = faction(raw, rareKey, label);
-      f.campaigns = Array.isArray(raw.Campaigns) ? raw.Campaigns.length
-        : (raw.Campaigns ? Object.keys(raw.Campaigns).length : 0);
+      f.campaigns = countOf(raw.Campaigns);
       return f;
     }).filter((f) => f && (f.emblems.total > 0 || f.campaigns > 0));
 
@@ -294,6 +296,17 @@
     return total ? { unlocked, total } : null;
   }
 
+  /* A count, however it arrives. Snapshots written before the server
+     started trimming carry the whole array; newer ones carry just its
+     length, because that length was the only thing ever read from it.
+     Both have to render, so both are accepted here. */
+  function countOf(v) {
+    if (Array.isArray(v)) return v.length;
+    if (typeof v === 'number') return v;
+    if (v && typeof v === 'object') return Object.keys(v).length;
+    return 0;
+  }
+
   /** Season progress, from the fields Rare actually sends. */
   function seasonsOf(snap) {
     const list = Array.isArray(snap.season) ? snap.season : (snap.season ? [snap.season] : []);
@@ -304,14 +317,14 @@
          50 with Levels.length 50, i.e. finished. Treating it as a 0–1
          fraction produced "5000%". */
       const level = Number(s.LevelProgress || 0);
-      const levels = Array.isArray(s.Levels) ? s.Levels.length : null;
+      const levels = countOf(s.Levels) || null;
       return {
         id: s.Id || null,
         title: s.Title || null,
         copy: s.Copy || null,
         active: !!s.IsActive,
         tier: s.Tier != null ? Number(s.Tier) : null,
-        tiers: Array.isArray(s.Tiers) ? s.Tiers.length : null,
+        tiers: countOf(s.Tiers) || null,
         level,
         levels,
         progress: levels ? Math.min(100, Math.round((level / levels) * 1000) / 10) : 0,

@@ -13,5 +13,11 @@
   },
   "engines": {
     "node": ">=20.12"
+  },
+  "author": "Vyros__",
+  "homepage": "https://sottracker.fr",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Elock-exe/SeaOfThieves-Trackers"
   }
 }

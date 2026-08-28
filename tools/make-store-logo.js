@@ -1,3 +1,6 @@
+/* SotTracker — sottracker.fr
+   Creator: Vyros__
+   https://github.com/Elock-exe/SeaOfThieves-Trackers */
 /* Render the site's compass mark to a 300x300 PNG for the Edge store listing.
 
    Written as a rasteriser rather than a canvas export on purpose: the base64

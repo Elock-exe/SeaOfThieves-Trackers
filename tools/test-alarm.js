@@ -1,3 +1,6 @@
+/* SotTracker — sottracker.fr
+   Creator: Vyros__
+   https://github.com/Elock-exe/SeaOfThieves-Trackers */
 /* Does the alarm survive the background script restarting?
 
    That is the whole bug: MV3 tears the background context down when idle

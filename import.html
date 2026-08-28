@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Import your account — Sea of Thieves Tracker</title>
+<meta name="description" content="Import your Sea of Thieves progress in one click. No extension, no install, no permissions." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 26 26%22><circle cx=%2213%22 cy=%2213%22 r=%2212%22 fill=%22%230b0b12%22 stroke=%22%23ff4655%22 stroke-width=%221.6%22/><path d=%22M16,13L23,13M15.1,15.1L20.1,20.1M13,16L13,23M10.9,15.1L5.9,20.1M10,13L3,13M10.9,10.9L5.9,5.9M13,10L13,3M15.1,10.9L20.1,5.9%22 stroke=%22%23ff4655%22 stroke-width=%221.4%22/><circle cx=%2213%22 cy=%2213%22 r=%222.8%22 fill=%22%23ff4655%22/></svg>">
+<link rel="stylesheet" href="assets/css/style.css?v=1785804238" />
+
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="SotTracker" />
+<meta property="og:url" content="https://sottracker.fr/import" />
+<meta property="og:title" content="Import your account — SotTracker" />
+<meta property="og:description" content="One click, no extension to install. Your session never leaves your browser." />
+<meta property="og:image" content="https://sottracker.fr/assets/img/og-card.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Import your account — SotTracker" />
+<meta name="twitter:description" content="One click, no extension to install. Your session never leaves your browser." />
+<meta name="twitter:image" content="https://sottracker.fr/assets/img/og-card.png" />
+<meta name="theme-color" content="#0f1923" />
+</head>
+<body>
+
+<div class="page-header">
+  <div class="container">
+    <div class="breadcrumb"><a href="/" data-i18n="nav.home">Home</a> / <span data-i18n="import.crumb">Import account</span></div>
+    <h1 data-i18n="import.title">Import your account</h1>
+    <p data-i18n="import.sub">One click, nothing to install. Publishes your gold, Hourglass rank, reputation and commendations.</p>
+  </div>
+</div>
+
+<section class="block tight">
+  <div class="container">
+
+    <ol class="import-steps">
+
+      <li class="import-step">
+        <div class="import-step-n">1</div>
+        <div class="import-step-body">
+          <h2 data-i18n="import.s1Title">Drag this to your bookmarks bar</h2>
+          <p data-i18n="import.s1Body">It is a bookmark that runs a script. Not a download, not an extension.</p>
+          <p class="import-drop">
+            <a class="import-bm" id="bm" draggable="true" onclick="return false;"
+               href="javascript:(function(){if(window.__sotImportRunning){return}var d=document,s=d.createElement('script');s.src='https://sottracker.fr/assets/js/importer.js?v='+Date.now();s.onerror=function(){alert('SotTracker: the importer could not load. Check your connection, or use the browser extension instead.')};(d.body||d.documentElement).appendChild(s);})();">&#9875; Import SoT Profile</a>
+          </p>
+          <p class="import-tip" data-i18n="import.s1Tip">No bookmarks bar? Press Ctrl+Shift+B (Cmd+Shift+B on Mac).</p>
+        </div>
+      </li>
+
+      <li class="import-step">
+        <div class="import-step-n">2</div>
+        <div class="import-step-body">
+          <h2 data-i18n="import.s2Title">Open your Sea of Thieves account</h2>
+          <p data-i18n="import.s2Body">Sign in with your Xbox account and go to your profile overview.</p>
+          <p><a class="btn ghost" href="https://www.seaofthieves.com/profile/overview"
+                target="_blank" rel="noopener noreferrer">seaofthieves.com/profile/overview</a></p>
+        </div>
+      </li>
+
+      <li class="import-step">
+        <div class="import-step-n">3</div>
+        <div class="import-step-body">
+          <h2 data-i18n="import.s3Title">Click the bookmark</h2>
+          <p data-i18n="import.s3Body">An overlay shows the progress, and gives you a link to your profile when it is done.</p>
+        </div>
+      </li>
+
+    </ol>
+
+    <details class="import-mobile">
+      <summary data-i18n="import.mobileTitle">On a phone, or no drag and drop</summary>
+      <div class="import-mobile-body">
+        <ol>
+          <li data-i18n="import.m1">Bookmark any page, for example google.com.</li>
+          <li data-i18n="import.m2">Edit that bookmark.</li>
+          <li data-i18n="import.m3">Replace its address with the code below.</li>
+          <li data-i18n="import.m4">Open your Sea of Thieves account, then open that bookmark.</li>
+        </ol>
+        <textarea id="bm-code" class="import-code" readonly rows="4"></textarea>
+        <button class="btn ghost" id="bm-copy" data-i18n="import.copy">Copy the code</button>
+        <p class="import-tip" data-i18n="import.mobileWarn">Phone browsers handle bookmarklets badly. If it opens a new tab instead of running, this route will not work there and the extension is the better option.</p>
+      </div>
+    </details>
+
+    <div class="panel import-promise">
+      <div class="panel-head"><span data-i18n="import.promiseTitle">What this does, and what it cannot do</span></div>
+      <div class="panel-body padded">
+        <ul class="promise-list">
+          <li><b data-i18n="import.p1Label">Unofficial.</b> <span data-i18n="import.p1">Not affiliated with, endorsed by or sponsored by Rare or Microsoft.</span></li>
+          <li><b data-i18n="import.p2Label">It reads, nothing else.</b> <span data-i18n="import.p2">The script asks seaofthieves.com for the same profile data the page is already showing you, and sends only those game stats to the tracker.</span></li>
+          <li><b data-i18n="import.p3Label">It never sees your password.</b> <span data-i18n="import.p3">It cannot: it runs after you are already signed in, and it never reads or copies your session cookie. The browser attaches that, we never see its value.</span></li>
+          <li><b data-i18n="import.p4Label">It only runs when you click it.</b> <span data-i18n="import.p4">Nothing stays behind, nothing runs in the background, nothing watches your other tabs.</span></li>
+          <li><b data-i18n="import.p5Label">It can only see your own profile.</b> <span data-i18n="import.p5">There is no way for it to read anybody else’s.</span></li>
+          <li><b data-i18n="import.p6Label">Published stats are public.</b> <span data-i18n="import.p6">Anyone who knows your pirate name can look them up.</span></li>
+        </ul>
+        <p class="warn-foot">
+          <span data-i18n="import.readSource">Read the exact code that runs. It is not minified and nothing is hidden:</span>
+          <a href="assets/js/importer.js" target="_blank" rel="noopener">importer.js</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="panel import-alt">
+      <div class="panel-head"><span data-i18n="import.altTitle">Want it to happen on its own?</span></div>
+      <div class="panel-body padded">
+        <p data-i18n="import.altBody">This imports when you click it, and not otherwise. The browser extension does the same thing by itself, roughly once an hour, so your profile stays current without you thinking about it.</p>
+        <p><a class="btn" href="/link" data-i18n="import.altCta">Get the extension</a></p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+
+<script src="assets/js/config.js?v=1785804238"></script>
+<script src="assets/js/translations.js?v=1785804238"></script>
+<script src="assets/js/i18n.js?v=1785804238"></script>
+<script src="assets/js/data.js?v=1785804238"></script>
+<script src="assets/js/icons.js?v=1785804238"></script>
+<script src="assets/js/badge.js?v=1785804238"></script>
+<script src="assets/js/reveal.js?v=1785804238"></script>
+<script src="assets/js/ui.js?v=1785804238"></script>
+
+<script>
+/* The textarea is filled from the anchor's own href, so the page cannot end
+   up shipping two versions of the bookmarklet that disagree with each
+   other. There is one, and this reads it. */
+(function () {
+  /* Header, nav and footer, same as every other page. Without this the
+     import page has no way back to the rest of the site. */
+  SOTUI.mount('Import account');
+
+  var a = document.getElementById('bm');
+  var box = document.getElementById('bm-code');
+  var btn = document.getElementById('bm-copy');
+  if (!a || !box) return;
+
+  box.value = a.getAttribute('href');
+  box.addEventListener('click', function () { box.select(); });
+
+  if (btn) btn.addEventListener('click', function () {
+    box.select();
+    try { document.execCommand('copy'); } catch (e) { /* the selection is the fallback */ }
+    var old = btn.textContent;
+    btn.textContent = 'Copied';
+    setTimeout(function () { btn.textContent = old; }, 1600);
+  });
+})();
+</script>
+</body>
+</html>

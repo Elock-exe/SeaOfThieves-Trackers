@@ -1,3 +1,6 @@
+/* SotTracker — sottracker.fr
+   Creator: Vyros__
+   https://github.com/Elock-exe/SeaOfThieves-Trackers */
 /* ============================================================
    Storage driver.
 
@@ -440,16 +443,28 @@ const supabaseDriver = {
       .filter(Boolean)
       .map((h) => h.toLowerCase()))];
 
-    const rows = await Promise.all(handles.map(async (h) => {
-      try {
-        const hit = await rest('snapshots?handle=ilike.' + encodeURIComponent(h) +
-          '&order=captured_at.desc&limit=1');
-        const r = hit && hit[0];
-        return r ? { handle: r.handle, capturedAt: r.captured_at, snapshot: r.snapshot } : null;
-      } catch (e) {
-        return null;   // one unreadable pirate must not empty the board
-      }
-    }));
+    /* In batches, not all at once. Promise.all over every handle put one
+       snapshot per pirate in memory simultaneously, and JSON.parse holds
+       several times the text size in live objects — which is how building
+       the boards reached the 512 MB Render allows and got the process
+       killed (exit 137). Four at a time keeps the peak flat however many
+       pirates sign up, and costs a few hundred milliseconds on a read that
+       is cached for a minute afterwards. */
+    const CHUNK = 4;
+    const rows = [];
+    for (let i = 0; i < handles.length; i += CHUNK) {
+      const batch = await Promise.all(handles.slice(i, i + CHUNK).map(async (h) => {
+        try {
+          const hit = await rest('snapshots?handle=ilike.' + encodeURIComponent(h) +
+            '&order=captured_at.desc&limit=1');
+          const r = hit && hit[0];
+          return r ? { handle: r.handle, capturedAt: r.captured_at, snapshot: r.snapshot } : null;
+        } catch (e) {
+          return null;   // one unreadable pirate must not empty the board
+        }
+      }));
+      rows.push(...batch);
+    }
 
     return rows.filter(Boolean);
   }
