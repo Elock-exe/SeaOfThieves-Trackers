@@ -40,9 +40,27 @@
   window.__sotImportRunning = true;
   var done = function () { window.__sotImportRunning = false; };
 
-  if (!/(^|\.)seaofthieves\.com$/.test(location.hostname)) {
-    alert('Open seaofthieves.com and sign in first, then click the bookmark from there.');
-    done();
+  /* Two checks, not one.
+
+     The host test alone passed on support.seaofthieves.com — a subdomain,
+     so it matched — and every profile path 404'd from there, because a
+     relative fetch resolves against the page you are standing on. Someone
+     clicked the bookmark while reading their own support ticket and got
+     five dead ends and no idea why.
+
+     So the host has to be the www one, and the path has to be a profile
+     page. Anything else is refused with the address to go to, rather than
+     being allowed to fail five requests later. */
+  var ON_SITE = /^(www\.)?seaofthieves\.com$/.test(location.hostname);
+  var ON_PROFILE = location.pathname.indexOf('/profile') !== -1;
+  var PROFILE_URL = 'https://www.seaofthieves.com/profile/overview';
+
+  /* Not an alert, and not a refusal. A relative fetch resolves against the
+     page you are standing on, so the profile endpoints only answer from the
+     profile page — that is a browser rule, not a choice. But being told to
+     go somewhere is worse than being taken there, so this offers the trip. */
+  if (!ON_SITE || !ON_PROFILE) {
+    wrongPage();
     return;
   }
 
@@ -91,6 +109,38 @@
     wrap.appendChild(box);
     document.body.appendChild(wrap);
     return wrap;
+  }
+
+  /* Reached before the main overlay exists, so it builds its own. A function
+     declaration, so the guard above can call it before this line is read. */
+  function wrongPage() {
+    var wrap = ui();
+    msg.textContent = 'Wrong page';
+    sub.textContent = 'This only works from your Sea of Thieves profile, because that ' +
+      'is the only page allowed to read your stats.';
+    if (bar) { bar.style.width = '100%'; bar.style.background = '#d8a13a'; }
+
+    var go = document.createElement('button');
+    go.textContent = 'Take me there';
+    go.style.cssText = 'display:block;margin:18px auto 0;padding:10px 24px;' +
+      'background:#ff4655;color:#fff;border:0;border-radius:8px;font-weight:600;' +
+      'font-size:14px;cursor:pointer';
+    go.onclick = function () { location.href = PROFILE_URL; };
+
+    var note = document.createElement('div');
+    note.textContent = 'Then click the bookmark once more.';
+    note.style.cssText = 'font-size:12px;color:#8fa0b3;margin-top:10px';
+
+    var close = document.createElement('button');
+    close.textContent = 'Close';
+    close.style.cssText = 'display:block;margin:14px auto 0;padding:7px 16px;' +
+      'background:transparent;color:#8fa0b3;border:1px solid #26323f;' +
+      'border-radius:8px;cursor:pointer;font-size:13px';
+    close.onclick = function () { wrap.remove(); done(); };
+
+    box.appendChild(go);
+    box.appendChild(note);
+    box.appendChild(close);
   }
 
   var overlay = ui();
