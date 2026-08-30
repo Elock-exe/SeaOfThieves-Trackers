@@ -37,6 +37,7 @@
 
     if (lower === 'es' && region && LATAM.includes(region.toUpperCase())) return 'es-419';
     if (lower === 'zh') return 'zh-TW';           // only Traditional is shipped
+    if (lower === 'pt') return 'pt-BR';           // only Brazilian is shipped
     if (STRINGS[lower]) return lower;
     return null;
   }
