@@ -2948,3 +2948,24 @@ button[type="submit"]:active { transform: scale(0.97); }
 @media (prefers-reduced-motion: reduce) {
   .import-hint.pulse { animation: none; }
 }
+
+/* The notice Microsoft's Game Content Usage Rules require, word for word,
+   for the company emblems and Hourglass art this site displays. It is what
+   makes using them permitted at all, so it has to be findable — quiet, but
+   not hidden, and never translated: the wording is theirs, not ours. */
+.footer-legal {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-2, #8fa0b3);
+}
+
+.footer-legal a {
+  color: var(--text-1, #b9c6d4);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.footer-legal a:hover { color: var(--teal); }

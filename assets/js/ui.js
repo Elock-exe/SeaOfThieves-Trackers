@@ -103,7 +103,12 @@
         </div>
         <div class="footer-bottom">
           <span>&copy; ${new Date().getFullYear()} Sea of Thieves Tracker &middot; <span data-i18n="footer.copy">Fan-made project</span></span>
-          <span class="demo-badge" data-i18n="footer.demo">Stats shown are generated locally for demo purposes — no public Sea of Thieves stats API exists yet.</span>
+          <span class="demo-badge" data-i18n="footer.demo">Real data from Steam, Xbox Live and — if you link it — your own Sea of Thieves account. Nothing here is generated.</span>
+        </div>
+        <div class="footer-legal">
+          Sea of Thieves &copy; Microsoft Corporation. Sea of Thieves Tracker was created under
+          Microsoft&rsquo;s <a href="https://www.xbox.com/en-US/developers/rules" target="_blank" rel="noopener">&ldquo;Game Content Usage Rules&rdquo;</a>
+          using assets from Sea of Thieves, and it is not endorsed by or affiliated with Microsoft.
         </div>
       </div>
     </footer>`;
