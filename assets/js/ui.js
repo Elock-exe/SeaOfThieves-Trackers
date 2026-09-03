@@ -7,7 +7,7 @@
 
   const LOGO_SVG = `
     <svg width="30" height="30" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="13" cy="13" r="12.5" fill="#ff4655"/>
+      <circle cx="13" cy="13" r="12.5" fill="var(--teal)"/>
       <path d="M16,13 L22,13 M15.1,15.1 L19.4,19.4 M13,16 L13,22 M10.9,15.1 L6.6,19.4 M10,13 L4,13 M10.9,10.9 L6.6,6.6 M13,10 L13,4 M15.1,10.9 L19.4,6.6" stroke="#0f1923" stroke-width="1.5" stroke-linecap="round"/>
       <circle cx="13" cy="13" r="3.1" fill="#0f1923"/>
     </svg>`;
@@ -30,47 +30,47 @@
       </div>`;
   }
 
-  function topbarHTML() {
-    return `
-    <div class="topbar">
-      <div class="topbar-inner">
-        <a class="brand" href="/">${LOGO_SVG}<span>Sea of Thieves <span class="brand-sub">Tracker</span></span></a>
-        <div class="topbar-links">
-          ${langPickerHTML()}
-          <a href="https://www.seaofthieves.com" target="_blank" rel="noopener" data-i18n="top.officialSite">Official Site</a>
-          <a class="btn-track" href="/#search" data-i18n="top.track">Track a Pirate</a>
-        </div>
-      </div>
-    </div>`;
-  }
+  /* One bar, not two.
 
-  function subnavHTML(active) {
+     The site had a topbar for the brand and a subnav for the links, stacked,
+     eating 108px before any content. Rare puts everything on one line: mark
+     left, passage centre, actions right. It is the shape every game site
+     settles on, and it gives back half the height.
+
+     The nav is the middle column of a three-column grid rather than a
+     flex child, so it stays centred on the page no matter how wide the
+     brand or the actions grow — with flex, a long gamertag in the corner
+     would push the whole menu off-centre. */
+  function headerHTML(active) {
     const items = [
       { href: '/', label: 'Home', key: 'nav.home' },
       { href: '/import', label: 'Import account', key: 'nav.import' },
-      { href: '/link', label: 'Link account', key: 'nav.link' },
       { href: '/leaderboards', label: 'Leaderboards', key: 'nav.leaderboards' },
-      { href: '/#voyages', label: 'Voyages Guide', key: 'nav.voyages' },
-      { href: '/#companies', label: 'Trading Companies', key: 'nav.companies' },
       { href: '/#community', label: 'Community', key: 'nav.community' }
     ];
+
     const links = items.map((it) => {
       const isActive = it.label === active;
       return `<a href="${it.href}" class="${isActive ? 'active' : ''}" data-i18n="${it.key}">${it.label}</a>`;
     }).join('');
 
     return `
-    <div class="subnav">
-      <div class="subnav-inner">
-        ${links}
-        <div class="subnav-search">
-          <form id="nav-search-form" action="/profile" method="get">
-            <button type="submit" aria-label="Search" style="background:none;border:none;padding:0;display:flex;">${SEARCH_SVG}</button>
-            <input type="search" name="player" data-i18n-attr="placeholder:nav.searchPlaceholder" placeholder="Find a pirate, e.g. CutlassClem#4821" autocomplete="off" />
-          </form>
+    <header class="topbar">
+      <div class="topbar-inner">
+
+        <a class="brand" href="/">${LOGO_SVG}<span>Sea of Thieves <span class="brand-sub">Tracker</span></span></a>
+
+        <nav class="topnav">${links}</nav>
+
+        <div class="topbar-actions">
+          <a class="topbar-icon" href="/#search" aria-label="Search">${SEARCH_SVG}</a>
+          ${langPickerHTML()}
+          <a class="btn-track" href="/#search" data-i18n="top.track">Track a Pirate</a>
+          <span id="topbar-me"></span>
         </div>
+
       </div>
-    </div>`;
+    </header>`;
   }
 
   function footerHTML() {
@@ -151,12 +151,49 @@
     syncLabel();
   }
 
+
+  /* The pirate this browser has claimed, shown top-right the way every
+     account-bearing site does it.
+
+     Drawn from localStorage alone, with initials rather than a fetched
+     avatar: the header renders on every page, and one network request per
+     page load to draw a 28px circle is a bad trade. The real avatar is
+     already on the profile page, which is one click away.
+
+     Re-rendered on sot:claim so the chip appears the moment someone
+     presses "This is my pirate", without a reload. */
+  function renderMe() {
+    const slot = document.getElementById('topbar-me');
+    if (!slot || typeof SOT === 'undefined') return;
+
+    const name = SOT.syncedOwner();
+    if (!name) { slot.innerHTML = ''; return; }
+
+    const url = '/profile?player=' + encodeURIComponent(name);
+    slot.innerHTML =
+      '<a class="topbar-me" href="' + url + '" title="' + esc(name) + '">' +
+        '<span class="topbar-me-av" style="background:' + SOT.avatarColor(name) + '">' +
+          esc(SOT.initials(name)) +
+        '</span>' +
+        '<span class="topbar-me-name">' + esc(name) + '</span>' +
+      '</a>';
+  }
+
+  /* The name comes from the pirate's own gamertag, so it goes through the
+     same escaping as anything else a stranger chose. */
+  function esc(v) {
+    return String(v).replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[c]);
+  }
   function mount(activeNav) {
-    document.body.insertAdjacentHTML('afterbegin', topbarHTML() + subnavHTML(activeNav));
+    document.body.insertAdjacentHTML('afterbegin', headerHTML(activeNav));
     document.body.insertAdjacentHTML('beforeend', footerHTML());
 
     I18N.init();
     wireLangPicker();
+    renderMe();
+    document.addEventListener('sot:claim', renderMe);
 
     const form = document.getElementById('nav-search-form');
     if (form) {

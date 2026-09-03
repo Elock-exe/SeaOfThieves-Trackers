@@ -164,6 +164,7 @@
   async function claimSynced(name) {
     if (!name) return false;
     try { localStorage.setItem(OWNER_KEY, String(name)); } catch (e) { /* mirror only */ }
+    announceClaim();
     try {
       const res = await fetch(API_BASE + '/api/synced/claim', {
         method: 'POST',
@@ -244,7 +245,21 @@
       distinction: Number(raw.DistinctionLevel || 0),
       emblems,
       motto: raw.Motto || null,
-      items: { unlocked: Number(raw.ItemsUnlocked || 0), total: Number(raw.ItemsTotal || 0) }
+      items: { unlocked: Number(raw.ItemsUnlocked || 0), total: Number(raw.ItemsTotal || 0) },
+
+      /* Rare envoie ces trois-la depuis le debut et rien ne les lisait. Le
+         rang est le titre porte ("Master Gold Hoarder"), pas un nombre : il
+         dit d'un coup d'oeil ou en est le pirate, la ou un niveau 67 ne veut
+         rien dire pour qui ne connait pas les paliers. */
+      rank: raw.Rank || null,
+      promotions: {
+        unlocked: Number(raw.PromotionsUnlocked || 0),
+        total: Number(raw.PromotionsTotal || 0)
+      },
+      titles: {
+        unlocked: Number(raw.TitlesUnlocked || 0),
+        total: Number(raw.TitlesTotal || 0)
+      }
     };
   }
 
@@ -265,8 +280,10 @@
        instead. Filtering them out for lacking a "Level" threw away 207 of
        762 unlocked emblems and 49 campaigns of real progress. */
     const CAMPAIGN_FACTIONS = {
+    /* "Adventures At Sea" est le nom affiche par Rare aujourd'hui ; la cle
+       de l'API porte encore l'ancien, BilgeRats. */
       TallTales: 'Tall Tales',
-      BilgeRats: 'Bilge Rats',
+      BilgeRats: 'Adventures At Sea',
       CreatorCrew: 'Creator Crew'
     };
     const campaigns = Object.entries(CAMPAIGN_FACTIONS).map(([rareKey, label]) => {
@@ -277,8 +294,22 @@
       return f;
     }).filter((f) => f && (f.emblems.total > 0 || f.campaigns > 0));
 
-    if (!companies.length && !campaigns.length) return null;
-    return { source: 'connected', companies, campaigns };
+    /* Rare ajoute des factions dont la cle est un UUID et non un nom : elles
+       arrivent avec un niveau et une devise, sans intitule. Aucune table ne
+       les connaissait, donc elles disparaissaient en silence — celle de ce
+       compte est au niveau 90 et ne figurait nulle part.
+
+       Faute de nom, la devise sert de titre. C'est ce que Rare envoie de
+       plus proche, et une faction sans intitule vaut mieux qu'une faction
+       absente. */
+    /* Rare envoie aussi des factions dont la cle est un UUID, sans intitule.
+       Les afficher sous leur devise donnait des cartes du genre "Lie par le
+       code des pirates", qui ne disent a personne de quoi il s'agit. Elles
+       sont ecartees tant que Rare ne leur donne pas de nom. */
+    const inconnues = [];
+
+    if (!companies.length && !campaigns.length && !inconnues.length) return null;
+    return { source: 'connected', companies, campaigns: campaigns.concat(inconnues) };
   }
 
   /** Total emblems across every faction — the one number that says how much
@@ -305,6 +336,19 @@
     if (typeof v === 'number') return v;
     if (v && typeof v === 'object') return Object.keys(v).length;
     return 0;
+    announceClaim();
+  }
+
+  /* Anything showing the owner's pirate listens for this. Dispatched on both
+     claiming and unclaiming, so a header that appears also disappears.
+
+     Fired on the local write, before the network round trip: the chip has to
+     show up immediately, and the API has no say in what this browser shows
+     its own owner. */
+  function announceClaim() {
+    try {
+      document.dispatchEvent(new CustomEvent('sot:claim'));
+    } catch (e) { /* older browsers simply keep the page as it was */ }
   }
 
   /** Season progress, from the fields Rare actually sends. */
@@ -513,7 +557,10 @@
   async function projectStats() {
     try {
       const body = await call('/api/stats');
-      return { pirates: Number(body.pirates) || 0 };
+      /* La saison passe telle quelle : elle vient de Rare, pas de nous, et la
+         reformater ici creerait un deuxieme endroit ou elle peut devenir
+         fausse. Absente si aucun snapshot recent n'en porte. */
+      return { pirates: Number(body.pirates) || 0, season: body.season || null };
     } catch (e) {
       return null;
     }

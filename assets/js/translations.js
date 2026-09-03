@@ -27,6 +27,10 @@
 
   /* ------------------------------ ENGLISH ------------------------------ */
   en: {
+    "profile.campaignsLabel": "Campaigns",
+    "profile.promotions": "Promotions",
+    "profile.titlesLabel": "Titles",
+    "profile.items": "Items",
     'nav.home': 'Home',
     'nav.leaderboards': 'Leaderboards',
     'nav.voyages': 'Voyages Guide',
@@ -376,6 +380,10 @@
 
   /* ------------------------------ DEUTSCH ------------------------------ */
   de: {
+    "profile.campaignsLabel": "Kampagnen",
+    "profile.promotions": "Beförderungen",
+    "profile.titlesLabel": "Titel",
+    "profile.items": "Gegenstände",
     'nav.home': 'Startseite',
     'nav.leaderboards': 'Bestenlisten',
     'nav.voyages': 'Reise-Guide',
@@ -704,6 +712,10 @@
 
   /* ------------------------------ ESPAÑOL (ES) ------------------------------ */
   es: {
+    "profile.campaignsLabel": "Campañas",
+    "profile.promotions": "Ascensos",
+    "profile.titlesLabel": "Títulos",
+    "profile.items": "Objetos",
     'nav.home': 'Inicio',
     'nav.leaderboards': 'Clasificaciones',
     'nav.voyages': 'Guía de viajes',
@@ -1032,6 +1044,10 @@
 
   /* ------------------------------ ESPAÑOL (LATAM) ------------------------------ */
   'es-419': {
+    "profile.campaignsLabel": "Campañas",
+    "profile.promotions": "Ascensos",
+    "profile.titlesLabel": "Títulos",
+    "profile.items": "Objetos",
     'nav.home': 'Inicio',
     'nav.leaderboards': 'Tablas de clasificación',
     'nav.voyages': 'Guía de viajes',
@@ -1360,6 +1376,10 @@
 
   /* ------------------------------ FRANÇAIS ------------------------------ */
   fr: {
+    "profile.campaignsLabel": "Campagnes",
+    "profile.promotions": "Promotions",
+    "profile.titlesLabel": "Titres",
+    "profile.items": "Objets",
     'nav.home': 'Accueil',
     'nav.leaderboards': 'Classements',
     'nav.voyages': 'Guide des voyages',
@@ -1484,7 +1504,7 @@
     'profile.towardNext': "Vers le niveau suivant",
     'profile.allegiance': "Allégeance",
     'profile.distinctionHint': "Distinctions obtenues au-delà du niveau plafond",
-    'voyage.gh.t': "Voyage des Amasseurs d'or",
+    "voyage.gh.t": "Voyage des Collectionneurs d'or",
     'voyage.gh.d': "Cartes à énigme ou à croix menant à des coffres enfouis. Idéal en solo ou à deux sur un sloop.",
     'voyage.oos.t': "Prime de l'Ordre des âmes",
     'voyage.oos.d': "Chasse aux capitaines squelettes sur les îles et les navires fantômes. Prends des bombes à éclats.",
@@ -1496,17 +1516,17 @@
     'voyage.rb.d': "Aucune carte — retrouve un coffre placé au hasard et livre-le à un repaire du Faucheur.",
     'voyage.fotd.t': "Fort des Damnés",
     'voyage.fotd.d': "Événement JcJcE à l'échelle du serveur. Gros risques, butin considérable auprès des Seigneurs de Cendres.",
-    'company.goldHoarders': "Amasseurs d'or",
+    "company.goldHoarders": "Collectionneurs d'or",
     'company.goldHoarders.d': "Cartes au trésor et coffres enfouis. Le point d'entrée classique pour les nouveaux équipages.",
-    'company.orderOfSouls': "Ordre des âmes",
+    "company.orderOfSouls": "Ordre des âmes",
     'company.orderOfSouls.d': "Chasse aux primes contre les morts-vivants — capitaines squelettes, forts et flottes.",
-    'company.merchantAlliance': "Alliance marchande",
+    "company.merchantAlliance": "Alliance marchande",
     'company.merchantAlliance.d': "Contrats de livraison de cargaisons et de transport d'animaux à travers la carte.",
-    'company.athenaFortune': "Fortune d'Athéna",
+    "company.athenaFortune": "Fortune d'Athéna",
     'company.athenaFortune.d': "Voyages unifiés à gros enjeux, exigeant du renom auprès des autres compagnies.",
-    'company.reapersBones': "Os du Faucheur",
+    "company.reapersBones": "Os du Faucheur",
     'company.reapersBones.d': "Faction orientée JcJ, récompensant le butin volé et les navires rivaux coulés.",
-    'company.huntersCall': "Appel du chasseur",
+    "company.huntersCall": "Appel du chasseur",
     'company.huntersCall.d': "Contrats de pêche et de cuisine, plus les trophées de mégalodon et de kraken.",
     'hourglass.servants': "Serviteurs de la Flamme",
     'hourglass.guardians': "Gardiens de la Fortune",
@@ -1696,6 +1716,10 @@
 
   /* ------------------------------ ITALIANO ------------------------------ */
   it: {
+    "profile.campaignsLabel": "Campagne",
+    "profile.promotions": "Promozioni",
+    "profile.titlesLabel": "Titoli",
+    "profile.items": "Oggetti",
     'nav.home': 'Home',
     'nav.leaderboards': 'Classifiche',
     'nav.voyages': 'Guida ai viaggi',
@@ -2024,6 +2048,10 @@
 
   /* ------------------------------ MAGYAR ------------------------------ */
   hu: {
+    "profile.campaignsLabel": "Kampányok",
+    "profile.promotions": "Előléptetések",
+    "profile.titlesLabel": "Címek",
+    "profile.items": "Tárgyak",
     'nav.home': 'Főoldal',
     'nav.leaderboards': 'Ranglisták',
     'nav.voyages': 'Utazás útmutató',
@@ -2352,6 +2380,10 @@
 
   /* ------------------------------ POLSKI ------------------------------ */
   pl: {
+    "profile.campaignsLabel": "Kampanie",
+    "profile.promotions": "Awanse",
+    "profile.titlesLabel": "Tytuły",
+    "profile.items": "Przedmioty",
     'nav.home': 'Strona główna',
     'nav.leaderboards': 'Rankingi',
     'nav.voyages': 'Przewodnik po rejsach',
@@ -2680,6 +2712,10 @@
 
   /* ------------------------------ РУССКИЙ ------------------------------ */
   ru: {
+    "profile.campaignsLabel": "Кампании",
+    "profile.promotions": "Повышения",
+    "profile.titlesLabel": "Титулы",
+    "profile.items": "Предметы",
     'nav.home': 'Главная',
     'nav.leaderboards': 'Таблицы лидеров',
     'nav.voyages': 'Гид по рейсам',
@@ -3008,6 +3044,10 @@
 
   /* ------------------------------ العربية ------------------------------ */
   ar: {
+    "profile.campaignsLabel": "الحملات",
+    "profile.promotions": "الترقيات",
+    "profile.titlesLabel": "الألقاب",
+    "profile.items": "العناصر",
     'nav.home': 'الرئيسية',
     'nav.leaderboards': 'لوحات الصدارة',
     'nav.voyages': 'دليل الرحلات',
@@ -3336,6 +3376,10 @@
 
   /* ------------------------------ 繁體中文 ------------------------------ */
   'zh-TW': {
+    "profile.campaignsLabel": "戰役",
+    "profile.promotions": "晉升",
+    "profile.titlesLabel": "稱號",
+    "profile.items": "物品",
     'nav.home': '首頁',
     'nav.leaderboards': '排行榜',
     'nav.voyages': '航程指南',
@@ -3664,6 +3708,10 @@
 
   /* --------------------------- PORTUGUES (BR) --------------------------- */
   'pt-BR': {
+    "profile.campaignsLabel": "Campanhas",
+    "profile.promotions": "Promoções",
+    "profile.titlesLabel": "Títulos",
+    "profile.items": "Itens",
     "nav.home": "Início",
     "nav.leaderboards": "Rankings",
     "nav.voyages": "Guia de viagens",

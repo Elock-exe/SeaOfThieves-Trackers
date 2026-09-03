@@ -56,7 +56,11 @@ function trimReputation(rep) {
 /* seasonsOf() in data.js reads exactly these, plus the length of Tiers and
    of Levels. The rest of a season object is presentation Rare sends for its
    own page — banners, challenge trees, unlock paths. */
+/* ActiveFrom et ActiveUntil ne sont pas de la decoration : c'est la seule
+   source qui dise quand la saison en cours se termine. La page d'accueil
+   affichait une fausse echeance faute de les avoir. */
 const SEASON_KEEP = ['Id', 'Title', 'Copy', 'IsActive', 'Tier',
+  'ActiveFrom', 'ActiveUntil',
   'LevelProgress', 'CompleteChallenges', 'TotalChallenges'];
 
 function trimOneSeason(s) {

@@ -316,6 +316,41 @@ const server = http.createServer((req, res) => {
   });
 });
 
+
+/* When the current season ends, taken from the game rather than guessed.
+
+   The home page used to compute this from the weekly reset cadence — next
+   Monday at 10:00 UTC — and label it "Season ends". It was therefore never
+   more than seven days away, while a Sea of Thieves season runs about
+   three months. Everyone reading it was being told something false.
+
+   Rare sends ActiveUntil in the season payload, so any recent snapshot
+   carries the real date. One is enough: the season is the same for every
+   player, so the first one that answers settles it.
+
+   Cached for an hour. This changes four times a year. */
+let seasonCache = null;
+
+async function activeSeason() {
+  if (seasonCache && Date.now() - seasonCache.at < 3600000) return seasonCache.value;
+
+  try {
+    const rows = await require("./db").latestPerHandle();
+    for (const row of rows) {
+      const seasons = (row.snapshot && row.snapshot.season) || [];
+      const live = (Array.isArray(seasons) ? seasons : [seasons])
+        .find((x) => x && x.IsActive && x.ActiveUntil);
+      if (live) {
+        seasonCache = { at: Date.now(), value: { title: live.Title || null, endsAt: live.ActiveUntil } };
+        return seasonCache.value;
+      }
+    }
+  } catch (e) { /* pas de saison connue : la page n affichera rien */ }
+
+  seasonCache = { at: Date.now(), value: null };
+  return null;
+}
+
 async function handle(req, res) {
   cors(req, res);
 
@@ -495,7 +530,10 @@ async function handle(req, res) {
      whether the leaderboards are worth reading yet. */
   if (url.pathname === '/api/stats') {
     try {
-      return send(res, 200, { pirates: await require('./db').countPirates() });
+      return send(res, 200, {
+        pirates: await require('./db').countPirates(),
+        season: await activeSeason()
+      });
     } catch (err) {
       return fail(res, err);
     }

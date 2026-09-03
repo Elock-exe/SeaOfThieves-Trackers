@@ -363,6 +363,9 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M6 2h12M6 22h12"/><path d="M8 2v3.5c0 2 4 4.5 4 6.5s-4 4.5-4 6.5V22"/><path d="M16 2v3.5c0 2-4 4.5-4 6.5s4 4.5 4 6.5V22"/>
               </svg>
+              ${s.level != null
+                ? `<span class="hg-emblem-level">${SOT.formatNumber(s.level)}</span>`
+                : ''}
             </div>
 
             <div class="hg-body">
@@ -508,44 +511,92 @@
         `<img class="rep-crest" src="assets/img/company-${key}.png" alt="" loading="lazy"
               onerror="this.remove()" />`;
 
+      /* Une ligne par compagnie avec une barre de progression, c'etait la
+         forme d'un tableau : on comparait des compagnies au lieu de regarder
+         la sienne. Rare presente chacune comme une carte, et affiche quatre
+         nombres que l'API renvoyait deja sans que rien ne les lise —
+         promotions, commendations, titres, objets.
+
+         Le rang porte ("Master Gold Hoarder") passe devant le niveau : 67 ne
+         veut rien dire pour qui ne connait pas les paliers, le titre si. */
+      const compte = (o) => o && o.total
+        ? `<span class="repc-n">${SOT.formatNumber(o.unlocked)}<i>/${SOT.formatNumber(o.total)}</i></span>`
+        : '<span class="repc-n repc-none">—</span>';
+
       const rows = p.reputation.companies.map((c) => `
-          <div class="rep-row${c.distinction > 0 ? ' rep-maxed' : ''}">
-            <div class="rep-name">${crest(c.key)}<span>${c.name}</span></div>
-            <div class="rep-bar-track" role="progressbar" aria-valuenow="${Math.round(c.progress)}" aria-valuemin="0" aria-valuemax="100">
-              <div class="rep-bar-fill" style="width:${c.progress}%"></div>
+          <article class="repc repc-${c.key}${c.distinction > 0 ? ' repc-maxed' : ''}">
+            <img class="repc-watermark" src="assets/img/company-${c.key}.png" alt="" aria-hidden="true" loading="lazy" onerror="this.remove()" />
+            <div class="repc-crest">
+              ${crest(c.key)}
+              <span class="repc-level">${SOT.formatNumber(c.level)}</span>
             </div>
-            <div class="rep-count">
-              <span class="rep-level">${SOT.formatNumber(c.level)}</span>
+
+            <div class="repc-body">
+              <h3 class="repc-name">${c.name}</h3>
+              ${c.rank ? `<p class="repc-rank">${c.rank}</p>` : ''}
+
+              <dl class="repc-grid">
+                <div><dt>${t('profile.promotions')}</dt><dd>${compte(c.promotions)}</dd></div>
+                <div><dt>${t('profile.emblems')}</dt><dd>${compte(c.emblems)}</dd></div>
+                <div><dt>${t('profile.titlesLabel')}</dt><dd>${compte(c.titles)}</dd></div>
+                <div><dt>${t('profile.items')}</dt><dd>${compte(c.items)}</dd></div>
+              </dl>
+
+              ${c.distinction > 0
+                ? `<p class="repc-dist">${SOTBadge.badge(String(c.distinction), 'star', { title: t('profile.distinctionHint') })}</p>`
+                : `<div class="repc-bar" role="progressbar" aria-valuenow="${Math.round(c.progress)}" aria-valuemin="0" aria-valuemax="100">
+                     <span style="width:${c.progress}%"></span>
+                   </div>`}
             </div>
-            <div class="rep-flag">${
-              c.distinction > 0
-                ? SOTBadge.badge(String(c.distinction), 'star', { title: t('profile.distinctionHint') })
-                : ''
-            }</div>
-          </div>`).join('');
+          </article>`).join('');
       /* Campaign factions have no level, only emblems and campaigns. They
          were dropped entirely for lacking a level, which hid 207 unlocked
          emblems and 49 campaigns of real progress. */
       const camps = p.reputation.campaigns || [];
+      /* Meme carte que les compagnies, sans ce qu'une campagne n'a pas.
+
+         Le gros chiffre du medaillon est le NIVEAU. Une campagne n'en a
+         pas, et y mettre son compte d'emblemes a la place donnait un "2"
+         ou un "207" isole que rien n'expliquait. Il disparait quand il n'y
+         a pas de niveau — la faction a cle UUID en a un, elle le garde.
+
+         Les compteurs sont ceux du jeu : titres et commendations.
+
+         Rare fait exactement cela sur sa propre page : les Gardiens de la
+         Fortune n'ont ni rang ni promotions, leur carte affiche deux
+         compteurs au lieu de quatre et rien ne manque a l'oeil. Une carte
+         qui s'adapte vaut mieux qu'une seconde mise en page a maintenir. */
       const campRows = camps.map((c) => {
         const pct = c.emblems.total
           ? Math.round((c.emblems.unlocked / c.emblems.total) * 100) : 0;
         return `
-          <div class="rep-row">
-            <div class="rep-name">${c.name}</div>
-            <div class="rep-bar-track" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
-              <div class="rep-bar-fill" style="width:${pct}%"></div>
+          <article class="repc repc-campaign">
+            <img class="repc-watermark" src="assets/img/company-${c.key}.png" alt="" aria-hidden="true" loading="lazy" onerror="this.remove()" />
+            <div class="repc-crest">
+              ${crest(c.key)}
+              ${c.level != null ? `<span class="repc-level">${SOT.formatNumber(c.level)}</span>` : ''}
             </div>
-            <div class="rep-count">
-              <span class="rep-level">${SOT.formatNumber(c.emblems.unlocked)}</span><span class="rep-max">/${SOT.formatNumber(c.emblems.total)}</span>
+
+            <div class="repc-body">
+              <h3 class="repc-name">${c.name}</h3>
+
+              <dl class="repc-grid">
+                <div><dt>${t('profile.titlesLabel')}</dt><dd>${compte(c.titles)}</dd></div>
+                <div><dt>${t('profile.emblems')}</dt><dd>${compte(c.emblems)}</dd></div>
+              </dl>
+
+              <div class="repc-bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
+                <span style="width:${pct}%"></span>
+              </div>
             </div>
-            <div class="rep-flag">${c.campaigns ? `<span class="rep-sub">${c.campaigns}</span>` : ''}</div>
-          </div>`;
+          </article>`;
       }).join('');
 
       repEl.innerHTML =
-        panel('profile.reputation', null, rows) +
-        (campRows ? panel('profile.campaigns', null, campRows, 'panel-gap') : '');
+        /* Les cartes se rangent en grille ; les anciennes lignes s empilaient
+           d elles-memes et n avaient besoin d aucun conteneur. */
+        panel('profile.reputation', null, '<div class="rep-cards">' + rows + '</div>') +
+        (campRows ? panel('profile.campaigns', null, '<div class="rep-cards">' + campRows + '</div>', 'panel-gap') : '');
     } else {
       repEl.innerHTML = '';
     }

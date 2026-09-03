@@ -11,15 +11,39 @@
     if (!input.value.trim()) e.preventDefault();
   });
 
-  // Season countdown — cosmetic, derived from the weekly reset cadence.
-  (function seasonCountdown() {
-    const now = new Date();
-    const end = new Date(now);
-    end.setUTCDate(now.getUTCDate() + ((8 - now.getUTCDay()) % 7 || 7));
-    end.setUTCHours(10, 0, 0, 0);
-    const diff = end - now;
-    document.getElementById('season-countdown').textContent =
-      Math.floor(diff / 86400000) + 'd ' + Math.floor((diff % 86400000) / 3600000) + 'h';
+  /* When the season actually ends.
+
+     This used to compute the next Monday at 10:00 UTC — the weekly reset —
+     and print it under the label "Season ends". It was therefore never more
+     than seven days out, while a season runs about three months. The number
+     was always wrong, and nothing on screen said so.
+
+     The real date comes from Rare, through /api/stats. If it is not known,
+     the line is hidden rather than filled with a guess: a stat panel with a
+     gap in it is honest, and a confident wrong number is not. */
+  (async function seasonCountdown() {
+    const el = document.getElementById('season-countdown');
+    if (!el) return;
+
+    const item = el.closest('.hs-item');
+    let stats = null;
+    try { stats = await SOT.projectStats(); } catch (e) { /* traite plus bas */ }
+
+    const endsAt = stats && stats.season && stats.season.endsAt;
+    if (!endsAt) { if (item) item.style.display = 'none'; return; }
+
+    function paint() {
+      const diff = new Date(endsAt) - new Date();
+      if (diff <= 0) { if (item) item.style.display = 'none'; return; }
+
+      const jours = Math.floor(diff / 86400000);
+      const heures = Math.floor((diff % 86400000) / 3600000);
+      /* Au-dela d'une semaine, l'heure pres n'apprend rien a personne. */
+      el.textContent = jours >= 7 ? jours + 'd' : jours + 'd ' + heures + 'h';
+    }
+
+    paint();
+    setInterval(paint, 60000);
   })();
 
   /* The status line that used to live here announced plumbing ("live
@@ -30,23 +54,31 @@
 
      The card is its own concern now, and does not care whether some
      other element is on the page. */
-  (async function linkCard() {
-    const health = await SOT.apiHealth();
-    renderLinkCard(!!(health && health.linked));
-  })();
+  /* Qui est lie, vu d'ici.
+
+     La carte interrogeait /api/health et lisait son champ "linked" : celui-ci
+     dit si le SERVEUR a un compte Rare configure, l'ancien mecanisme par
+     cookie. Il vaut false en permanence depuis que chacun synchronise le
+     sien, donc la carte proposait de lier son compte a des gens deja lies.
+
+     Ce qui compte est local : le pirate que ce navigateur a revendique. */
+  renderLinkCard();
+  document.addEventListener('sot:claim', renderLinkCard);
 
   /* The promo slot doubles as the account-linking entry point: it either
      invites you to link, or takes you to your own profile. */
-  function renderLinkCard(isLinked) {
+  function renderLinkCard() {
     const card = document.getElementById('promo-card');
     if (!card) return;
 
+    const owner = SOT.syncedOwner();
+
     function paint() {
-      card.innerHTML = isLinked
+      card.innerHTML = owner
         ? `<span class="promo-tag promo-tag-on">${I18N.t('promo.linkedTag')}</span>
            <h3>${I18N.t('promo.linkedTitle')}</h3>
            <p>${I18N.t('promo.linkedBody')}</p>
-           <a class="btn-red" href="/profile?player=me">${I18N.t('promo.linkedCta')}</a>`
+           <a class="btn-red" href="/profile?player=${encodeURIComponent(owner)}">${I18N.t('promo.linkedCta')}</a>`
         : `<span class="promo-tag">${I18N.t('promo.tag')}</span>
            <h3>${I18N.t('promo.title')}</h3>
            <p>${I18N.t('promo.body')}</p>

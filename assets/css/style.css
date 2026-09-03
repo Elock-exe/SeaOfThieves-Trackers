@@ -6,48 +6,75 @@
    Structure borrowed from tracker.gg (sticky double navbar,
    search-first hero, card stat blocks, sortable table).
    Palette + type pulled from the real seaofthieves.com site:
-   near-black ink bg (#111119), signature teal (#34DA9E / #00FF9C),
+   near-black ink bg (#111119), signature teal (var(--teal) / #00FF9C),
    parchment cream text (#FFF5DD), DM Sans body copy. Gold is kept
    only for literal in-game currency and legendary status, not as
    decoration.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Anton&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Vollkorn:ital,wght@0,400..700;1,400..700&family=Caveat+Brush&family=Roboto:wght@400;500;700&display=swap');
 
 :root {
-  --bg-0: #0f1923;
-  --bg-1: #0f141a;
-  --bg-2: #1b2733;
-  --bg-3: #2c3f52;
-  --border: #2c3f52;
-  --border-soft: #1b2733;
+  /* fonds : vert de mer profond, du plus sombre au plus clair */
+  --bg-0: #0c0d10;
+  --bg-1: #121317;
+  --bg-2: #1a1c21;
+  --bg-3: #272a31;
+  --border: #2c3038;
+  --border-soft: #1c1f24;
 
-  --teal: #ff4655;
-  --teal-soft: #ff8f98;
-  --teal-glow: #ff4655;
-  --teal-dim: #d53435;
-  --on-accent: #ffffff;
+  /* accent : écume claire. Le nom reste --teal, et cette fois il dit vrai. */
+  --teal: #45d69b;
+  --teal-rgb: 69, 214, 155;   /* pour les rgba() : voir plus bas */
+  --teal-soft: #8fe9c4;
+  --teal-glow: #45d69b;
+  --teal-dim: #2ba876;
+  /* l'accent est clair, donc ce qui se pose dessus doit etre sombre */
+  --on-accent: #062018;
 
-  --gold: #d8a13a;
-  --gold-soft: #f0c675;
-  --gold-dim: #8f6a24;
+  /* laiton et lanterne, pour l'or et les mises en avant chaudes */
+  --gold: #e0a33f;
+  --gold-soft: #f5cd83;
+  --gold-dim: #916a26;
 
-  --cream: #ffffff;
-  --red: #ff4655;
-  --green: #3fd08a;
+  /* les taches du fond peint : plus sombres que --bg-0, jamais plus claires */
+  --paint: #000000;
 
-  --text-0: #efefef;
-  --text-1: #c3cdd6;
-  --text-2: #8b98a5;
-  --text-3: #5d6b78;
+  --cream: #f4f1e6;
+  --red: #45d69b;        /* historiquement l'accent, garde pour les 26 usages */
+  --danger: #e2604f;     /* le vrai rouge : uniquement ce qui a mal tourne */
+  --green: #45d69b;
+
+  /* textes tirant sur le parchemin plutot que sur le gris pur */
+  --text-0: #f4f1e6;
+  --text-1: #cfd2d6;
+  --text-2: #949aa3;
+  --text-3: #646b75;
 
   --radius: 8px;
   --radius-lg: 16px;
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 
-  --font-display: 'Anton', 'Roboto', sans-serif;
-  --font-script: 'Roboto', sans-serif;
-  --font-body: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* IM Fell English : une fonte de 1660, gravee, pas une police de jeu
+     video. Caveat Brush pour la marque, ou un trait de pinceau vaut
+     mieux qu'une graisse. Le corps de texte reste sans-serif : ce site
+     affiche surtout des nombres en colonnes, et la lisibilite passe
+  /* Le serif ancien porte tout le texte. Vollkorn, un serif taille pour le corps de texte,
+     libre sous SIL OFL, et qui monte jusqu'a 700.
+
+     IM Fell English avait le bon caractere mais une seule graisse, fine :
+     sur fond sombre un ecran amincit le trait clair, et le texte paraissait
+     creux. Celle-ci peut peser. */
+  --font-body: 'Vollkorn', Georgia, serif;
+
+  /* La brosse, pour les titres de section uniquement — un paragraphe entier
+     dans cette main devient illisible au bout de deux lignes. */
+  --font-display: 'Caveat Brush', 'Vollkorn', cursive;
+  --font-script: 'Caveat Brush', cursive;
+
+  /* Roboto ne sert plus qu'aux colonnes de chiffres, ou un 3 et un 8 doivent
+     rester distincts et les rangees alignees. */
+  --font-data: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -60,7 +87,9 @@ body {
   background: var(--bg-0);
   color: var(--text-1);
   font-family: var(--font-body);
-  line-height: 1.5;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.62;
   -webkit-font-smoothing: antialiased;
   position: relative;
 }
@@ -139,73 +168,6 @@ button { font-family: inherit; cursor: pointer; }
 .btn-track:hover { filter: brightness(1.12); }
 
 /* ---------- secondary nav ---------- */
-.subnav {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: rgba(15, 25, 35, 0.96);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border-soft);
-}
-.subnav-inner {
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 0 24px;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.subnav-inner::-webkit-scrollbar { display: none; }
-.subnav a {
-  position: relative;
-  display: flex;
-  align-items: center;
-  height: 52px;
-  padding: 0 16px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-2);
-  white-space: nowrap;
-}
-.subnav a:hover { color: var(--text-0); }
-.subnav a.active { color: #ffffff; font-weight: 700; }
-.subnav a.active::after {
-  content: '';
-  position: absolute;
-  left: 16px; right: 16px; bottom: 0;
-  height: 3px;
-  border-radius: 2px 2px 0 0;
-  background: var(--red);
-}
-.subnav-search {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-}
-.subnav-search form {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  padding: 7px 12px;
-  width: 260px;
-}
-.subnav-search input {
-  background: none;
-  border: none;
-  outline: none;
-  color: var(--text-0);
-  font-size: 13px;
-  width: 100%;
-  font-family: var(--font-body);
-}
-.subnav-search input::placeholder { color: var(--text-3); }
-.subnav-search svg { flex: none; color: var(--text-3); }
 
 /* ---------- hero ---------- */
 /* ---------- hero ----------
@@ -220,23 +182,22 @@ button { font-family: inherit; cursor: pointer; }
   overflow: hidden;
   padding: 84px 0 76px;
   background:
-    radial-gradient(900px 340px at 78% 8%, rgba(255, 70, 85, 0.12), transparent 62%),
-    radial-gradient(700px 420px at 8% 100%, rgba(52, 218, 158, 0.07), transparent 62%),
-    linear-gradient(180deg, #1b2733 0%, #0f1923 72%, #0c141d 100%);
-  border-bottom: 1px solid var(--border-soft);
+    linear-gradient(180deg, #191b20 0%, #0c0d10 72%, #08090b 100%);
+  /* pas de bordure : la dechirure de la section suivante passe par-dessus,
+     et une ligne droite sous un bord dechire annule tout l effet. */
 }
 
-/* Nautical chart grid, fading out downward so the text never fights it. */
+/* Brushed shadow over the hero. This was a nautical chart grid, which is
+   the one thing a painted background cannot survive: a perfectly regular
+   lattice reads as a screen no matter what is laid on top of it. */
 .hero::before {
   content: '';
   position: absolute;
   inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
-  background-size: 46px 46px;
-  -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 20%, transparent 78%);
-  mask-image: radial-gradient(120% 90% at 50% 0%, #000 20%, transparent 78%);
+  background: #000;
+  -webkit-mask: url('../img/paint.svg') repeat 140px 60px / 700px 560px;
+  mask: url('../img/paint.svg') repeat 140px 60px / 700px 560px;
+  opacity: 0.55;
   pointer-events: none;
 }
 
@@ -252,8 +213,7 @@ button { font-family: inherit; cursor: pointer; }
   pointer-events: none;
   opacity: 0.5;
   background:
-    radial-gradient(60px 18px at 50% 100%, rgba(52, 218, 158, 0.16), transparent 70%) 0 0/160px 40px repeat-x,
-    radial-gradient(80px 22px at 50% 100%, rgba(255, 70, 85, 0.10), transparent 70%) 40px 16px/220px 48px repeat-x;
+    none;
   animation: hero-swell 26s linear infinite;
 }
 
@@ -324,7 +284,7 @@ button { font-family: inherit; cursor: pointer; }
      with no gradient, so the mask reproduces it exactly rather than
      flattening a shade the design intended. Changing the wordmark's colour
      is this one line. */
-  background-color: #959499;
+  background-color: var(--cream);
   -webkit-mask: url('/assets/img/logo-wordmark.png') center / contain no-repeat;
   mask: url('/assets/img/logo-wordmark.png') center / contain no-repeat;
 }
@@ -413,7 +373,7 @@ section.block.tight { padding: 38px 0; }
   content: '';
   width: 18px; height: 2px;
   background: var(--teal);
-  box-shadow: 0 0 6px rgba(255, 70, 85, 0.6);
+  box-shadow: none;
   flex: none;
 }
 .block-head p { margin: 0; color: var(--text-2); font-size: 13.5px; }
@@ -520,8 +480,8 @@ section.block.tight { padding: 38px 0; }
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--teal);
-  background: rgba(255, 70, 85, 0.08);
-  border: 1px solid rgba(255, 70, 85, 0.28);
+  background: rgba(var(--teal-rgb), 0.08);
+  border: 1px solid rgba(var(--teal-rgb), 0.28);
   padding: 3px 8px;
   border-radius: 4px;
   margin-bottom: 12px;
@@ -541,7 +501,6 @@ section.block.tight { padding: 38px 0; }
 /* ---------- band (alt section background) ---------- */
 section.band {
   background: var(--bg-1);
-  border-top: 1px solid var(--border-soft);
   border-bottom: 1px solid var(--border-soft);
 }
 
@@ -573,7 +532,7 @@ section.band {
 }
 .news-featured:hover,
 .news-row:hover {
-  border-color: rgba(255, 70, 85, 0.4);
+  border-color: rgba(var(--teal-rgb), 0.4);
   transform: translateY(-2px);
 }
 
@@ -582,7 +541,6 @@ section.band {
   grid-column: 1 / -1;
   padding: 26px 28px;
   background:
-    radial-gradient(120% 130% at 0% 0%, rgba(255, 70, 85, 0.1), transparent 58%),
     var(--bg-2);
 }
 .news-featured h3 { font-size: 20px; margin: 10px 0 8px; color: #fff; }
@@ -665,20 +623,17 @@ section.band {
   content: '';
   position: absolute;
   inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
-  background-size: 22px 22px;
-  -webkit-mask-image: linear-gradient(180deg, #000, transparent 75%);
-  mask-image: linear-gradient(180deg, #000, transparent 75%);
+  background: #000;
+  -webkit-mask: url('../img/paint.svg') repeat 0 0 / 520px 420px;
+  mask: url('../img/paint.svg') repeat 0 0 / 520px 420px;
+  opacity: 0.4;
   pointer-events: none;
 }
 
 .ref-row:hover {
-  border-color: rgba(255, 70, 85, 0.4);
+  border-color: rgba(var(--teal-rgb), 0.4);
   transform: translateY(-2px);
   background:
-    radial-gradient(120% 100% at 0% 0%, rgba(255, 70, 85, 0.09), transparent 60%),
     var(--bg-2);
 }
 
@@ -693,12 +648,12 @@ section.band {
   margin: 0;
   border-radius: 10px;
   color: var(--red);
-  background: rgba(255, 70, 85, 0.1);
-  border: 1px solid rgba(255, 70, 85, 0.22);
+  background: rgba(var(--teal-rgb), 0.1);
+  border: 1px solid rgba(var(--teal-rgb), 0.22);
   opacity: 1;
   transition: background 200ms ease, transform 200ms ease;
 }
-.ref-row:hover .icon { background: rgba(255, 70, 85, 0.17); transform: scale(1.04); }
+.ref-row:hover .icon { background: rgba(var(--teal-rgb), 0.17); transform: scale(1.04); }
 .ref-row .icon svg { width: 21px; height: 21px; display: block; }
 
 /* A company crest is artwork, not a line icon: it needs no tinted plate
@@ -755,7 +710,7 @@ section.band {
 .cta-item .icon svg { width: 22px; height: 22px; display: block; }
 .cta-item .txt strong { display: block; font-size: 13.5px; color: var(--text-0); }
 .cta-item .txt span { font-size: 12px; color: var(--text-3); }
-.cta-item:hover { background: rgba(255,70,85,0.04); }
+.cta-item:hover { background: rgba(var(--teal-rgb), 0.04); }
 
 @media (max-width: 760px) {
   .ref-columns { grid-template-columns: 1fr; }
@@ -904,7 +859,7 @@ table.lb-table tbody tr {
   border-bottom: 1px solid var(--border-soft);
   transition: background 0.1s;
 }
-table.lb-table tbody tr:hover { background: rgba(255, 70, 85, 0.03); cursor: pointer; }
+table.lb-table tbody tr:hover { background: rgba(var(--teal-rgb), 0.03); cursor: pointer; }
 table.lb-table tbody tr:last-child { border-bottom: none; }
 table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1); white-space: nowrap; }
 .lb-rank { font-weight: 800; color: var(--text-2); width: 40px; }
@@ -1063,8 +1018,8 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-.voyage-outcome.success { color: var(--teal-soft); background: rgba(255,70,85,0.1); border: 1px solid rgba(255,70,85,0.28); }
-.voyage-outcome.sunk { color: var(--red); background: rgba(201,88,74,0.12); border: 1px solid rgba(201,88,74,0.3); }
+.voyage-outcome.success { color: var(--teal-soft); background: rgba(var(--teal-rgb), 0.1); border: 1px solid rgba(var(--teal-rgb), 0.28); }
+.voyage-outcome.sunk { color: var(--danger); background: rgba(226,96,79,0.12); border: 1px solid rgba(226,96,79,0.3); }
 .voyage-loot { font-size: 13px; font-weight: 800; color: var(--teal-soft); text-align: right; }
 
 .titles-grid { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -1229,11 +1184,13 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   .two-col { grid-template-columns: 1fr; }
   .hero h1 { font-size: 42px; }
   .hero h1.hero-wordmark::before { height: 104px; }
-  .subnav-search form { width: 180px; }
 }
 @media (max-width: 640px) {
   .topbar-links .pill-status,
-  .topbar-links a:not(.btn-track) { display: none; }
+  /* La puce du proprietaire survit au repli : savoir sous quel pirate on
+     est reconnu compte autant sur telephone que sur ecran large. Elle se
+     reduit a son avatar, gere plus bas. */
+  .topbar-links a:not(.btn-track):not(.topbar-me) { display: none; }
   /* On a phone the brand and the links together are wider than the screen,
      which pushed the language menu off the right edge and gave the whole
      page a horizontal scroll — from an element that is not even visible.
@@ -1252,7 +1209,6 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
      instead of by intent. */
   .hero h1.hero-wordmark::before { height: 68px; }
   .kpi-grid { grid-template-columns: 1fr; }
-  .subnav-search form { width: 140px; }
   /* Four tracks, not three — the last one carries the distinction badge,
      which this rule used to drop on small screens. */
   .rep-row { grid-template-columns: 96px 1fr 52px 28px; gap: 10px; }
@@ -1304,7 +1260,7 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
 .search-bar:focus-within {
   border-color: var(--red);
   background: rgba(255, 255, 255, 0.07);
-  box-shadow: 0 0 0 3px rgba(255, 70, 85, 0.16);
+  box-shadow: 0 0 0 3px rgba(var(--teal-rgb), 0.16);
 }
 
 .search-bar-icon {
@@ -1416,8 +1372,11 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
 .promo-card {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(120deg, #3b2430 0%, #1e2a3f 55%, #232042 100%);
-  border: 1px solid var(--border-soft);
+  /* Le degrade violet/bleu venait de l ancien theme et etait devenu la
+     seule tache coloree de la page. La carte se distingue maintenant par
+     sa bordure d accent, pas par un fond d une autre famille. */
+  background: var(--bg-2);
+  border: 1px solid rgba(var(--teal-rgb), 0.28);
   border-radius: 12px;
   padding: 24px 26px;
 }
@@ -1534,12 +1493,12 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   border-radius: 4px;
 }
 .lang-option:hover { background: var(--bg-3); color: #ffffff; }
-.lang-option.active { background: var(--red); color: #ffffff; font-weight: 700; }
+.lang-option.active { background: var(--red); color: var(--on-accent); font-weight: 700; }
 
 /* ---------- polish ---------- */
 .hero-head h1 { text-shadow: 0 2px 18px rgba(0, 0, 0, 0.4); }
 .search-bar { box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28); }
-.search-bar:focus-within { box-shadow: 0 6px 22px rgba(255, 70, 85, 0.22); }
+.search-bar:focus-within { box-shadow: none; }
 
 .trio-card, .info-card, .kpi-card, .panel, .news-feed, .ref-columns, .cta-strip, .hero-statbar {
   transition: border-color 0.15s, transform 0.15s;
@@ -1567,7 +1526,6 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
 
 /* ---------- RTL (Arabic) ---------- */
 [dir="rtl"] .topbar-inner,
-[dir="rtl"] .subnav-inner,
 [dir="rtl"] .hero-head,
 [dir="rtl"] .recent-row,
 [dir="rtl"] .hs-item,
@@ -1580,7 +1538,6 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
 [dir="rtl"] .footer-col a,
 [dir="rtl"] .footer-col h4 { text-align: right; }
 
-[dir="rtl"] .subnav-search { margin-left: 0; margin-right: auto; }
 [dir="rtl"] .lb-filter { margin-left: 0; margin-right: auto; }
 [dir="rtl"] .share-btn { margin-left: 0; margin-right: auto; }
 [dir="rtl"] .lang-menu { right: auto; left: 0; }
@@ -1613,7 +1570,7 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   white-space: nowrap;
   cursor: help;
 }
-.src-connected  { color: #6fe3b0; background: rgba(63, 208, 138, 0.12); border: 1px solid rgba(63, 208, 138, 0.32); }
+.src-connected  { color: #6fe3b0; background: rgba(var(--teal-rgb), 0.12); border: 1px solid rgba(var(--teal-rgb), 0.32); }
 .src-public     { color: #7fb4ff; background: rgba(90, 150, 255, 0.12);  border: 1px solid rgba(90, 150, 255, 0.32); }
 .src-calculated { color: #ffc46b; background: rgba(255, 180, 90, 0.12);  border: 1px solid rgba(255, 180, 90, 0.32); }
 
@@ -1926,7 +1883,7 @@ button[type="submit"]:active { transform: scale(0.97); }
    Each board carries the colour of what it ranks, so switching from gold
    to Reaper's Bones is visible before the numbers are read. */
 .tone-gold   { --tone: #d8a13a; --tone-soft: #f0c675; }
-.tone-red    { --tone: #ff4655; --tone-soft: #ff8f98; }
+.tone-red    { --tone: var(--teal); --tone-soft: var(--teal-soft); }
 .tone-teal   { --tone: #34da9e; --tone-soft: #7ff0c8; }
 .tone-violet { --tone: #b06fd8; --tone-soft: #d3a6ea; }
 .tone-steel  { --tone: #64798d; --tone-soft: #9fb2c4; }
@@ -2196,15 +2153,11 @@ button[type="submit"]:active { transform: scale(0.97); }
   padding: 20px 22px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  background:
-    radial-gradient(120% 130% at 100% 0%, rgba(255, 70, 85, 0.07), transparent 55%),
-    var(--bg-2);
+  background: var(--bg-2);
 }
 .season-active {
-  border-color: rgba(63, 208, 138, 0.35);
-  background:
-    radial-gradient(120% 130% at 100% 0%, rgba(63, 208, 138, 0.1), transparent 55%),
-    var(--bg-2);
+  border-color: rgba(var(--teal-rgb), 0.45);
+  background: var(--bg-2);
 }
 .season-head {
   display: flex;
@@ -2528,7 +2481,7 @@ button[type="submit"]:active { transform: scale(0.97); }
 
 /* ---------- meta pill variants ---------- */
 .meta-legend { color: #f0c675; border-color: rgba(240, 198, 117, 0.4); background: rgba(240, 198, 117, 0.1); }
-.meta-linked { color: #6fe3b0; border-color: rgba(63, 208, 138, 0.4); background: rgba(63, 208, 138, 0.1); }
+.meta-linked { color: #6fe3b0; border-color: rgba(var(--teal-rgb), 0.4); background: rgba(var(--teal-rgb), 0.1); }
 
 @media (max-width: 760px) {
   .currency-grid   { grid-template-columns: 1fr; }
@@ -2570,14 +2523,14 @@ button[type="submit"]:active { transform: scale(0.97); }
   flex: none;
 }
 .api-status.on  { color: #6fe3b0; }
-.api-status.on::before  { background: #3fd08a; box-shadow: 0 0 7px #3fd08a; }
+.api-status.on::before  { background: var(--teal); }
 .api-status.off { color: var(--text-3); }
 .api-status.off::before { background: var(--text-3); }
 
 /* ---------- live-data banner (replaces the sample-data one) ---------- */
 .demo-banner.live-banner {
-  background: rgba(63, 208, 138, 0.07);
-  border-color: rgba(63, 208, 138, 0.3);
+  background: rgba(var(--teal-rgb), 0.07);
+  border-color: rgba(var(--teal-rgb), 0.3);
 }
 .demo-banner.live-banner svg { color: #6fe3b0; }
 .demo-banner.live-banner strong { color: #6fe3b0; }
@@ -2713,8 +2666,8 @@ button[type="submit"]:active { transform: scale(0.97); }
 }
 .env-path code { color: var(--text-1); word-break: break-all; }
 
-.panel-warn { border-color: rgba(255, 70, 85, 0.35); }
-.panel-warn .panel-head { color: #ff8f98; }
+.panel-warn { border-color: rgba(var(--teal-rgb), 0.35); }
+.panel-warn .panel-head { color: var(--teal-soft); }
 .panel-warn p { margin: 0 0 12px; font-size: 13.5px; color: var(--text-1); }
 .warn-list {
   list-style: none;
@@ -2753,7 +2706,7 @@ button[type="submit"]:active { transform: scale(0.97); }
   margin-bottom: 6px;
 }
 .probe-ok { color: #6fe3b0; }
-.probe-bad { color: #ff8f98; }
+.probe-bad { color: var(--teal-soft); }
 
 .spinner-sm { width: 16px; height: 16px; border-width: 2px; }
 
@@ -2774,7 +2727,7 @@ button[type="submit"]:active { transform: scale(0.97); }
 .lb-empty strong { display: block; color: var(--text-1); font-size: 15px; margin-bottom: 5px; }
 .lb-empty span { font-size: 13px; color: var(--text-3); }
 
-.promo-tag-on { background: #3fd08a; color: #06120d; }
+.promo-tag-on { background: var(--teal); color: var(--on-accent); }
 
 /* ============================================================
    Import page (the bookmarklet route)
@@ -2817,8 +2770,8 @@ button[type="submit"]:active { transform: scale(0.97); }
   font-weight: 700;
   font-size: 18px;
   color: var(--teal);
-  background: rgba(255, 70, 85, .1);
-  border: 1px solid rgba(255, 70, 85, .3);
+  background: rgba(var(--teal-rgb), .1);
+  border: 1px solid rgba(var(--teal-rgb), .3);
 }
 
 .import-step-body h2 {
@@ -2854,14 +2807,14 @@ button[type="submit"]:active { transform: scale(0.97); }
   text-decoration: none;
   cursor: grab;
   user-select: none;
-  box-shadow: 0 6px 18px rgba(255, 70, 85, .25);
+  box-shadow: 0 6px 18px rgba(var(--teal-rgb), .25);
 }
 
 .import-bm:active { cursor: grabbing; }
 
 .import-bm:hover {
   border-style: solid;
-  box-shadow: 0 8px 24px rgba(255, 70, 85, .38);
+  box-shadow: 0 8px 24px rgba(var(--teal-rgb), .38);
 }
 
 .import-mobile {
@@ -2969,3 +2922,764 @@ button[type="submit"]:active { transform: scale(0.97); }
 }
 
 .footer-legal a:hover { color: var(--teal); }
+
+/* ============================================================
+   Painted edges — the torn separator and the brush button
+
+   Both are SVG masks, not pictures. The shape is cut out of whatever
+   colour the element already has, so one file serves every section and
+   every button variant, and changing the palette changes them too.
+
+   Generated by tools/make-torn-edge.js from a seeded random, so the
+   shape is reviewable and identical on every build. The separator tile
+   starts and ends at the same height, which is what lets it repeat
+   across any viewport without a visible seam.
+   ============================================================ */
+
+.torn { position: relative; z-index: 1; }
+
+.torn::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -57px;
+  height: 58px;
+  background: inherit;
+  pointer-events: none;
+  -webkit-mask: url('../img/torn-edge.svg') repeat-x bottom / 480px 58px;
+  mask: url('../img/torn-edge.svg') repeat-x bottom / 480px 58px;
+}
+
+/* `background: inherit` only works if the section actually declares one;
+   a transparent section would tear a transparent shape out of nothing. */
+.torn.on-bg-0 { background: var(--bg-0); }
+
+.torn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--paint);
+  opacity: 0.5;
+  -webkit-mask: url('../img/paint.svg') repeat 210px 130px / 760px 610px;
+  mask: url('../img/paint.svg') repeat 210px 130px / 760px 610px;
+}
+
+/* La couche est posee en absolu sur toute la section : sans cela le
+   contenu passerait dessous et se retrouverait assombri. */
+.torn > * { position: relative; z-index: 1; }
+.torn.on-bg-1 { background: var(--bg-1); }
+.torn.on-bg-2 { background: var(--bg-2); }
+
+/* ---------- the brush button ---------- */
+
+/* .btn was used in the markup and never defined, so those buttons were
+   rendering as raw browser controls. It exists now, and it is the painted
+   one — a rectangle with rounded corners is the one thing that would give
+   the whole design away as a web page. */
+.btn {
+  display: inline-block;
+  border: 0;
+  background: var(--teal);
+  color: var(--on-accent);
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  padding: 15px 32px;
+  min-width: 120px;
+  text-align: center;
+  cursor: pointer;
+  -webkit-mask: url('../img/brush.svg') no-repeat center / 100% 100%;
+  mask: url('../img/brush.svg') no-repeat center / 100% 100%;
+  transition: filter 180ms ease, transform 140ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn:hover { filter: brightness(1.1); }
+.btn:active { transform: scale(0.97); }
+
+/* The stroke is cut from the background, so an outline variant cannot use
+   a border — it would be masked away with everything else. A darker fill
+   with accent text reads as the quieter option just as well. */
+.btn.ghost {
+  background: var(--bg-2);
+  color: var(--teal);
+}
+
+.btn.gold { background: var(--gold); color: var(--on-accent); }
+
+/* Below roughly this width the stroke is squashed hard enough that its
+   wobble reads as noise rather than as a brush. */
+.btn.small {
+  font-size: 14px;
+  padding: 11px 22px;
+  min-width: 96px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn { transition: none; }
+  .btn:active { transform: none; }
+}
+
+/* ---------- the brush, applied to the buttons that were already there ----------
+
+   .btn-red and .btn-track predate the painted look and still carried
+   border-radius: 4px and white text — a rounded corner is the detail that
+   gives a hand-painted design away as a web page, and white on this accent
+   is barely readable.
+
+   They keep their own layout and spacing; only the shape and the colour of
+   the label change. Grouped here rather than edited in place so the whole
+   painted treatment stays in one block. */
+.btn-red,
+.btn-track {
+  border-radius: 0;
+  color: var(--on-accent);
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  -webkit-mask: url('../img/brush.svg') no-repeat center / 100% 100%;
+  mask: url('../img/brush.svg') no-repeat center / 100% 100%;
+}
+
+/* The mask clips to the box, so the padding has to leave room for the
+   ragged ends — otherwise the first and last letter sit in the frayed part. */
+.btn-red { padding: 12px 26px; font-size: 14px; }
+.btn-track { padding: 11px 24px; font-size: 13.5px; }
+
+/* Above a certain width the stroke stretches far enough that its texture
+   smears. Repeating it instead keeps the bristle marks their real size. */
+.btn-red.wide,
+.hero-cta.btn-red {
+  -webkit-mask: url('../img/brush.svg') no-repeat center / 100% 100%;
+  mask: url('../img/brush.svg') no-repeat center / 100% 100%;
+}
+
+/* The hero's call to action is the widest button on the site. The stroke is
+   stretched, not repeated: its ends taper, so tiling shows every seam and the
+   button reads as three. A little smearing is the cheaper fault. */
+.cta-bar {
+  border-radius: 0;
+  color: var(--on-accent);
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+  -webkit-mask: url('../img/brush.svg') no-repeat center / 100% 100%;
+  mask: url('../img/brush.svg') no-repeat center / 100% 100%;
+}
+
+
+/* ---------- the painted ground ----------
+
+   Sits behind everything, fixed, so it does not slide past as the page
+   scrolls — paint on a wall, not wallpaper on a roll.
+
+   The patches are darker than the base, never lighter. Lighter blotches
+   read as stains or as a rendering fault; darker ones read as depth, which
+   is what a hand-painted ground actually looks like.
+
+   z-index: -1 puts it under the content but still above the body's own
+   colour, and pointer-events: none keeps it out of the way of every click
+   on the page. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--paint);
+  -webkit-mask: url('../img/paint.svg') repeat 0 0 / 900px 720px;
+  mask: url('../img/paint.svg') repeat 0 0 / 900px 720px;
+}
+
+/* ---------- the owner's pirate, top right ----------
+
+   Every site that knows who you are puts you in that corner, so it needs no
+   label and no explaining. It only exists once someone has pressed "This is
+   my pirate" — before that the corner stays empty rather than showing a
+   placeholder nobody can act on.
+
+   Initials on a generated colour, not a fetched avatar: this header renders
+   on every page, and a network request to draw a 28px circle would be paid
+   on every navigation. The real portrait is on the profile, one click away. */
+.topbar-me {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  margin-left: 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-1);
+  font-size: 13px;
+  max-width: 190px;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+
+.topbar-me:hover {
+  border-color: rgba(var(--teal-rgb), 0.5);
+  color: var(--text-0);
+}
+
+.topbar-me-av {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+/* A gamertag can be long, and the corner is not where a layout should break. */
+.topbar-me-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Under this width the topbar hides its links anyway; the avatar stays,
+   because knowing you are signed in matters more than reading your name. */
+@media (max-width: 900px) {
+  .topbar-me { padding: 4px; border: 0; }
+  .topbar-me-name { display: none; }
+}
+
+/* ---------- the nav, in the game's voice ----------
+
+   Rare sets its navigation in condensed caps. The rule below used to target
+   .subnav, which stopped existing when the two bars were merged, so it had
+   been styling nothing at all. */
+.topnav a { font-family: var(--font-display); }
+
+/* ============================================================
+   The header, rebuilt as one bar
+
+   Two stacked bars — brand above, links below — cost 108px before any
+   content appeared, and split the identity of the site across two rows.
+   Rare puts it on one line, and so does nearly every game site: mark left,
+   passage centre, actions right.
+
+   A three-column grid, not flex. The middle column is centred on the page
+   rather than on whatever space the other two leave over, so a long
+   gamertag in the corner cannot push the menu sideways.
+   ============================================================ */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: rgba(6, 7, 9, 0.94);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.topbar-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 22px;
+  height: 62px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 18px;
+  justify-content: initial;
+}
+
+/* Grid items refuse to shrink below their content by default, which is how
+   a single long word ends up widening the whole bar. */
+.topbar-inner > * { min-width: 0; }
+
+.topnav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  justify-self: center;
+}
+
+.topnav a {
+  position: relative;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-2);
+  white-space: nowrap;
+  padding: 20px 0;
+  transition: color 160ms ease;
+}
+
+.topnav a:hover { color: var(--text-0); }
+.topnav a.active { color: var(--teal); }
+
+/* The rule under the active item, cut with the same torn edge as the
+   sections — a straight bar here would be the one hard line left on a page
+   that has none. */
+.topnav a.active::after {
+  content: '';
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  bottom: 12px;
+  height: 3px;
+  background: var(--teal);
+  -webkit-mask: url('../img/brush.svg') no-repeat center / 100% 300%;
+  mask: url('../img/brush.svg') no-repeat center / 100% 300%;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-self: end;
+}
+
+.topbar-search form {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-1);
+  transition: border-color 160ms ease, width 200ms ease;
+}
+
+.topbar-search form:focus-within { border-color: rgba(var(--teal-rgb), 0.55); }
+
+.topbar-search button {
+  background: none;
+  border: 0;
+  padding: 0;
+  display: flex;
+  color: var(--text-3);
+}
+
+.topbar-search input {
+  border: 0;
+  background: none;
+  outline: none;
+  color: var(--text-0);
+  font-size: 13px;
+  width: 130px;
+  transition: width 200ms ease;
+}
+
+.topbar-search form:focus-within input { width: 210px; }
+
+/* Below this the three columns cannot all fit. The passage is what goes:
+   the brand says where you are, the actions are what you came to do, and
+   the links are reachable from the page itself. */
+@media (max-width: 1180px) {
+  .topnav { display: none; }
+  .topbar-inner { grid-template-columns: auto 1fr; }
+  .topbar-actions { grid-column: 2; }
+}
+
+@media (max-width: 620px) {
+  .topbar-search { display: none; }
+  .topbar-inner { padding: 0 14px; height: 56px; }
+}
+
+/* ============================================================
+   The display face, everywhere it can go
+
+   IM Fell English SC is an English типе cut in the 1660s — the right
+   century for pirates, and free under the Open Font Licence, which the
+   copies of the game's own typeface floating around are not.
+
+   It now carries every heading, label, tab and figure: the parts of a page
+   that set its voice. What it deliberately does NOT carry is running text
+   and table bodies. A face this textured slows reading down, and this site
+   exists to be read — a leaderboard of forty rows in a 17th-century serif
+   is a costume, not a design.
+
+   So: titles, labels and numbers speak in the game's register; anything
+   someone has to actually read stays in the sans.
+   ============================================================ */
+
+h1, h2, h3, h4,
+.block-head h2,
+.panel-head,
+.kpi-value,
+.stat-chip strong,
+.stat-chip b,
+.rep-name,
+.lb-col,
+.profile-tab,
+.season-name,
+.season-tier-value,
+.hg-level,
+.top3-title,
+.promo-card h3,
+.link-step-title,
+.footer-col h4,
+.import-step-body h2,
+.breadcrumb {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.015em;
+}
+
+/* The face has no bold cut worth the name, so weight cannot carry emphasis
+   here. Size and colour do it instead, which is how it was set originally. */
+h1, h2, h3, h4 { font-weight: 400; }
+
+/* Numbers are what people come for, and this face renders them narrow and
+   low-contrast. Figures keep the sans, where a 3 and an 8 stay apart. */
+.kpi-value,
+.season-tier-value,
+.hg-level,
+.lb-value,
+.stat-chip strong {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- the bar, stripped back ----------
+
+   Rare lines up four things: mark, passage, action, self. This bar carried
+   six, and the extra two are what made it read as busy rather than as a
+   header. The search became an icon — it already exists in the hero, twice
+   the size, as the first thing on the page — and the language picker lost
+   its label, because nobody changes it more than once. */
+
+.topbar-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  color: var(--text-2);
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.topbar-icon:hover {
+  color: var(--text-0);
+  background: var(--bg-2);
+}
+
+/* The nav is the point of the bar, so it gets the room the search gave up. */
+.topnav { gap: 30px; }
+.topnav a { font-size: 13.5px; }
+
+/* A globe on its own, no language name beside it. */
+.topbar-actions .lang-toggle .lang-current,
+.topbar-actions .lang-toggle .lang-caret { display: none; }
+
+.topbar-actions .lang-toggle {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: none;
+  border: 0;
+}
+
+.topbar-actions .lang-toggle:hover { background: var(--bg-2); }
+
+/* ---------- torn cards ----------
+
+   The stat cards on the reference look like pieces torn from a chart: every
+   edge ragged, not just the top.
+
+   Built with mask-border rather than a plain mask, because these cards are
+   not one size. A stat chip is wide and short, a company card is tall — a
+   stretched mask would smear the tear on one and crush it on the other.
+   Nine-slice keeps the four corners at their real size and repeats the
+   edges between them, so a 200px card and a 700px card tear identically.
+
+   A card that tears cannot also have a border: the mask cuts the border off
+   with everything else, leaving fragments. Depth comes from the fill and
+   the ground behind it instead. */
+.torn-card,
+.repc,
+.ref-row,
+.promo-card,
+.stat-chip,
+.recent-card,
+.season-card,
+.news-row,
+.news-featured,
+.panel,
+.currency-card,
+.trio-card,
+.stat-tile,
+.hs-item,
+.cta-item,
+.hg-stat {
+  border: 0 !important;
+  border-radius: 0 !important;
+  -webkit-mask-box-image: url('../img/torn-card.svg') 24 repeat;
+  mask-border: url('../img/torn-card.svg') 24 repeat;
+}
+
+/* Where the tear bites inward, so text never lands in a notch. */
+.ref-row,
+.promo-card,
+.news-row,
+.news-featured,
+.season-card { padding: 22px 24px; }
+
+.stat-chip,
+.recent-card { padding: 16px 18px; }
+
+/* Firefox only shipped mask-border recently. Everywhere it is missing the
+   cards simply keep straight edges, which is a plainer card and not a
+   broken one — so no fallback is needed beyond removing the radius. */
+@supports not ((-webkit-mask-box-image: url('#x')) or (mask-border: url('#x'))) {
+  .torn-card, .repc, .ref-row, .promo-card, .stat-chip, .recent-card, .season-card, .news-row, .news-featured, .panel, .currency-card, .trio-card, .stat-tile, .hs-item, .cta-item, .hg-stat { border: 1px solid var(--border) !important; }
+}
+
+/* ============================================================
+   Company cards
+
+   A row with a progress bar made the page a table: it invited comparing
+   companies against each other, when the only thing anyone came to see is
+   their own standing in each.
+
+   Rare gives each company a card, tinted with its own colour, and prints
+   four counts the API was already returning and nothing was reading —
+   promotions, commendations, titles, items. The rank goes above the level,
+   because "Master Gold Hoarder" tells you where someone is and 67 does not
+   unless you know the thresholds by heart.
+   ============================================================ */
+
+.rep-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+.repc {
+  position: relative;
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  align-items: center;
+  gap: 18px;
+  padding: 24px 26px;
+  overflow: hidden;
+  background: var(--bg-2);
+  color: var(--text-0);
+}
+
+/* Grid children keep their content's width unless told otherwise, and one
+   long company name is enough to widen the whole card. */
+.repc > * { min-width: 0; }
+
+/* Each company's own colour, faint enough that six of them side by side
+   still read as one page rather than a paint chart. */
+.repc-goldHoarders     { background: linear-gradient(135deg, rgba(216,161,58,.16), var(--bg-2) 62%); }
+.repc-orderOfSouls     { background: linear-gradient(135deg, rgba(158,58,98,.16), var(--bg-2) 62%); }
+.repc-merchantAlliance { background: linear-gradient(135deg, rgba(43,138,143,.16), var(--bg-2) 62%); }
+.repc-athenaFortune    { background: linear-gradient(135deg, rgba(120,168,96,.16), var(--bg-2) 62%); }
+.repc-reapersBones     { background: linear-gradient(135deg, rgba(168,50,46,.18), var(--bg-2) 62%); }
+.repc-huntersCall      { background: linear-gradient(135deg, rgba(74,112,158,.16), var(--bg-2) 62%); }
+
+/* Les campagnes n appartiennent a aucune compagnie : fond neutre. */
+.repc-campaign         { background: var(--bg-2); }
+
+.repc-crest {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 132px;
+  height: 132px;
+}
+
+.repc-crest .rep-crest {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* The level sits inside the crest, where the game puts it. Shadowed rather
+   than boxed: the artwork behind it is busy, and a plate would hide it. */
+.repc-level {
+  position: absolute;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 30px;
+  color: #fff;
+  text-shadow: 0 2px 5px rgba(0,0,0,.85), 0 0 14px rgba(0,0,0,.6);
+  pointer-events: none;
+}
+
+.repc-name {
+  margin: 0 0 2px;
+  font-size: 19px;
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+.repc-rank {
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 13px;
+  color: var(--text-2);
+  font-style: italic;
+}
+
+/* Two by two, the way the game lays them out — four counts in a row would
+   each be too narrow to read at a glance. */
+.repc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 16px;
+  margin: 0;
+}
+
+.repc-grid > div { display: flex; justify-content: space-between; gap: 10px; }
+.repc-grid dt { font-size: 12px; color: var(--text-2); }
+.repc-grid dd { margin: 0; font-size: 13px; }
+
+/* Numbers in the data face: these are counts to be compared down a column,
+   and the display face renders its figures too narrow for that. */
+.repc-n { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.repc-n i { font-style: normal; color: var(--text-3); }
+.repc-none { color: var(--text-3); }
+
+.repc-bar {
+  height: 4px;
+  margin-top: 12px;
+  background: var(--bg-0);
+  overflow: hidden;
+}
+
+.repc-bar span { display: block; height: 100%; background: var(--teal); }
+
+.repc-dist { margin: 12px 0 0; }
+
+@media (max-width: 420px) {
+  .repc { grid-template-columns: 92px 1fr; gap: 14px; padding: 16px; }
+  .repc-crest { width: 92px; height: 92px; }
+  .repc-level { font-size: 23px; }
+}
+
+/* ---------- profile tabs, the way the game's own profile does them ----------
+
+   Left-aligned tabs with a full-width rule underneath read as a document's
+   table of contents. Rare centres them inside a dark strip, separates them
+   with hairlines, and marks the current one in the accent with a short rule.
+   It reads as a set of choices rather than as a heading.
+
+   Overrides rather than edits: the rules above carry the scrolling and the
+   44px touch target, and both still apply. */
+.profile-tabs {
+  justify-content: center;
+  gap: 0;
+  border-bottom: 0;
+  margin: 22px auto 0;
+  padding: 0 4px;
+  width: fit-content;
+  max-width: 100%;
+  background: rgba(0, 0, 0, 0.42);
+}
+
+.profile-tab {
+  position: relative;
+  padding: 13px 18px;
+  border-bottom: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Hairlines between, not around: a separator before every tab but the first. */
+.profile-tab + .profile-tab::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26%;
+  bottom: 26%;
+  width: 1px;
+  background: var(--border);
+}
+
+/* A short rule under the current tab, brush-cut like everything else. */
+.profile-tab.is-active::after {
+  content: '';
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 7px;
+  height: 3px;
+  background: var(--teal);
+  -webkit-mask: url('../img/brush.svg') no-repeat center / 100% 300%;
+  mask: url('../img/brush.svg') no-repeat center / 100% 300%;
+}
+
+/* ---------- section headings ----------
+
+   Centred, in the display face, with a rule either side — the shape Rare
+   uses for "Your Reputation". A heading pinned to the left edge belongs to
+   a document; a centred one belongs to a page. */
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-size: 19px;
+  letter-spacing: 0.03em;
+  text-transform: none;
+}
+
+.panel-head::before,
+.panel-head::after {
+  content: '';
+  flex: 1;
+  max-width: 180px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+
+/* The crest again, very large and very faint behind the card — the thing
+   that gives Rare's version its depth. Purely decorative, so it is hidden
+   from screen readers and removes itself if the file is missing. */
+.repc-watermark {
+  position: absolute;
+  right: -14%;
+  top: 50%;
+  width: 62%;
+  transform: translateY(-50%);
+  opacity: 0.055;
+  pointer-events: none;
+  filter: grayscale(1);
+}
+
+/* Everything else has to sit above it. */
+.repc-crest,
+.repc-body { position: relative; z-index: 1; }
+
+/* The allegiance level, inside its emblem — the same place the company
+   cards put theirs, and the same place the game does.
+
+   Shadowed rather than plated: both emblems are busy in the middle, and a
+   solid backing would cover the artwork the number is meant to sit on. */
+.hg-emblem { position: relative; }
+
+.hg-emblem-level {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 34px;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, .9), 0 0 16px rgba(0, 0, 0, .7);
+  pointer-events: none;
+}
+
+@media (max-width: 560px) {
+  .hg-emblem-level { font-size: 26px; }
+}
