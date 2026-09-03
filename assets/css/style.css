@@ -3724,3 +3724,35 @@ footer::before {
   -webkit-mask: url('../img/torn-edge.svg') repeat-x bottom / 480px 58px;
   mask: url('../img/torn-edge.svg') repeat-x bottom / 480px 58px;
 }
+
+/* ---------- masks stand down on small screens ----------
+
+   These shapes were cut for elements a few hundred pixels across. On a
+   375px phone the proportions invert: a 24px serration on a 327px panel
+   reads as saw teeth rather than torn paper, and the brush stroke stretched
+   across a full-width button turns its bristles into horizontal stripes.
+
+   Below this width the masks come off and the cards keep clean edges. A
+   plain card on a phone is a plain card; a mangled one is a bug, and the
+   texture was never the reason anyone opened the page. */
+@media (max-width: 640px) {
+  .torn-card, .repc, .ref-row, .promo-card, .stat-chip, .recent-card,
+  .season-card, .news-row, .news-featured, .panel, .currency-card,
+  .trio-card, .stat-tile, .stat-strip, .cta-strip {
+    -webkit-mask-box-image: none;
+    mask-border: none;
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+  }
+
+  /* Same reasoning for the buttons: a stroke drawn 320px wide cannot be
+     pulled across the screen and still look painted. */
+  .btn, .btn-red, .btn-track, .cta-bar {
+    -webkit-mask: none;
+    mask: none;
+    border-radius: 8px;
+  }
+
+  /* The section tears are horizontal, so they keep their proportions and
+     stay — they are the one shape a narrow screen does not distort. */
+}
