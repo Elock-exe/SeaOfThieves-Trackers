@@ -3410,9 +3410,7 @@ h1, h2, h3, h4 { font-weight: 400; }
 .currency-card,
 .trio-card,
 .stat-tile,
-.hs-item,
-.cta-item,
-.hg-stat {
+.stat-strip {
   border: 0 !important;
   border-radius: 0 !important;
   -webkit-mask-box-image: url('../img/torn-card.svg') 24 repeat;
@@ -3429,11 +3427,15 @@ h1, h2, h3, h4 { font-weight: 400; }
 .stat-chip,
 .recent-card { padding: 16px 18px; }
 
+/* Le bandeau de stats porte maintenant la dechirure lui-meme : il lui faut
+   de quoi l'absorber, ce que ses cellules n'avaient pas. */
+.stat-strip { padding: 18px 22px; }
+
 /* Firefox only shipped mask-border recently. Everywhere it is missing the
    cards simply keep straight edges, which is a plainer card and not a
    broken one — so no fallback is needed beyond removing the radius. */
 @supports not ((-webkit-mask-box-image: url('#x')) or (mask-border: url('#x'))) {
-  .torn-card, .repc, .ref-row, .promo-card, .stat-chip, .recent-card, .season-card, .news-row, .news-featured, .panel, .currency-card, .trio-card, .stat-tile, .hs-item, .cta-item, .hg-stat { border: 1px solid var(--border) !important; }
+  .torn-card, .repc, .ref-row, .promo-card, .stat-chip, .recent-card, .season-card, .news-row, .news-featured, .panel, .currency-card, .trio-card, .stat-tile, .stat-strip { border: 1px solid var(--border) !important; }
 }
 
 /* ============================================================
