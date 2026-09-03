@@ -27,6 +27,9 @@
 
   /* ------------------------------ ENGLISH ------------------------------ */
   en: {
+    "hero.import": "Import your Sea of Thieves account",
+    "link.noInstall": "Rather not install anything? There is a way without an extension.",
+    "link.noInstallCta": "Import without installing",
     "import.phoneTitle": "Drag and drop does not exist here.",
     "import.phoneBody": "On iPhone the method below works through Safari's Favourites. On Android, Chrome refuses bookmarks of this kind — do it once from a computer, or install the extension on Firefox.",
     "import.phoneCta": "See the extension",
@@ -383,6 +386,9 @@
 
   /* ------------------------------ DEUTSCH ------------------------------ */
   de: {
+    "hero.import": "Sea-of-Thieves-Konto importieren",
+    "link.noInstall": "Lieber nichts installieren? Es geht auch ohne Erweiterung.",
+    "link.noInstallCta": "Ohne Installation importieren",
     "import.phoneTitle": "Drag-and-drop gibt es hier nicht.",
     "import.phoneBody": "Auf dem iPhone funktioniert die Methode unten über die Favoriten von Safari. Unter Android lehnt Chrome solche Lesezeichen ab — mach es einmal an einem Computer, oder installiere die Erweiterung in Firefox.",
     "import.phoneCta": "Zur Erweiterung",
@@ -718,6 +724,9 @@
 
   /* ------------------------------ ESPAÑOL (ES) ------------------------------ */
   es: {
+    "hero.import": "Importa tu cuenta de Sea of Thieves",
+    "link.noInstall": "¿Prefieres no instalar nada? Hay una forma sin extensión.",
+    "link.noInstallCta": "Importar sin instalar",
     "import.phoneTitle": "Aquí no existe arrastrar y soltar.",
     "import.phoneBody": "En iPhone el método de abajo funciona con los Favoritos de Safari. En Android, Chrome rechaza este tipo de marcadores — hazlo una vez desde un ordenador, o instala la extensión en Firefox.",
     "import.phoneCta": "Ver la extensión",
@@ -1053,6 +1062,9 @@
 
   /* ------------------------------ ESPAÑOL (LATAM) ------------------------------ */
   'es-419': {
+    "hero.import": "Importa tu cuenta de Sea of Thieves",
+    "link.noInstall": "¿Prefieres no instalar nada? Hay una forma sin extensión.",
+    "link.noInstallCta": "Importar sin instalar",
     "import.phoneTitle": "Aquí no existe arrastrar y soltar.",
     "import.phoneBody": "En iPhone el método de abajo funciona con los Favoritos de Safari. En Android, Chrome rechaza este tipo de marcadores — hazlo una vez desde una computadora, o instala la extensión en Firefox.",
     "import.phoneCta": "Ver la extensión",
@@ -1388,6 +1400,9 @@
 
   /* ------------------------------ FRANÇAIS ------------------------------ */
   fr: {
+    "hero.import": "Importez votre compte Sea of Thieves",
+    "link.noInstall": "Pas envie d'installer ? Il existe une méthode sans extension.",
+    "link.noInstallCta": "Importer sans rien installer",
     "import.phoneTitle": "Le glisser-déposer n'existe pas ici.",
     "import.phoneBody": "Sur iPhone la méthode ci-dessous fonctionne via les Favoris de Safari. Sur Android, Chrome refuse les favoris de ce type — fais-le une fois depuis un ordinateur, ou installe l'extension sur Firefox.",
     "import.phoneCta": "Voir l'extension",
@@ -1731,6 +1746,9 @@
 
   /* ------------------------------ ITALIANO ------------------------------ */
   it: {
+    "hero.import": "Importa il tuo account Sea of Thieves",
+    "link.noInstall": "Preferisci non installare nulla? Esiste un modo senza estensione.",
+    "link.noInstallCta": "Importa senza installare",
     "import.phoneTitle": "Il trascinamento non esiste qui.",
     "import.phoneBody": "Su iPhone il metodo qui sotto funziona tramite i Preferiti di Safari. Su Android, Chrome rifiuta i segnalibri di questo tipo — fallo una volta da un computer, oppure installa l'estensione su Firefox.",
     "import.phoneCta": "Vedi l'estensione",
@@ -2066,6 +2084,9 @@
 
   /* ------------------------------ MAGYAR ------------------------------ */
   hu: {
+    "hero.import": "Sea of Thieves fiók importálása",
+    "link.noInstall": "Inkább nem telepítenél semmit? Van mód bővítmény nélkül is.",
+    "link.noInstallCta": "Importálás telepítés nélkül",
     "import.phoneTitle": "A húzd-és-ejtsd itt nem létezik.",
     "import.phoneBody": "iPhone-on az alábbi módszer a Safari Kedvencein keresztül működik. Androidon a Chrome elutasítja az ilyen könyvjelzőket — csináld meg egyszer számítógépen, vagy telepítsd a bővítményt Firefoxra.",
     "import.phoneCta": "A bővítmény",
@@ -2401,6 +2422,9 @@
 
   /* ------------------------------ POLSKI ------------------------------ */
   pl: {
+    "hero.import": "Zaimportuj konto Sea of Thieves",
+    "link.noInstall": "Wolisz nic nie instalować? Jest sposób bez rozszerzenia.",
+    "link.noInstallCta": "Importuj bez instalacji",
     "import.phoneTitle": "Przeciąganie tu nie istnieje.",
     "import.phoneBody": "Na iPhonie poniższa metoda działa przez Ulubione w Safari. Na Androidzie Chrome odrzuca takie zakładki — zrób to raz na komputerze albo zainstaluj rozszerzenie w Firefoksie.",
     "import.phoneCta": "Zobacz rozszerzenie",
@@ -2736,6 +2760,9 @@
 
   /* ------------------------------ РУССКИЙ ------------------------------ */
   ru: {
+    "hero.import": "Импортируйте аккаунт Sea of Thieves",
+    "link.noInstall": "Не хотите ничего устанавливать? Есть способ без расширения.",
+    "link.noInstallCta": "Импорт без установки",
     "import.phoneTitle": "Перетаскивания здесь нет.",
     "import.phoneBody": "На iPhone способ ниже работает через Избранное в Safari. На Android Chrome отклоняет такие закладки — сделайте это один раз на компьютере или установите расширение в Firefox.",
     "import.phoneCta": "Посмотреть расширение",
@@ -3071,6 +3098,9 @@
 
   /* ------------------------------ العربية ------------------------------ */
   ar: {
+    "hero.import": "استورد حسابك في Sea of Thieves",
+    "link.noInstall": "لا تريد تثبيت أي شيء؟ هناك طريقة بدون إضافة.",
+    "link.noInstallCta": "استيراد دون تثبيت",
     "import.phoneTitle": "السحب والإفلات غير موجود هنا.",
     "import.phoneBody": "على iPhone تعمل الطريقة أدناه عبر المفضلة في Safari. على Android يرفض Chrome هذا النوع من الإشارات — نفّذها مرة واحدة من حاسوب، أو ثبّت الإضافة على Firefox.",
     "import.phoneCta": "شاهد الإضافة",
@@ -3406,6 +3436,9 @@
 
   /* ------------------------------ 繁體中文 ------------------------------ */
   'zh-TW': {
+    "hero.import": "匯入你的 Sea of Thieves 帳號",
+    "link.noInstall": "不想安裝任何東西？有不用擴充功能的方法。",
+    "link.noInstallCta": "不安裝直接匯入",
     "import.phoneTitle": "這裡沒有拖放功能。",
     "import.phoneBody": "在 iPhone 上，下面的方法可以透過 Safari 的「我的最愛」運作。在 Android 上，Chrome 不接受這類書籤——請用電腦操作一次，或在 Firefox 上安裝擴充功能。",
     "import.phoneCta": "查看擴充功能",
@@ -3741,6 +3774,9 @@
 
   /* --------------------------- PORTUGUES (BR) --------------------------- */
   'pt-BR': {
+    "hero.import": "Importe sua conta de Sea of Thieves",
+    "link.noInstall": "Prefere não instalar nada? Existe um jeito sem extensão.",
+    "link.noInstallCta": "Importar sem instalar",
     "import.phoneTitle": "Arrastar e soltar não existe aqui.",
     "import.phoneBody": "No iPhone o método abaixo funciona pelos Favoritos do Safari. No Android, o Chrome recusa favoritos desse tipo — faça uma vez pelo computador, ou instale a extensão no Firefox.",
     "import.phoneCta": "Ver a extensão",

@@ -3775,3 +3775,19 @@ footer::before {
 .mobile-notice p { margin: 0 0 10px; font-size: 14px; line-height: 1.55; }
 .mobile-notice p:last-child { margin-bottom: 0; }
 .mobile-notice b { color: var(--gold-soft); }
+
+/* The way out of the extension page.
+
+   A phone cannot install one, and this is the page the home button used to
+   lead to. The alternative belongs above the list of browsers, not after
+   it — somebody who cannot use any of them should not have to read all
+   three names first. */
+.link-alt {
+  margin: 0 0 18px;
+  padding: 14px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  background: var(--bg-1);
+}
+
+.link-alt p { margin: 0 0 10px; font-size: 13.5px; color: var(--text-1); }

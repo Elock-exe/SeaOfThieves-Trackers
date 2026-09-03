@@ -42,6 +42,12 @@
     <div class="two-col" style="align-items:start;">
       <div class="panel">
         <div class="panel-head"><span data-i18n="link.installTitle">Install the extension</span></div>
+        <!-- Un telephone n installe pas d extension : la sortie doit etre
+             visible avant la liste des navigateurs, pas apres. -->
+        <div class="link-alt">
+          <p data-i18n="link.noInstall">Pas envie d'installer ? Il existe une méthode sans extension.</p>
+          <a class="btn small ghost" href="/import" data-i18n="link.noInstallCta">Importer sans rien installer</a>
+        </div>
         <div class="panel-body padded">
           <a class="cta-bar" href="https://addons.mozilla.org/fr/firefox/addon/sea-of-thieves-tracker/"
              target="_blank" rel="noopener">
