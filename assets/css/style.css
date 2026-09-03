@@ -723,7 +723,10 @@ section.band {
 
 /* ---------- footer ---------- */
 footer {
-  border-top: 1px solid var(--border-soft);
+  /* Bord dechire plutot qu un filet : voir .torn plus bas. Une ligne
+     droite ici trahissait tout le reste. */
+  position: relative;
+  border-top: 0;
   padding: 36px 0 28px;
   margin-top: 24px;
   background: var(--bg-1);
@@ -3410,7 +3413,8 @@ h1, h2, h3, h4 { font-weight: 400; }
 .currency-card,
 .trio-card,
 .stat-tile,
-.stat-strip {
+.stat-strip,
+.cta-strip {
   border: 0 !important;
   border-radius: 0 !important;
   -webkit-mask-box-image: url('../img/torn-card.svg') 24 repeat;
@@ -3429,13 +3433,14 @@ h1, h2, h3, h4 { font-weight: 400; }
 
 /* Le bandeau de stats porte maintenant la dechirure lui-meme : il lui faut
    de quoi l'absorber, ce que ses cellules n'avaient pas. */
-.stat-strip { padding: 18px 22px; }
+.stat-strip,
+.cta-strip { padding: 18px 22px; }
 
 /* Firefox only shipped mask-border recently. Everywhere it is missing the
    cards simply keep straight edges, which is a plainer card and not a
    broken one — so no fallback is needed beyond removing the radius. */
 @supports not ((-webkit-mask-box-image: url('#x')) or (mask-border: url('#x'))) {
-  .torn-card, .repc, .ref-row, .promo-card, .stat-chip, .recent-card, .season-card, .news-row, .news-featured, .panel, .currency-card, .trio-card, .stat-tile, .stat-strip { border: 1px solid var(--border) !important; }
+  .torn-card, .repc, .ref-row, .promo-card, .stat-chip, .recent-card, .season-card, .news-row, .news-featured, .panel, .currency-card, .trio-card, .stat-tile, .stat-strip, .cta-strip { border: 1px solid var(--border) !important; }
 }
 
 /* ============================================================
@@ -3684,4 +3689,19 @@ h1, h2, h3, h4 { font-weight: 400; }
 
 @media (max-width: 560px) {
   .hg-emblem-level { font-size: 26px; }
+}
+
+/* The footer takes the same tear as the sections. It is the last edge on
+   the page, and it was the only straight one left. */
+footer::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -57px;
+  height: 58px;
+  background: var(--bg-1);
+  pointer-events: none;
+  -webkit-mask: url('../img/torn-edge.svg') repeat-x bottom / 480px 58px;
+  mask: url('../img/torn-edge.svg') repeat-x bottom / 480px 58px;
 }
