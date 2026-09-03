@@ -88,6 +88,7 @@
               <a href="/" data-i18n="nav.home">Home</a>
               <a href="/leaderboards" data-i18n="nav.leaderboards">Leaderboards</a>
               <a href="/profile" data-i18n="footer.profile">Player Profile</a>
+              <a href="/privacy" data-i18n="footer.privacy">Privacy</a>
             </div>
             <div class="footer-col">
               <h4 data-i18n="footer.guides">Guides</h4>

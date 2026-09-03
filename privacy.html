@@ -84,10 +84,21 @@
            n'importe qui pourrait publier des statistiques sous ton nom. Le
            serveur n'en conserve qu'une empreinte (SHA-256), jamais la valeur
            elle-même.</p>
-        <p><strong>Pour tout supprimer :</strong> désinstalle l'extension, et
-           écris-moi via le dépôt du projet pour que tes statistiques publiées
-           soient effacées. Il n'y a ni e-mail, ni mot de passe, ni profil à
-           gérer — donc rien d'autre à réclamer.</p>
+        <p><strong>Pour tout supprimer : colle ta clé de compte ci-dessous et
+             valide. Tes statistiques publiées, ton historique et ton compte
+             sont effacés immédiatement, et ton nom de pirate redevient libre.
+             Il n'y a ni e-mail, ni mot de passe, ni profil à gérer — donc
+             rien d'autre à réclamer.</p>
+
+          <div class="erase-box" id="erase-box">
+            <label>
+              <span>Ta clé de compte</span>
+              <input type="text" id="erase-key" autocomplete="off" spellcheck="false"
+                     placeholder="visible dans le popup de l'extension, ou après un import" />
+            </label>
+            <button type="button" class="btn small" id="erase-go">Supprimer mes données</button>
+            <p class="erase-status" id="erase-status" hidden></p>
+          </div>
         <p class="warn-foot">Projet de fan, sans affiliation avec Rare ou
            Microsoft. Le code est ouvert et vérifiable :
            <a href="https://github.com/Elock-exe/SeaOfThieves-Trackers" target="_blank" rel="noopener">github.com/Elock-exe/SeaOfThieves-Trackers</a>.</p>
@@ -105,5 +116,49 @@
 <script src="assets/js/badge.js"></script>
 <script src="assets/js/reveal.js?v=1785804238"></script>
 <script src="assets/js/ui.js"></script>
+<script>
+/* Suppression par la cle : elle prouve deja la propriete a chaque
+   synchronisation, elle suffit tout autant a prouver le droit d effacer.
+   Une confirmation avant, parce que c est irreversible et qu il n y a
+   aucun moyen de revenir en arriere. */
+(function () {
+  var bouton = document.getElementById('erase-go');
+  if (!bouton) return;
+
+  bouton.addEventListener('click', function () {
+    var champ = document.getElementById('erase-key');
+    var etat = document.getElementById('erase-status');
+    var cle = String(champ.value || '').trim();
+
+    function dire(t, ok) {
+      etat.textContent = t;
+      etat.className = 'erase-status' + (ok ? ' erase-ok' : ' erase-err');
+      etat.hidden = false;
+    }
+
+    if (!cle) { dire('Colle ta clé de compte.', false); champ.focus(); return; }
+    if (!window.confirm('Effacer définitivement tes statistiques publiées ? Cette action est irréversible.')) return;
+
+    dire('Suppression…', true);
+
+    fetch((window.SOT_API_BASE || '') + '/api/account', {
+      method: 'DELETE',
+      headers: { 'X-Account-Key': cle }
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (b) { return { s: r.status, b: b }; });
+    }).then(function (r) {
+      if (r.s === 200 && r.b.ok) {
+        dire('Effacé : ' + r.b.handle + ' — ' + r.b.snapshots + ' enregistrements supprimés.', true);
+        try { localStorage.removeItem('sot-tracker-key'); localStorage.removeItem('sot-synced-owner'); } catch (e) {}
+        return;
+      }
+      if (r.s === 404) { dire('Cette clé n’a jamais publié de statistiques.', false); return; }
+      dire((r.b.error && r.b.error.message) || ('Le serveur a répondu ' + r.s), false);
+    }).catch(function () {
+      dire('Le serveur ne répond pas. Il se réveille peut-être — réessaie dans une minute.', false);
+    });
+  });
+})();
+</script>
 </body>
 </html>

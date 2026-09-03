@@ -62,6 +62,41 @@ const fileDriver = {
     return all.filter((r) => String(r.handle || '').toLowerCase() === want);
   },
 
+  /* Efface tout ce qui concerne un pirate : ses snapshots, sa ligne
+     publique, ses vues, et le compte qui le revendiquait.
+
+     Le compte part avec le reste. Le garder libererait le pseudo pour
+     quelqu un d autre tout en conservant une trace de son ancien
+     proprietaire — le contraire de ce qui lui est promis. */
+  async eraseHandle(handle) {
+    const h = String(handle).toLowerCase();
+
+    const avant = (await this.snapshotsFor(handle)).length;
+    const lignes = fs.existsSync(SNAPSHOTS)
+      ? fs.readFileSync(SNAPSHOTS, 'utf8').split('\n').filter(Boolean)
+      : [];
+    const gardees = lignes.filter((l) => {
+      try { return String(JSON.parse(l).handle || '').toLowerCase() !== h; }
+      catch (e) { return true; }
+    });
+    fs.writeFileSync(SNAPSHOTS, gardees.join('\n') + (gardees.length ? '\n' : ''));
+
+    for (const f of [PLAYERS, VIEWS, ACCOUNTS]) {
+      if (!fs.existsSync(f)) continue;
+      let o;
+      try { o = JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { continue; }
+      let touche = false;
+      for (const k of Object.keys(o)) {
+        const rec = o[k];
+        const nom = String((rec && rec.handle) || k).toLowerCase();
+        if (nom === h) { delete o[k]; touche = true; }
+      }
+      if (touche) fs.writeFileSync(f, JSON.stringify(o, null, 2));
+    }
+
+    return { snapshots: avant };
+  },
+
   async getAccount(id) {
     try {
       return JSON.parse(fs.readFileSync(ACCOUNTS, 'utf8'))[id] || null;
@@ -286,6 +321,32 @@ const supabaseDriver = {
       capturedAt: r.captured_at,
       snapshot: r.snapshot
     }));
+  },
+
+  /* Meme effacement, cote Supabase. PostgREST supprime sur filtre, donc
+     une requete par table suffit — et ilike pour la meme raison que
+     partout ailleurs : Rare traite les gamertags sans egard a la casse. */
+  async eraseHandle(handle) {
+    const h = encodeURIComponent(handle);
+    const bas = encodeURIComponent(String(handle).toLowerCase());
+
+    const avant = await count(
+      'snapshots?handle=ilike.' + h + '&select=handle').catch(() => 0);
+
+    /* accounts en dernier : si une suppression echoue en cours de route,
+       mieux vaut qu'il reste le compte que les statistiques. */
+    const cibles = [
+      'snapshots?handle=ilike.' + h,
+      'players?handle=ilike.' + h,
+      'views?handle=eq.' + bas,
+      'accounts?handle=ilike.' + h
+    ];
+
+    for (const q of cibles) {
+      await rest(q, { method: 'DELETE' });
+    }
+
+    return { snapshots: avant };
   },
 
   async getAccount(id) {

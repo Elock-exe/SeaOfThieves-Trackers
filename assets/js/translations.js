@@ -27,6 +27,7 @@
 
   /* ------------------------------ ENGLISH ------------------------------ */
   en: {
+    "footer.privacy": "Privacy",
     "paste.title": "On a phone: import by copy and paste",
     "paste.intro": "No mobile browser can run the bookmark. But every one of them can open a page and copy its text, and that is all this needs.",
     "paste.open1": "Open reputation",
@@ -406,6 +407,7 @@
 
   /* ------------------------------ DEUTSCH ------------------------------ */
   de: {
+    "footer.privacy": "Datenschutz",
     "paste.title": "On a phone: import by copy and paste",
     "paste.intro": "No mobile browser can run the bookmark. But every one of them can open a page and copy its text, and that is all this needs.",
     "paste.open1": "Open reputation",
@@ -764,6 +766,7 @@
 
   /* ------------------------------ ESPAÑOL (ES) ------------------------------ */
   es: {
+    "footer.privacy": "Privacidad",
     "paste.title": "On a phone: import by copy and paste",
     "paste.intro": "No mobile browser can run the bookmark. But every one of them can open a page and copy its text, and that is all this needs.",
     "paste.open1": "Open reputation",
@@ -1122,6 +1125,7 @@
 
   /* ------------------------------ ESPAÑOL (LATAM) ------------------------------ */
   'es-419': {
+    "footer.privacy": "Privacidad",
     "paste.title": "On a phone: import by copy and paste",
     "paste.intro": "No mobile browser can run the bookmark. But every one of them can open a page and copy its text, and that is all this needs.",
     "paste.open1": "Open reputation",
@@ -1480,6 +1484,7 @@
 
   /* ------------------------------ FRANÇAIS ------------------------------ */
   fr: {
+    "footer.privacy": "Confidentialité",
     "paste.title": "Sur téléphone : importer par copier-coller",
     "paste.intro": "Aucun navigateur mobile ne peut exécuter le favori. Mais tous savent ouvrir une page et copier son texte — c'est tout ce dont on a besoin.",
     "paste.open1": "Ouvrir la réputation",
@@ -1846,6 +1851,7 @@
 
   /* ------------------------------ ITALIANO ------------------------------ */
   it: {
+    "footer.privacy": "Privacy",
     "paste.title": "On a phone: import by copy and paste",
     "paste.intro": "No mobile browser can run the bookmark. But every one of them can open a page and copy its text, and that is all this needs.",
     "paste.open1": "Open reputation",
@@ -2204,6 +2210,7 @@
 
   /* ------------------------------ MAGYAR ------------------------------ */
   hu: {
+    "footer.privacy": "Adatvédelem",
     "paste.title": "On a phone: import by copy and paste",
     "paste.intro": "No mobile browser can run the bookmark. But every one of them can open a page and copy its text, and that is all this needs.",
     "paste.open1": "Open reputation",
@@ -2562,6 +2569,7 @@
 
   /* ------------------------------ POLSKI ------------------------------ */
   pl: {
+    "footer.privacy": "Prywatność",
     "paste.title": "On a phone: import by copy and paste",
     "paste.intro": "No mobile browser can run the bookmark. But every one of them can open a page and copy its text, and that is all this needs.",
     "paste.open1": "Open reputation",
@@ -2920,6 +2928,7 @@
 
   /* ------------------------------ РУССКИЙ ------------------------------ */
   ru: {
+    "footer.privacy": "Конфиденциальность",
     "paste.title": "On a phone: import by copy and paste",
     "paste.intro": "No mobile browser can run the bookmark. But every one of them can open a page and copy its text, and that is all this needs.",
     "paste.open1": "Open reputation",
@@ -3278,6 +3287,7 @@
 
   /* ------------------------------ العربية ------------------------------ */
   ar: {
+    "footer.privacy": "الخصوصية",
     "paste.title": "On a phone: import by copy and paste",
     "paste.intro": "No mobile browser can run the bookmark. But every one of them can open a page and copy its text, and that is all this needs.",
     "paste.open1": "Open reputation",
@@ -3636,6 +3646,7 @@
 
   /* ------------------------------ 繁體中文 ------------------------------ */
   'zh-TW': {
+    "footer.privacy": "隱私權",
     "paste.title": "On a phone: import by copy and paste",
     "paste.intro": "No mobile browser can run the bookmark. But every one of them can open a page and copy its text, and that is all this needs.",
     "paste.open1": "Open reputation",
@@ -3994,6 +4005,7 @@
 
   /* --------------------------- PORTUGUES (BR) --------------------------- */
   'pt-BR': {
+    "footer.privacy": "Privacidade",
     "paste.title": "On a phone: import by copy and paste",
     "paste.intro": "No mobile browser can run the bookmark. But every one of them can open a page and copy its text, and that is all this needs.",
     "paste.open1": "Open reputation",

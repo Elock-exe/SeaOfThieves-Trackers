@@ -506,6 +506,33 @@ async function handle(req, res) {
 
   /* What the presenting key owns. Used by the extension popup to show
      which pirate it publishes as. Reveals nothing about other accounts. */
+  /* Effacer ses propres statistiques, sans rien demander a personne.
+
+     La politique de confidentialite disait d ecrire au projet pour etre
+     efface. C est legal et c est mauvais : quelqu un qui veut partir ne
+     devrait pas avoir a ouvrir un ticket sur GitHub et attendre une
+     reponse. La cle de compte prouve deja la propriete a chaque sync ;
+     elle suffit tout autant a prouver le droit de supprimer.
+
+     Rien ne survit : snapshots, ligne publique, compteur de vues, et le
+     compte lui-meme. Le pseudo redevient libre. */
+  if (url.pathname === '/api/account' && req.method === 'DELETE') {
+    const me = await accounts.describe(req.headers['x-account-key']);
+    if (!me) {
+      return send(res, 404, {
+        error: { code: 'no_account', message: 'This key has never published stats' }
+      });
+    }
+    try {
+      const out = await require('./db').eraseHandle(me.handle);
+      leaderboard.invalidate();
+      console.log(`[api] efface — ${me.handle} (${out.snapshots} snapshots)`);
+      return send(res, 200, { ok: true, handle: me.handle, snapshots: out.snapshots });
+    } catch (err) {
+      return fail(res, err);
+    }
+  }
+
   if (url.pathname === '/api/account') {
     const me = await accounts.describe(req.headers['x-account-key']);
     if (!me) {
