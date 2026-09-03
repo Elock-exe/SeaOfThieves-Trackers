@@ -174,160 +174,163 @@ console.log('             9 bandes, opacité variable, 3 manques découpés');
 
 /* ---------------- the painted ground ---------------- */
 
-/* Soft ellipses gave blobs, not brushwork. What makes a stroke read as a
-   stroke is the bristles: a dozen thin filaments running parallel, of
-   unequal length, thinning out at both ends where the brush lands and
-   lifts. A blurred oval has none of that, and no amount of opacity fixes it.
+/* This was an SVG: 384 stroked paths under a feGaussianBlur, used as a mask
+   in eight places — including a fixed, full-viewport layer behind the whole
+   page. A browser has to rasterise that filter, and a fixed masked layer is
+   re-rasterised as content scrolls under it. The site crawled.
+   
+   It is a bitmap now. The strokes are drawn here, blurred here, and shipped
+   as pixels, so the browser uploads a texture once and never computes
+   anything again. Same picture, none of the cost.
+
+   Half resolution, scaled up by CSS: this is a soft blurred texture with no
+   edge anyone can focus on, and halving each side quarters the bytes.
 */
-function stroke(rand, cx, cy, angle) {
-  const len = 420 + rand() * 560;
-  const width = 70 + rand() * 120;
-  const bristles = 16 + Math.floor(rand() * 22);
-  const sag = (rand() - 0.5) * 26;        // a brush is dragged, not ruled
-  const out = [];
-
-  for (let b = 0; b < bristles; b++) {
-    /* Spread across the width, denser in the middle: the outer bristles
-       carry less ink, which is what frays the edge of a real stroke. */
-    const t = b / (bristles - 1) - 0.5;
-    const off = t * width;
-    const edge = Math.abs(t) * 2;
-
-    /* Each filament starts and stops at its own point. Bristles that lift
-       early are what make the ends taper instead of stopping square. */
-    const a0 = (rand() * 0.22 + edge * 0.16) * len;
-    const a1 = len - (rand() * 0.24 + edge * 0.18) * len;
-    if (a1 - a0 < 22) continue;
-
-    const pt = (d, o) => {
-      const x = cx + Math.cos(angle) * (d - len / 2) - Math.sin(angle) * o;
-      const y = cy + Math.sin(angle) * (d - len / 2) + Math.cos(angle) * o;
-      return [x, y];
-    };
-
-    const [x0, y0] = pt(a0, off + (rand() - 0.5) * 4);
-    const [xm, ym] = pt((a0 + a1) / 2, off + sag + (rand() - 0.5) * 6);
-    const [x1, y1] = pt(a1, off + (rand() - 0.5) * 4);
-
-    const op = (0.55 + rand() * 0.45) * (1 - edge * 0.34);
-    const w = (1.8 + rand() * 5.4).toFixed(1);
-
-    out.push('<path d="M' + x0.toFixed(1) + ',' + y0.toFixed(1) +
-      ' Q' + xm.toFixed(1) + ',' + ym.toFixed(1) + ' ' + x1.toFixed(1) + ',' + y1.toFixed(1) +
-      '" stroke="#000" stroke-width="' + w + '" stroke-linecap="round" fill="none"' +
-      ' stroke-opacity="' + Math.max(0.12, op).toFixed(2) + '"/>');
-  }
-  return out.join('');
-}
-
-function paint(seed) {
+function paintBitmap(seed) {
+  const W = 450, H = 360;          // affiche a 900x720
   const rand = rng(seed);
-  const PW = 900, PH = 720;
-  const marks = [];
+  const a = new Float32Array(W * H);
 
-  for (let i = 0; i < 4; i++) {
-    const cx = rand() * PW;
-    const cy = rand() * PH;
-    /* Shallow angles only. Strokes near vertical read as scratches, and a
-       page is scanned horizontally — the paint should follow that. */
+  /* Un disque doux estampe le long de la courbe : c'est ce qui donne le
+     poil, la ou un trait plein donnerait un ruban. */
+  const stamp = (cx, cy, r, force) => {
+    const x0 = Math.max(0, (cx - r) | 0), x1 = Math.min(W - 1, (cx + r) | 0);
+    const y0 = Math.max(0, (cy - r) | 0), y1 = Math.min(H - 1, (cy + r) | 0);
+    for (let y = y0; y <= y1; y++) {
+      for (let x = x0; x <= x1; x++) {
+        const d = Math.hypot(x - cx, y - cy) / r;
+        if (d >= 1) continue;
+        const v = force * (1 - d * d);
+        const i = y * W + x;
+        if (v > a[i]) a[i] = v;
+      }
+    }
+  };
+
+  const COUPS = 4;
+  for (let s = 0; s < COUPS; s++) {
+    const cx = rand() * W, cy = rand() * H;
     const angle = ((rand() - 0.5) * 44) * Math.PI / 180;
+    const len = (210 + rand() * 280);
+    const largeur = 35 + rand() * 60;
+    const poils = 16 + Math.floor(rand() * 22);
+    const courbe = (rand() - 0.5) * 13;
 
-    /* A stroke that crosses a tile edge has to come back on the other side,
-       or the repeat shows up as a grid — the exact thing this texture was
-       brought in to replace. But only strokes NEAR an edge need the copy:
-       duplicating all nine positions blindly made the file seven times
-       bigger for shapes that never appeared. */
-    const REACH = 560;
-    const xs = [0];
-    if (cx < REACH) xs.push(PW); else if (cx > PW - REACH) xs.push(-PW);
-    const ys = [0];
-    if (cy < REACH) ys.push(PH); else if (cy > PH - REACH) ys.push(-PH);
+    for (let b = 0; b < poils; b++) {
+      const t = b / (poils - 1) - 0.5;
+      const bord = Math.abs(t) * 2;
+      const off = t * largeur;
 
-    for (const dx of xs) {
-      for (const dy of ys) {
-        marks.push(stroke(rng(seed + i * 977), cx + dx, cy + dy, angle));
+      /* Chaque poil demarre et s'arrete ou il veut : c'est ce qui effile
+         les bouts au lieu de les couper net. */
+      const d0 = (rand() * 0.2 + bord * 0.16) * len;
+      const d1 = len - (rand() * 0.22 + bord * 0.18) * len;
+      if (d1 - d0 < 16) continue;
+
+      const force = (0.5 + rand() * 0.5) * (1 - bord * 0.34);
+      const ep = 1 + rand() * 2.6;
+
+      for (let d = d0; d <= d1; d += 1.1) {
+        const p = (d - d0) / (d1 - d0);
+        const o = off + Math.sin(p * Math.PI) * courbe;
+        const x = cx + Math.cos(angle) * (d - len / 2) - Math.sin(angle) * o;
+        const y = cy + Math.sin(angle) * (d - len / 2) + Math.cos(angle) * o;
+
+        /* Repete sur les tuiles voisines pour que le motif se raccorde. */
+        for (const dx of [-W, 0, W]) {
+          for (const dy of [-H, 0, H]) {
+            const px = x + dx, py = y + dy;
+            if (px < -20 || px > W + 20 || py < -20 || py > H + 20) continue;
+            stamp(px, py, ep, force);
+          }
+        }
       }
     }
   }
 
-  return { PW, PH, marks: marks.join('') };
-}
-
-const p = paint(31071842);
-const paintSvg =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="' + p.PW + '" height="' + p.PH +
-  '" viewBox="0 0 ' + p.PW + ' ' + p.PH + '">' +
-  '<defs><filter id="s" x="-5%" y="-5%" width="110%" height="110%">' +
-  '<feGaussianBlur stdDeviation="0.7"/></filter></defs>' +
-  '<g filter="url(#s)">' + p.marks + '</g></svg>';
-
-fs.writeFileSync('assets/img/paint.svg', paintSvg);
-console.log('  écrit    : assets/img/paint.svg  (' + p.PW + ' x ' + p.PH +
-            ', ' + Math.round(paintSvg.length / 1024) + ' Ko, répétable)');
-console.log('             16 coups de pinceau, filaments de poils, bouts effilés');
-
-/* ---------------- torn cards ---------------- */
-
-/* A card torn on all four sides, not just the top. The section separators
-   are a single wavy line; this is a closed shape, and it has to survive
-   being stretched over cards of wildly different proportions — a stat chip
-   is wide and short, a company card is tall.
-
-   Which is why it is built for `mask-border` (nine-slice): the four corners
-   keep their size and the four edges repeat between them. Stretching the
-   whole thing instead would smear the tear on a wide card and crush it on a
-   narrow one, and the raggedness would stop looking like paper.
-*/
-function tornCard(seed) {
-  const rand = rng(seed);
-  const S = 220;          // tile side
-  const IN = 16;          // how far the tear bites inward
-  const STEP = 11;
-
-  /* Points along one edge, from (0,0) toward (S,0), pushed inward by a
-     random amount. Corners stay put so the four sides meet. */
-  function edge(len, n) {
-    const pts = [];
-    for (let i = 0; i <= n; i++) {
-      const t = i / n;
-      const corner = Math.min(t, 1 - t) * 4;        // 0 aux coins, 1 au milieu
-      const bite = i === 0 || i === n ? 0 : (0.3 + rand() * 0.7) * IN * Math.min(1, corner);
-      pts.push([t * len, bite]);
+  /* Flou par boite, deux passes : approche un gaussien pour une fraction du
+     cout, et personne ne peut faire la difference sur une texture. */
+  const flou = (r) => {
+    const tmp = new Float32Array(W * H);
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        let s = 0, n = 0;
+        for (let k = -r; k <= r; k++) { const xx = x + k; if (xx < 0 || xx >= W) continue; s += a[y * W + xx]; n++; }
+        tmp[y * W + x] = s / n;
+      }
     }
-    return pts;
-  }
-
-  const n = Math.round(S / STEP);
-  const top = edge(S, n);
-  const right = edge(S, n);
-  const bottom = edge(S, n);
-  const left = edge(S, n);
-
-  /* Chaque bord est decrit dans son propre repere puis pivote a sa place. */
-  const map = {
-    top:    ([x, y]) => [x, y],
-    right:  ([x, y]) => [S - y, x],
-    bottom: ([x, y]) => [S - x, S - y],
-    left:   ([x, y]) => [y, S - x]
+    for (let x = 0; x < W; x++) {
+      for (let y = 0; y < H; y++) {
+        let s = 0, n = 0;
+        for (let k = -r; k <= r; k++) { const yy = y + k; if (yy < 0 || yy >= H) continue; s += tmp[yy * W + x]; n++; }
+        a[y * W + x] = s / n;
+      }
+    }
   };
+  flou(2); flou(2);
 
-  let d = '';
-  [['top', top], ['right', right], ['bottom', bottom], ['left', left]].forEach(([nom, pts], idx) => {
-    pts.forEach((p, i) => {
-      const [x, y] = map[nom](p);
-      if (idx === 0 && i === 0) d += 'M' + x.toFixed(1) + ',' + y.toFixed(1);
-      else d += ' L' + x.toFixed(1) + ',' + y.toFixed(1);
-    });
-  });
-  d += ' Z';
-
-  return { S, IN, d };
+  return { W, H, a };
 }
 
-const tc = tornCard(70518823);
-const cardSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + tc.S + '" height="' + tc.S +
-  '" viewBox="0 0 ' + tc.S + ' ' + tc.S + '"><path d="' + tc.d + '" fill="#000"/></svg>';
+/* Encodage PNG en niveaux de gris + alpha. Seul l'alpha compte pour un
+   masque CSS, mais PNG n'a pas de type "alpha seul" : le gris reste a zero
+   et se compresse a rien. */
+const CRC = (() => {
+  const t = new Int32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c;
+  }
+  return t;
+})();
 
-fs.writeFileSync('assets/img/torn-card.svg', cardSvg);
-console.log('  écrit    : assets/img/torn-card.svg  (' + tc.S + ' x ' + tc.S +
-            ', découpe à ' + (tc.IN + 8) + 'px, ' + cardSvg.length + ' octets)');
+function crc32(b) {
+  let c = 0xffffffff;
+  for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+function chunk(type, data) {
+  const len = Buffer.alloc(4); len.writeUInt32BE(data.length, 0);
+  const body = Buffer.concat([Buffer.from(type, 'ascii'), data]);
+  const crc = Buffer.alloc(4); crc.writeUInt32BE(crc32(body), 0);
+  return Buffer.concat([len, body, crc]);
+}
+
+const zlib = require('zlib');
+const p = paintBitmap(31071842);
+
+/* Filtre 1 (Sub) sur chaque ligne : les valeurs voisines se ressemblent sur
+   une texture floue, donc les differences compressent bien mieux que les
+   valeurs brutes. */
+const raw = Buffer.alloc(p.H * (p.W * 2 + 1));
+let q = 0;
+for (let y = 0; y < p.H; y++) {
+  raw[q++] = 1;
+  let precG = 0, precA = 0;
+  for (let x = 0; x < p.W; x++) {
+    const alpha = Math.round(Math.min(1, p.a[y * p.W + x]) * 255);
+    raw[q++] = (0 - precG) & 0xff;
+    raw[q++] = (alpha - precA) & 0xff;
+    precG = 0; precA = alpha;
+  }
+}
+
+const ihdr = Buffer.alloc(13);
+ihdr.writeUInt32BE(p.W, 0); ihdr.writeUInt32BE(p.H, 4);
+ihdr[8] = 8; ihdr[9] = 4;            // 8 bits, niveaux de gris + alpha
+
+const png = Buffer.concat([
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+  chunk('IHDR', ihdr),
+  chunk('IDAT', zlib.deflateSync(raw, { level: 9 })),
+  chunk('IEND', Buffer.alloc(0))
+]);
+
+fs.writeFileSync('assets/img/paint.png', png);
+try { fs.unlinkSync('assets/img/paint.svg'); } catch (e) { /* deja parti */ }
+
+console.log('  écrit    : assets/img/paint.png  (' + p.W + ' x ' + p.H +
+            ', ' + Math.round(png.length / 1024) + ' Ko)');
+console.log('             bitmap : plus aucun filtre a recalculer');

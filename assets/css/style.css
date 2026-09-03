@@ -195,8 +195,8 @@ button { font-family: inherit; cursor: pointer; }
   position: absolute;
   inset: 0;
   background: #000;
-  -webkit-mask: url('../img/paint.svg') repeat 140px 60px / 700px 560px;
-  mask: url('../img/paint.svg') repeat 140px 60px / 700px 560px;
+  -webkit-mask: url('../img/paint.png') repeat 140px 60px / 700px 560px;
+  mask: url('../img/paint.png') repeat 140px 60px / 700px 560px;
   opacity: 0.55;
   pointer-events: none;
 }
@@ -624,8 +624,8 @@ section.band {
   position: absolute;
   inset: 0;
   background: #000;
-  -webkit-mask: url('../img/paint.svg') repeat 0 0 / 520px 420px;
-  mask: url('../img/paint.svg') repeat 0 0 / 520px 420px;
+  -webkit-mask: url('../img/paint.png') repeat 0 0 / 520px 420px;
+  mask: url('../img/paint.png') repeat 0 0 / 520px 420px;
   opacity: 0.4;
   pointer-events: none;
 }
@@ -1254,7 +1254,8 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   overflow: hidden;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--bg-3);
-  backdrop-filter: blur(8px);
+  /* Pas de backdrop-filter : re-flouter le contenu qui defile dessous
+     coutait une image sur deux. Le degrade est assez opaque sans lui. */
   transition: border-color 200ms ease, box-shadow 200ms ease, background 200ms ease;
 }
 .search-bar:hover { border-color: #3c5063; }
@@ -1663,7 +1664,8 @@ table.lb-table td { padding: 12px 16px; font-size: 13.5px; color: var(--text-1);
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid var(--border);
   border-radius: 8px;
-  backdrop-filter: blur(6px);
+  /* Pas de backdrop-filter : re-flouter le contenu qui defile dessous
+     coutait une image sur deux. Le degrade est assez opaque sans lui. */
 }
 .hg-switch-btn {
   appearance: none;
@@ -2966,8 +2968,8 @@ button[type="submit"]:active { transform: scale(0.97); }
   pointer-events: none;
   background: var(--paint);
   opacity: 0.5;
-  -webkit-mask: url('../img/paint.svg') repeat 210px 130px / 760px 610px;
-  mask: url('../img/paint.svg') repeat 210px 130px / 760px 610px;
+  -webkit-mask: url('../img/paint.png') repeat 210px 130px / 760px 610px;
+  mask: url('../img/paint.png') repeat 210px 130px / 760px 610px;
 }
 
 /* La couche est posee en absolu sur toute la section : sans cela le
@@ -3091,8 +3093,11 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background: var(--paint);
-  -webkit-mask: url('../img/paint.svg') repeat 0 0 / 900px 720px;
-  mask: url('../img/paint.svg') repeat 0 0 / 900px 720px;
+  /* Sa propre couche : sans cela le navigateur la repeint avec tout le
+     contenu qui defile dessous. */
+  will-change: transform;
+  -webkit-mask: url('../img/paint.png') repeat 0 0 / 900px 720px;
+  mask: url('../img/paint.png') repeat 0 0 / 900px 720px;
 }
 
 /* ---------- the owner's pirate, top right ----------
@@ -3189,7 +3194,8 @@ body::before {
     rgba(6, 7, 9, 0.86) 58%,
     rgba(6, 7, 9, 0.35) 100%
   );
-  backdrop-filter: blur(12px);
+  /* Pas de backdrop-filter : re-flouter le contenu qui defile dessous
+     coutait une image sur deux. Le degrade est assez opaque sans lui. */
   border-bottom: 0;
 }
 
