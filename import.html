@@ -38,7 +38,7 @@
     <div class="mobile-notice" id="mobile-notice" hidden>
       <p><b data-i18n="import.phoneTitle">Le glisser-déposer n'existe pas ici.</b></p>
       <p data-i18n="import.phoneBody">Sur iPhone la méthode ci-dessous fonctionne via les Favoris de Safari. Sur Android, Chrome refuse les favoris de ce type — fais-le une fois depuis un ordinateur, ou installe l'extension sur Firefox.</p>
-      <p><a class="btn small" href="/link" data-i18n="import.phoneCta">Voir l'extension</a></p>
+      <p><a class="btn small" href="#paste-details" data-i18n="import.phoneCta">Voir l'extension</a></p>
     </div>
     <ol class="import-steps">
 
@@ -191,8 +191,19 @@
   if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
     var avis = document.getElementById('mobile-notice');
     if (avis) avis.hidden = false;
-    var repli = document.querySelector('.import-mobile');
-    if (repli) repli.open = true;
+
+    /* Le copier-coller passe devant, et ouvert. C'est la seule des trois
+       voies qui marche sur un telephone : l'iPhone n'execute pas les favoris
+       scriptes, et iOS interdit les extensions dans TOUS les navigateurs,
+       Firefox et Chrome compris — ce ne sont que des habillages du moteur
+       d'Apple. Mener avec ces deux-la envoyait les gens dans un mur avant
+       de leur montrer la porte. */
+    var coller = document.getElementById('paste-details');
+    var etapes = document.querySelector('.import-steps');
+    if (coller && etapes && etapes.parentNode) {
+      etapes.parentNode.insertBefore(coller, etapes);
+      coller.open = true;
+    }
   }
 
   var a = document.getElementById('bm');
