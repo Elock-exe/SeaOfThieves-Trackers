@@ -3175,9 +3175,22 @@ body::before {
   position: sticky;
   top: 0;
   z-index: 60;
-  background: rgba(6, 7, 9, 0.94);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border-soft);
+
+  /* Pas de barre : un degrade qui s'estompe, comme chez Rare. Une bande
+     opaque avec un filet dessous se lit comme un bandeau pose sur la page ;
+     un degrade se lit comme de l'ombre, et la page continue dessous.
+
+     Le flou reste : la barre est collante, donc du contenu defile dessous,
+     et sans lui les titres traverseraient le degrade la ou il est le plus
+     clair. Il fait le travail que la couleur ne fait plus. */
+  background: linear-gradient(
+    180deg,
+    rgba(6, 7, 9, 0.97) 0%,
+    rgba(6, 7, 9, 0.86) 58%,
+    rgba(6, 7, 9, 0.35) 100%
+  );
+  backdrop-filter: blur(12px);
+  border-bottom: 0;
 }
 
 .topbar-inner {
