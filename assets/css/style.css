@@ -3756,3 +3756,22 @@ footer::before {
   /* The section tears are horizontal, so they keep their proportions and
      stay — they are the one shape a narrow screen does not distort. */
 }
+
+/* The notice a phone gets before it tries.
+
+   The warning already existed, folded shut at the bottom of the page —
+   which is to say, after the failure. Nobody opens a fold when they think
+   the thing is about to work. This sits above the steps and only on a
+   device that cannot perform them. */
+.mobile-notice {
+  margin: 0 0 20px;
+  padding: 16px 18px;
+  border: 1px solid rgba(216, 161, 58, .38);
+  border-left: 3px solid var(--gold);
+  border-radius: 10px;
+  background: rgba(216, 161, 58, .07);
+}
+
+.mobile-notice p { margin: 0 0 10px; font-size: 14px; line-height: 1.55; }
+.mobile-notice p:last-child { margin-bottom: 0; }
+.mobile-notice b { color: var(--gold-soft); }

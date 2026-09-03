@@ -27,6 +27,9 @@
 
   /* ------------------------------ ENGLISH ------------------------------ */
   en: {
+    "import.phoneTitle": "Drag and drop does not exist here.",
+    "import.phoneBody": "On iPhone the method below works through Safari's Favourites. On Android, Chrome refuses bookmarks of this kind — do it once from a computer, or install the extension on Firefox.",
+    "import.phoneCta": "See the extension",
     "profile.campaignsLabel": "Campaigns",
     "profile.promotions": "Promotions",
     "profile.titlesLabel": "Titles",
@@ -380,6 +383,9 @@
 
   /* ------------------------------ DEUTSCH ------------------------------ */
   de: {
+    "import.phoneTitle": "Drag-and-drop gibt es hier nicht.",
+    "import.phoneBody": "Auf dem iPhone funktioniert die Methode unten über die Favoriten von Safari. Unter Android lehnt Chrome solche Lesezeichen ab — mach es einmal an einem Computer, oder installiere die Erweiterung in Firefox.",
+    "import.phoneCta": "Zur Erweiterung",
     "profile.campaignsLabel": "Kampagnen",
     "profile.promotions": "Beförderungen",
     "profile.titlesLabel": "Titel",
@@ -712,6 +718,9 @@
 
   /* ------------------------------ ESPAÑOL (ES) ------------------------------ */
   es: {
+    "import.phoneTitle": "Aquí no existe arrastrar y soltar.",
+    "import.phoneBody": "En iPhone el método de abajo funciona con los Favoritos de Safari. En Android, Chrome rechaza este tipo de marcadores — hazlo una vez desde un ordenador, o instala la extensión en Firefox.",
+    "import.phoneCta": "Ver la extensión",
     "profile.campaignsLabel": "Campañas",
     "profile.promotions": "Ascensos",
     "profile.titlesLabel": "Títulos",
@@ -1044,6 +1053,9 @@
 
   /* ------------------------------ ESPAÑOL (LATAM) ------------------------------ */
   'es-419': {
+    "import.phoneTitle": "Aquí no existe arrastrar y soltar.",
+    "import.phoneBody": "En iPhone el método de abajo funciona con los Favoritos de Safari. En Android, Chrome rechaza este tipo de marcadores — hazlo una vez desde una computadora, o instala la extensión en Firefox.",
+    "import.phoneCta": "Ver la extensión",
     "profile.campaignsLabel": "Campañas",
     "profile.promotions": "Ascensos",
     "profile.titlesLabel": "Títulos",
@@ -1376,6 +1388,9 @@
 
   /* ------------------------------ FRANÇAIS ------------------------------ */
   fr: {
+    "import.phoneTitle": "Le glisser-déposer n'existe pas ici.",
+    "import.phoneBody": "Sur iPhone la méthode ci-dessous fonctionne via les Favoris de Safari. Sur Android, Chrome refuse les favoris de ce type — fais-le une fois depuis un ordinateur, ou installe l'extension sur Firefox.",
+    "import.phoneCta": "Voir l'extension",
     "profile.campaignsLabel": "Campagnes",
     "profile.promotions": "Promotions",
     "profile.titlesLabel": "Titres",
@@ -1716,6 +1731,9 @@
 
   /* ------------------------------ ITALIANO ------------------------------ */
   it: {
+    "import.phoneTitle": "Il trascinamento non esiste qui.",
+    "import.phoneBody": "Su iPhone il metodo qui sotto funziona tramite i Preferiti di Safari. Su Android, Chrome rifiuta i segnalibri di questo tipo — fallo una volta da un computer, oppure installa l'estensione su Firefox.",
+    "import.phoneCta": "Vedi l'estensione",
     "profile.campaignsLabel": "Campagne",
     "profile.promotions": "Promozioni",
     "profile.titlesLabel": "Titoli",
@@ -2048,6 +2066,9 @@
 
   /* ------------------------------ MAGYAR ------------------------------ */
   hu: {
+    "import.phoneTitle": "A húzd-és-ejtsd itt nem létezik.",
+    "import.phoneBody": "iPhone-on az alábbi módszer a Safari Kedvencein keresztül működik. Androidon a Chrome elutasítja az ilyen könyvjelzőket — csináld meg egyszer számítógépen, vagy telepítsd a bővítményt Firefoxra.",
+    "import.phoneCta": "A bővítmény",
     "profile.campaignsLabel": "Kampányok",
     "profile.promotions": "Előléptetések",
     "profile.titlesLabel": "Címek",
@@ -2380,6 +2401,9 @@
 
   /* ------------------------------ POLSKI ------------------------------ */
   pl: {
+    "import.phoneTitle": "Przeciąganie tu nie istnieje.",
+    "import.phoneBody": "Na iPhonie poniższa metoda działa przez Ulubione w Safari. Na Androidzie Chrome odrzuca takie zakładki — zrób to raz na komputerze albo zainstaluj rozszerzenie w Firefoksie.",
+    "import.phoneCta": "Zobacz rozszerzenie",
     "profile.campaignsLabel": "Kampanie",
     "profile.promotions": "Awanse",
     "profile.titlesLabel": "Tytuły",
@@ -2712,6 +2736,9 @@
 
   /* ------------------------------ РУССКИЙ ------------------------------ */
   ru: {
+    "import.phoneTitle": "Перетаскивания здесь нет.",
+    "import.phoneBody": "На iPhone способ ниже работает через Избранное в Safari. На Android Chrome отклоняет такие закладки — сделайте это один раз на компьютере или установите расширение в Firefox.",
+    "import.phoneCta": "Посмотреть расширение",
     "profile.campaignsLabel": "Кампании",
     "profile.promotions": "Повышения",
     "profile.titlesLabel": "Титулы",
@@ -3044,6 +3071,9 @@
 
   /* ------------------------------ العربية ------------------------------ */
   ar: {
+    "import.phoneTitle": "السحب والإفلات غير موجود هنا.",
+    "import.phoneBody": "على iPhone تعمل الطريقة أدناه عبر المفضلة في Safari. على Android يرفض Chrome هذا النوع من الإشارات — نفّذها مرة واحدة من حاسوب، أو ثبّت الإضافة على Firefox.",
+    "import.phoneCta": "شاهد الإضافة",
     "profile.campaignsLabel": "الحملات",
     "profile.promotions": "الترقيات",
     "profile.titlesLabel": "الألقاب",
@@ -3376,6 +3406,9 @@
 
   /* ------------------------------ 繁體中文 ------------------------------ */
   'zh-TW': {
+    "import.phoneTitle": "這裡沒有拖放功能。",
+    "import.phoneBody": "在 iPhone 上，下面的方法可以透過 Safari 的「我的最愛」運作。在 Android 上，Chrome 不接受這類書籤——請用電腦操作一次，或在 Firefox 上安裝擴充功能。",
+    "import.phoneCta": "查看擴充功能",
     "profile.campaignsLabel": "戰役",
     "profile.promotions": "晉升",
     "profile.titlesLabel": "稱號",
@@ -3708,6 +3741,9 @@
 
   /* --------------------------- PORTUGUES (BR) --------------------------- */
   'pt-BR': {
+    "import.phoneTitle": "Arrastar e soltar não existe aqui.",
+    "import.phoneBody": "No iPhone o método abaixo funciona pelos Favoritos do Safari. No Android, o Chrome recusa favoritos desse tipo — faça uma vez pelo computador, ou instale a extensão no Firefox.",
+    "import.phoneCta": "Ver a extensão",
     "profile.campaignsLabel": "Campanhas",
     "profile.promotions": "Promoções",
     "profile.titlesLabel": "Títulos",

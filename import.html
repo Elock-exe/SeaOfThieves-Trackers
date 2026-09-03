@@ -35,6 +35,11 @@
 <section class="block tight">
   <div class="container">
 
+    <div class="mobile-notice" id="mobile-notice" hidden>
+      <p><b data-i18n="import.phoneTitle">Le glisser-déposer n'existe pas ici.</b></p>
+      <p data-i18n="import.phoneBody">Sur iPhone la méthode ci-dessous fonctionne via les Favoris de Safari. Sur Android, Chrome refuse les favoris de ce type — fais-le une fois depuis un ordinateur, ou installe l'extension sur Firefox.</p>
+      <p><a class="btn small" href="/link" data-i18n="import.phoneCta">Voir l'extension</a></p>
+    </div>
     <ol class="import-steps">
 
       <li class="import-step">
@@ -134,6 +139,16 @@
   /* Header, nav and footer, same as every other page. Without this the
      import page has no way back to the rest of the site. */
   SOTUI.mount('Import account');
+
+  /* Detection par le pointeur plutot que par le nom du navigateur : ce qui
+     compte est de savoir si l'appareil sait glisser-deposer, pas comment il
+     s'appelle. Un ecran tactile sans souris ne le sait pas. */
+  if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
+    var avis = document.getElementById('mobile-notice');
+    if (avis) avis.hidden = false;
+    var repli = document.querySelector('.import-mobile');
+    if (repli) repli.open = true;
+  }
 
   var a = document.getElementById('bm');
   var box = document.getElementById('bm-code');
