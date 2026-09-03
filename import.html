@@ -91,6 +91,50 @@
       </div>
     </details>
 
+
+    <!-- La voie qu'aucun telephone ne bloque : la personne ouvre les pages
+         elle-meme, deja connectee, et colle ce qui en sort. -->
+    <details class="paste-import" id="paste-details">
+      <summary data-i18n="paste.title">Sur téléphone : importer par copier-coller</summary>
+      <div id="paste-import" class="paste-body">
+
+        <p class="paste-intro" data-i18n="paste.intro">Aucun navigateur mobile ne peut exécuter le favori. Mais tous savent ouvrir une page et copier son texte — c'est tout ce dont on a besoin.</p>
+
+        <ol class="paste-steps">
+          <li>
+            <a href="https://www.seaofthieves.com/api/profilev2/reputation" target="_blank" rel="noopener" class="btn small ghost" data-i18n="paste.open1">Ouvrir la réputation</a>
+            <span class="paste-req" data-i18n="paste.required">obligatoire</span>
+            <textarea id="paste-reputation" rows="3" spellcheck="false" data-i18n-attr="placeholder:paste.here" placeholder="Colle ici"></textarea>
+          </li>
+          <li>
+            <a href="https://www.seaofthieves.com/api/profilev2/balance" target="_blank" rel="noopener" class="btn small ghost" data-i18n="paste.open2">Ouvrir l'or</a>
+            <textarea id="paste-ledger" rows="2" spellcheck="false" data-i18n-attr="placeholder:paste.here" placeholder="Colle ici"></textarea>
+          </li>
+          <li>
+            <a href="https://www.seaofthieves.com/api/profilev2/overview" target="_blank" rel="noopener" class="btn small ghost" data-i18n="paste.open3">Ouvrir les saisons</a>
+            <textarea id="paste-overview" rows="2" spellcheck="false" data-i18n-attr="placeholder:paste.here" placeholder="Colle ici"></textarea>
+          </li>
+        </ol>
+
+        <label class="paste-field">
+          <span data-i18n="paste.handleLabel">Ton nom de pirate, exactement comme en jeu</span>
+          <input type="text" id="paste-handle" maxlength="40" autocomplete="off" spellcheck="false" />
+        </label>
+
+        <div class="paste-field" id="paste-key-row" hidden>
+          <label>
+            <span data-i18n="paste.keyLabel">Clé de compte, si tu as déjà importé ailleurs</span>
+            <input type="text" id="paste-key" autocomplete="off" spellcheck="false" />
+          </label>
+        </div>
+
+        <button type="button" class="btn" id="paste-send" data-i18n="paste.send">Publier</button>
+        <p class="paste-status" id="paste-status" hidden></p>
+        <p><a id="paste-profile" class="btn small ghost" hidden data-i18n="paste.seeProfile">Voir mon profil</a></p>
+
+      </div>
+    </details>
+
     <div class="panel import-promise">
       <div class="panel-head"><span data-i18n="import.promiseTitle">What this does, and what it cannot do</span></div>
       <div class="panel-body padded">
@@ -130,6 +174,7 @@
 <script src="assets/js/badge.js?v=1785804238"></script>
 <script src="assets/js/reveal.js?v=1785804238"></script>
 <script src="assets/js/ui.js?v=1785804238"></script>
+<script src="assets/js/paste-import.js?v=1785804238"></script>
 
 <script>
 /* The textarea is filled from the anchor's own href, so the page cannot end

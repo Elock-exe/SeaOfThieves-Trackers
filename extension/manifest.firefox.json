@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "//name": "Named after sottracker.fr, not after the game. 'Sea of Thieves' is Rare's mark, and a store — Microsoft's above all — reads a trademark in the NAME as a claim of affiliation. Describing what the tool does is fine; being called it is not.",
   "name": "SotTracker",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Unofficial tracker for Sea of Thieves. Syncs your gold, Hourglass rank and reputation to sottracker.fr.",
   "permissions": [
     "storage",
@@ -50,6 +50,9 @@
         "optional": [],
         "has_previous_consent": false
       }
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
     }
   },
   "background": {

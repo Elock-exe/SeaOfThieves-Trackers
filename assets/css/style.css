@@ -3791,3 +3791,61 @@ footer::before {
 }
 
 .link-alt p { margin: 0 0 10px; font-size: 13.5px; color: var(--text-1); }
+
+/* ---------- import by copy and paste ----------
+
+   Folded shut by default: it is the fallback, not the route. Opened
+   automatically on a phone, where it is the only one that works. */
+.paste-import {
+  margin: 0 0 22px;
+  padding: 14px 18px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: var(--bg-1);
+}
+
+.paste-import > summary { cursor: pointer; font-weight: 600; }
+.paste-body { padding-top: 14px; }
+.paste-intro { margin: 0 0 16px; font-size: 13.5px; color: var(--text-2); line-height: 1.6; }
+
+.paste-steps { margin: 0 0 18px; padding-left: 20px; list-style: decimal; }
+.paste-steps > li { margin-bottom: 16px; }
+
+.paste-req {
+  margin-left: 8px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.paste-steps textarea,
+.paste-field input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 8px;
+  padding: 9px 11px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  background: var(--bg-0);
+  color: var(--text-0);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  resize: vertical;
+}
+
+.paste-field input:focus,
+.paste-steps textarea:focus {
+  outline: none;
+  border-color: rgba(var(--teal-rgb), 0.55);
+}
+
+.paste-field { display: block; margin-bottom: 14px; }
+.paste-field > span,
+.paste-field label > span { font-size: 13px; color: var(--text-1); }
+
+.paste-status { margin: 12px 0 0; font-size: 13.5px; line-height: 1.55; }
+.paste-status.paste-erreur { color: var(--gold-soft); }
+.paste-status.paste-ok { color: var(--teal); }
+.paste-status.paste-attente { color: var(--text-2); }
