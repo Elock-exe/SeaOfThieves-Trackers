@@ -640,7 +640,7 @@ async function handle(req, res) {
       handle: handle || null,
       /* The store hands back only these keys now, not whole snapshots —
          drawing a three-line chart never needed a megabyte a point. */
-      points: (await store.historyFor(handle, limit)).map((r) => ({
+      points: (await store.history(handle, limit)).map((r) => ({
         at: r.capturedAt,
         gold: r.currencies ? r.currencies.gold : null,
         doubloons: r.currencies ? r.currencies.doubloons : null,
