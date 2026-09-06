@@ -45,6 +45,25 @@ const SUPABASE_KEY = process.env.SUPABASE_KEY || '';
    Latest now means the newest that carries something. A real pirate with
    no gold still has a reputation, an Hourglass side or a season; nothing
    at all is a failed read, not a poor pirate. */
+/* The highest Hourglass level a pirate has ever published.
+
+   Reputation only goes up, so the peak is the floor: any later capture
+   claiming a small fraction of it is a bad read, whatever the newest row
+   happens to say.
+
+   Comparing against the newest row was the first attempt, and it failed
+   the moment one bad read got through — the skeleton became the baseline,
+   and every skeleton after it looked like no change at all. */
+function peakHourglass(rows) {
+  let peak = 0;
+  for (const r of rows || []) {
+    const hg = r && (r.hourglass || (r.snapshot && r.snapshot.hourglass));
+    const n = hg ? Number(hg.level) || 0 : 0;
+    if (n > peak) peak = n;
+  }
+  return peak;
+}
+
 function hasSomething(row) {
   const s = row && row.snapshot;
   if (!s) return false;
@@ -212,9 +231,25 @@ const fileDriver = {
   },
 
   /** The newest snapshot for one pirate. */
+  async peakFor(handle) {
+    return peakHourglass(await this.snapshotsFor(handle));
+  },
+
   async latestFor(handle) {
     const all = await this.snapshotsFor(handle);
     if (!all.length) return null;
+
+    /* Newest row that still stands near the peak. A pirate whose last four
+       captures came back as skeletons should read at their real standing,
+       not at the wreckage of the most recent failed read. */
+    const peak = peakHourglass(all);
+    if (peak > 10) {
+      for (let i = all.length - 1; i >= 0; i--) {
+        const hg = all[i] && all[i].snapshot && all[i].snapshot.hourglass;
+        if (hg && (Number(hg.level) || 0) >= peak / 10) return all[i];
+      }
+    }
+
     for (let i = all.length - 1; i >= 0; i--) if (hasSomething(all[i])) return all[i];
     /* Nothing substantive anywhere: return the newest anyway rather than
        claiming the pirate does not exist. */
@@ -482,6 +517,12 @@ const supabaseDriver = {
      active account was also the slowest to open — and eventually the one
      that timed out. Ordering in the database and taking a single row costs
      the same whether a pirate synced twice or ten thousand times. */
+  async peakFor(handle) {
+    const rows = await rest('snapshots?handle=ilike.' + encodeURIComponent(handle) +
+      '&select=hourglass:snapshot->hourglass&order=captured_at.desc&limit=200');
+    return peakHourglass(rows);
+  },
+
   async latestFor(handle) {
     const h = encodeURIComponent(handle);
 
@@ -503,10 +544,22 @@ const supabaseDriver = {
       '&select=captured_at,currencies:snapshot->currencies,hourglass:snapshot->hourglass' +
       '&order=captured_at.desc&limit=200');
 
+    /* The peak comes free: these are the same two hundred rows, and the
+       Hourglass level is already among the fields asked for. */
+    const peak = peakHourglass(marks);
+
     let when = null;
-    for (const m of marks || []) {
-      const c = m.currencies || {};
-      if (c.gold || c.doubloons || c.ancientCoins || m.hourglass) { when = m.captured_at; break; }
+    if (peak > 10) {
+      for (const m of marks || []) {
+        const n = m.hourglass ? Number(m.hourglass.level) || 0 : 0;
+        if (n >= peak / 10) { when = m.captured_at; break; }
+      }
+    }
+    if (!when) {
+      for (const m of marks || []) {
+        const c = m.currencies || {};
+        if (c.gold || c.doubloons || c.ancientCoins || m.hourglass) { when = m.captured_at; break; }
+      }
     }
 
     const q = when

@@ -545,6 +545,26 @@ async function handle(req, res) {
          start rejecting every honest sync. Nothing legitimate loses nine
          tenths of its reputation. */
       const before = await store.latest(handle).catch(() => null);
+      const peak = await store.peak(handle).catch(() => 0);
+
+      /* The peak, not just the previous row.
+
+         Comparing against the latest snapshot worked until one bad read
+         got through: the skeleton became the baseline, its weight was too
+         small to trip the threshold, and every skeleton after it sailed
+         past. Reputation only rises, so the highest Hourglass level ever
+         published is the floor no honest capture falls below. */
+      const hgNow = snapshot.hourglass ? Number(snapshot.hourglass.level) || 0 : 0;
+      if (peak > 10 && hgNow < peak / 10) {
+        console.warn(`[api] /sync refused — Hourglass ${hgNow} against a peak of ${peak} (${handle})`);
+        return send(res, 422, {
+          error: {
+            code: 'reputation_collapsed',
+            message: 'This read came back with almost no reputation, which cannot happen — reputation never goes down. Nothing was saved. Try again in a few minutes.'
+          }
+        });
+      }
+
       const had = reputationWeight(before && before.snapshot);
       const now = reputationWeight(snapshot);
       if (had > 10 && now < had / 10) {

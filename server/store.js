@@ -36,10 +36,15 @@ async function history(handle, limit) {
   return db.historyFor(handle, limit);
 }
 
+/** The highest Hourglass level this pirate has ever published. */
+async function peak(handle) {
+  return db.peakFor(handle);
+}
+
 /** One row per pirate, newest first. Bounded by the number of pirates
     rather than by how long they have been syncing. */
 async function standings() {
   return db.latestPerHandle();
 }
 
-module.exports = { append, latest, history, readAll, standings, describe: db.describe };
+module.exports = { append, latest, peak, history, readAll, standings, describe: db.describe };
