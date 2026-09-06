@@ -68,16 +68,28 @@ function findByTitle(node, wanted, seen) {
     return null;
   }
 
-  const title = node.Title != null ? node.Title
-    : node.title != null ? node.title
-      : node.Name != null ? node.Name : node.name;
+  /* Every spelling seen so far, and a few not yet.
+
+     The first version read Title, title, Name and name, and found nothing
+     at all in a real captaincy payload — not one of the ten counters, which
+     is how a wrong assumption announces itself. Alignments use Title beside
+     LocalisedTitle, so accolades plausibly do too, and #Name is how Rare
+     labels items elsewhere in the same document. */
+  const TITLE_KEYS = ['Title', 'title', 'LocalisedTitle', 'localisedTitle',
+    'DisplayName', 'displayName', 'Name', 'name', '#Name'];
+  const VALUE_KEYS = ['Value', 'value', 'Total', 'total', 'Count', 'count',
+    'Progress', 'progress', 'Amount', 'amount', 'MilestoneSum'];
+
+  let title = null;
+  for (const k of TITLE_KEYS) {
+    if (node[k] != null && typeof node[k] !== 'object') { title = node[k]; break; }
+  }
 
   if (title != null && norm(title) === wanted) {
-    const v = node.Value != null ? node.Value
-      : node.value != null ? node.value
-        : node.Total != null ? node.Total : node.total;
-    const n = Number(v);
-    if (Number.isFinite(n)) return n;
+    for (const k of VALUE_KEYS) {
+      const n = Number(node[k]);
+      if (node[k] != null && Number.isFinite(n)) return n;
+    }
   }
 
   for (const k of Object.keys(node)) {
@@ -341,4 +353,30 @@ function chest(payload) {
   return artBase ? { total, artBase, categories } : { total, categories };
 }
 
-module.exports = { hourglassRecord, counters, ships, paths, chest, TITLES, COUNTERS };
+
+/* The key names of one accolade, and nothing else.
+
+   Three attempts at reading the Hourglass record found nothing, and each
+   time the only way forward was asking someone to run a probe in their own
+   browser and paste the result back. That is a poor way to learn the shape
+   of a payload this service receives thousands of times a day.
+
+   So one sync now carries the field names — names only, no values, about a
+   hundred bytes — and the next failure explains itself. */
+function shapeOf(captaincy) {
+  const al = captaincy && captaincy.Pirate && captaincy.Pirate.Alignments;
+  if (!Array.isArray(al)) return null;
+  for (const a of al) {
+    const acc = a && a.Accolades;
+    if (Array.isArray(acc) && acc.length && acc[0] && typeof acc[0] === 'object') {
+      return {
+        alignment: Object.keys(a).slice(0, 12),
+        accolade: Object.keys(acc[0]).slice(0, 14),
+        sample: String(acc[0].Title || acc[0].LocalisedTitle || acc[0]['#Name'] || '').slice(0, 60)
+      };
+    }
+  }
+  return null;
+}
+
+module.exports = { hourglassRecord, counters, ships, paths, chest, shapeOf, TITLES, COUNTERS };

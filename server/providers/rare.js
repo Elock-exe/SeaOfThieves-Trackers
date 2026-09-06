@@ -289,6 +289,7 @@ function normalizePayloads(payloads, probes) {
   const captaincyShips = captaincy.ships(cap);
   const captaincyPaths = captaincy.paths(cap);
   const chestSummary = captaincy.chest((payloads && payloads.chest) || null);
+  const capShape = captaincy.shapeOf(cap);
 
   return {
     source: 'rare',
@@ -335,6 +336,13 @@ function normalizePayloads(payloads, probes) {
     ships: captaincyShips,
     paths: captaincyPaths,
     chest: chestSummary,
+
+    /* Field names only, about a hundred bytes, and only while the record
+       is not being found. Three attempts at reading the Hourglass battles
+       came back empty, and each time the only way to learn why was asking
+       someone to run a probe in their browser and paste the output — a
+       poor way to inspect a payload this service receives all day. */
+    _shape: captaincyRecord ? null : capShape,
 
     _probes: probes || null
   };
