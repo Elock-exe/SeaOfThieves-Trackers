@@ -17,6 +17,8 @@
    independently and a failure degrades to null instead of throwing.
    ============================================================ */
 
+const captaincy = require('../captaincy');
+
 const BASE = 'https://www.seaofthieves.com';
 
 class ProviderError extends Error {
@@ -101,7 +103,17 @@ async function firstThatWorks(paths) {
   return { ok: false, failures };
 }
 
+/* Absent is not zero.
+
+   This returned 0 for a missing field, because Number(null) is 0 and
+   Number.isFinite(0) is true. Every ?? fallback below it was therefore
+   dead code — 0 is not nullish, so nothing after the first lookup ever
+   ran — and a wallet Rare had renamed read as a wallet that was empty.
+
+   That is how a pirate holding two million gold published zeroes, and why
+   it looked like a display bug rather than a failed read. */
 function num(v) {
+  if (v === null || v === undefined || v === "") return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 }
@@ -157,6 +169,44 @@ function handleFromPage(payloads) {
   return stripped.length <= 40 ? stripped : null;
 }
 
+/* Find a number by what its key means, not by how it is spelled.
+
+   pick() matches exact names, which held for as long as Rare kept
+   sending { gold, doubloons, ancientCoins }. Their profile was rebuilt —
+   it now carries tabs this tracker has never seen — and the wallet came
+   back as zero from an endpoint answering 200. A renamed or re-nested key
+   reads exactly like an empty wallet, and that is how a profile holding
+   two million gold published itself as nought.
+
+   So: walk the payload and take the first numeric value whose key matches.
+   Casing, prefixes and nesting stop mattering; only the word does. Used
+   as a fallback, so an exact hit still wins and this never overrides a
+   value that was found properly.
+
+   `avoid` keeps limits and caps out of it — doubloonsLimit is a ceiling,
+   not a balance, and it sits right next to the number we want. */
+function deepNumber(node, re, avoid, depth) {
+  if (!node || typeof node !== "object" || (depth || 0) > 6) return null;
+
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      const hit = deepNumber(item, re, avoid, (depth || 0) + 1);
+      if (hit != null) return hit;
+    }
+    return null;
+  }
+
+  for (const [k, v] of Object.entries(node)) {
+    if (typeof v === "number" && Number.isFinite(v) &&
+        re.test(k) && !(avoid && avoid.test(k))) return v;
+  }
+  for (const v of Object.values(node)) {
+    const hit = deepNumber(v, re, avoid, (depth || 0) + 1);
+    if (hit != null) return hit;
+  }
+  return null;
+}
+
 function normalizePayloads(payloads, probes) {
   const ov = (payloads && payloads.overview) || {};
   const h = (payloads && payloads.hourglass) || null;
@@ -167,12 +217,22 @@ function normalizePayloads(payloads, probes) {
      The overview stays as a fallback in case the shape moves again. */
   const led = (payloads && payloads.ledger) || {};
 
+  const LIMITE = /limit|max|cap|total|threshold/i;
+
   const gold = num(pick(led, ['gold', 'coins'])) ??
-    num(pick(ov, ['gold', 'coins', 'balance.gold', 'stats.gold']));
+    num(pick(ov, ['gold', 'coins', 'balance.gold', 'stats.gold'])) ??
+    deepNumber(led, /gold|coins/i, LIMITE) ??
+    deepNumber(ov, /gold/i, LIMITE);
+
   const doubloons = num(pick(led, ['doubloons'])) ??
-    num(pick(ov, ['doubloons', 'balance.doubloons', 'stats.doubloons']));
+    num(pick(ov, ['doubloons', 'balance.doubloons', 'stats.doubloons'])) ??
+    deepNumber(led, /doubloon/i, LIMITE) ??
+    deepNumber(ov, /doubloon/i, LIMITE);
+
   const ancientCoins = num(pick(led, ['ancientCoins', 'ancient_coins'])) ??
-    num(pick(ov, ['ancientCoins', 'ancient_coins', 'balance.ancientCoins']));
+    num(pick(ov, ['ancientCoins', 'ancient_coins', 'balance.ancientCoins'])) ??
+    deepNumber(led, /ancient/i, LIMITE) ??
+    deepNumber(ov, /ancient/i, LIMITE);
 
   const currencies = (gold != null || doubloons != null || ancientCoins != null)
     ? { gold: gold || 0, doubloons: doubloons || 0, ancientCoins: ancientCoins || 0 }
@@ -222,6 +282,11 @@ function normalizePayloads(payloads, probes) {
     }
   }
 
+  /* Read once here, never stored whole: see the note on the fields below. */
+  const cap = (payloads && payloads.captaincy) || null;
+  const captaincyRecord = captaincy.hourglassRecord(cap);
+  const captaincyCounters = captaincy.counters(cap);
+
   return {
     source: 'rare',
     capturedAt: new Date().toISOString(),
@@ -240,7 +305,26 @@ function normalizePayloads(payloads, probes) {
     milestones: null,
     commendations: null,
     playtime: null,
-    achievements: null,
+
+    /* Reduced here rather than stored.
+
+       This function builds an explicit object, so a payload the collector
+       starts sending is dropped unless it is named — achievements sat
+       hardcoded to null while the client could already fetch it.
+
+       The captaincy payload is enormous: a line per treasure type, per
+       island, per fish. Keeping it whole is how snapshots reached 1.18 MB
+       and took the API down with an OOM. So it is read once, on the way in,
+       and only the numbers survive — a record and ten counters instead of
+       several hundred kilobytes.
+
+       cap is null for most pirates. Battle records live per captained ship,
+       so a pirate with no named ship gets a 404 and no record, which is
+       normal and not a failure. */
+    achievements: (payloads && payloads.achievements) || null,
+    hourglassRecord: captaincyRecord,
+    counters: captaincyCounters,
+
     _probes: probes || null
   };
 }
