@@ -198,7 +198,15 @@
        place Rare records a defeat. The rest are fetched because the site
        serves them and they cost one request each; 404 is a normal answer
        here and drops the group without failing the import. */
-    captaincy:  p('/api/profilev2/captaincy'),
+    /* English first for this one, unlike every other group.
+
+       The accolades inside it are localised, and the Hourglass record is
+       read by matching their titles — "Battles Completed (as Guardians)"
+       and the rest. Fetched under /fr/ they come back in French, nothing
+       matches, and the win rate silently does not appear. The unprefixed
+       path answers in the site default, so it goes first here and the
+       locale one stays as the fallback. */
+    captaincy:  ['/api/profilev2/captaincy'].concat(p('/api/profilev2/captaincy')),
     chest:      p('/api/profilev2/chest'),
     achievements: p('/api/profilev2/achievements'),
     seasonsProgress: p('/api/profilev2/seasons-progress'),

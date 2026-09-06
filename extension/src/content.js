@@ -61,7 +61,15 @@
     overview:   [...p('/api/profilev2/overview'), '/api/profilev2/summary'],
     reputation: [...p('/api/profilev2/reputation')],
     ledger:     [...p('/api/profilev2/balance'), '/api/profilev2/ledger'],
-    captaincy:  [...p('/api/profilev2/captaincy')],
+    /* English first for this one, unlike every other group.
+
+       The accolades inside it are localised, and the Hourglass record is
+       read by matching their titles — "Battles Completed (as Guardians)"
+       and the rest. Fetched under /fr/ they come back in French, nothing
+       matches, and the win rate silently does not appear. The unprefixed
+       path answers in the site default, so it goes first here and the
+       locale one stays as the fallback. */
+    captaincy:  ['/api/profilev2/captaincy', ...p('/api/profilev2/captaincy')],
     chest:      [...p('/api/profilev2/chest')],
     achievements: [...p('/api/profilev2/achievements')],
     seasonsProgress: [...p('/api/profilev2/seasons-progress')],
