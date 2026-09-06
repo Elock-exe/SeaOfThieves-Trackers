@@ -76,11 +76,16 @@ function trimEmblems(block) {
   if (!list) return null;
 
   const kept = list.map(trimEmblem).filter(Boolean);
-  return {
-    total: Number(block.EmblemsTotal) || list.length,
-    unlocked: Number(block.EmblemsUnlocked) || kept.filter((e) => e.g > 0).length,
-    items: kept
-  };
+  /* Zero is an answer, not a missing value. Reading these with || meant a
+     pirate who has unlocked nothing fell through to counting emblems with a
+     grade above zero — and Rare grades an untouched emblem 1, so someone
+     with none was credited with seventeen. */
+  const total = block.EmblemsTotal != null ? Number(block.EmblemsTotal) : list.length;
+  const unlocked = block.EmblemsUnlocked != null
+    ? Number(block.EmblemsUnlocked)
+    : kept.filter((e) => e.g > 0).length;
+
+  return { total, unlocked, items: kept };
 }
 
 function trimFaction(f) {

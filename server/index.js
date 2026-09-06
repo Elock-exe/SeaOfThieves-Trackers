@@ -145,6 +145,29 @@ async function lookupOne(provider, id) {
 }
 
 /** Files a pirate's public hours, so the playtime board can rank them. */
+/* How much reputation a snapshot claims, as one number.
+
+   Sea of Thieves reputation only ever goes up. Levels are never spent,
+   never reset, never lost — so a capture claiming less than the one
+   before it is not a pirate who slipped back, it is a bad read.
+
+   Rare served exactly that during an outage: a real wallet beside a
+   skeleton reputation, every faction at level 1 and every counter at
+   zero. It passed the empty-capture check because the gold was genuine,
+   and buried a pirate at Hourglass 160 under a profile reading 1. */
+function reputationWeight(snapshot) {
+  if (!snapshot) return 0;
+  let n = 0;
+  const rep = snapshot.reputation;
+  if (rep && typeof rep === "object") {
+    for (const f of Object.values(rep)) {
+      if (f && typeof f === "object") n += Number(f.Level) || 0;
+    }
+  }
+  if (snapshot.hourglass) n += Number(snapshot.hourglass.level) || 0;
+  return n;
+}
+
 function storePublic(snap, fallbackHandle) {
   if (!snap || !snap.playtime || typeof snap.playtime.totalHours !== 'number') return null;
   return require('./db').putPublicPlayer({
@@ -496,6 +519,7 @@ async function handle(req, res) {
         });
       }
 
+
       /* The pirate these stats belong to: whatever the extension read off
          the page, or what its owner typed. Without it there is nothing to
          file the snapshot under, and every account would land in the same
@@ -511,6 +535,25 @@ async function handle(req, res) {
         console.warn(`[api] /sync refused — ${auth.code} (${handle || 'no handle'})`);
         return send(res, auth.code === 'handle_taken' ? 409 : 401, {
           error: { code: auth.code, message: auth.message }
+        });
+      }
+
+      /* And the same refusal for a capture that went backwards.
+
+         A tenth of the previous weight, not any drop at all: a faction
+         disappearing from Rare's payload for a release would otherwise
+         start rejecting every honest sync. Nothing legitimate loses nine
+         tenths of its reputation. */
+      const before = await store.latest(handle).catch(() => null);
+      const had = reputationWeight(before && before.snapshot);
+      const now = reputationWeight(snapshot);
+      if (had > 10 && now < had / 10) {
+        console.warn(`[api] /sync refused — reputation collapsed ${had} to ${now} (${handle})`);
+        return send(res, 422, {
+          error: {
+            code: 'reputation_collapsed',
+            message: 'This read came back with almost no reputation, which cannot happen — reputation never goes down. Nothing was saved. Try again in a few minutes.'
+          }
         });
       }
 
