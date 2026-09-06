@@ -483,15 +483,41 @@ const supabaseDriver = {
      that timed out. Ordering in the database and taking a single row costs
      the same whether a pirate synced twice or ten thousand times. */
   async latestFor(handle) {
-    /* Twenty, not one. A run of empty captures can be long — one account
-       collected 41 — and the point is to find the newest that says
-       something. Twenty rows is a cheap query and covers a lost day. */
-    const rows = await rest('snapshots?handle=ilike.' + encodeURIComponent(handle) +
-      '&order=captured_at.desc&limit=20');
-    if (!rows || !rows.length) return null;
-    const wrap = (r) => ({ handle: r.handle, capturedAt: r.captured_at, snapshot: r.snapshot });
-    for (const r of rows) { const w = wrap(r); if (hasSomething(w)) return w; }
-    return wrap(rows[0]);
+    const h = encodeURIComponent(handle);
+
+    /* Two queries, because neither half can be done alone.
+
+       Fetching whole rows to find a non-empty one is what the first
+       attempt did, capped at twenty to keep it affordable. The account it
+       was written for had forty-one empty captures in a row, so it never
+       reached past them — a cap chosen by guess, and the guess was wrong.
+
+       Raising the cap is not the fix either: older snapshots run to a
+       megabyte apiece, and pulling two hundred of them is the query that
+       once killed this API with an out-of-memory.
+
+       So ask Postgres for just the two cheap fields that say whether a
+       row is worth having, over a long window, then fetch the one row
+       that wins. */
+    const marks = await rest('snapshots?handle=ilike.' + h +
+      '&select=captured_at,currencies:snapshot->currencies,hourglass:snapshot->hourglass' +
+      '&order=captured_at.desc&limit=200');
+
+    let when = null;
+    for (const m of marks || []) {
+      const c = m.currencies || {};
+      if (c.gold || c.doubloons || c.ancientCoins || m.hourglass) { when = m.captured_at; break; }
+    }
+
+    const q = when
+      ? 'snapshots?handle=ilike.' + h + '&captured_at=eq.' + encodeURIComponent(when) + '&limit=1'
+      : 'snapshots?handle=ilike.' + h + '&order=captured_at.desc&limit=1';
+
+    const rows = await rest(q);
+    const r = rows && rows[0];
+    /* Nothing substantive in two hundred captures: serve the newest anyway.
+       "No data yet" must not read as "no such pirate". */
+    return r ? { handle: r.handle, capturedAt: r.captured_at, snapshot: r.snapshot } : null;
   },
 
   /* The history chart plots three numbers — gold, doubloons, Hourglass
