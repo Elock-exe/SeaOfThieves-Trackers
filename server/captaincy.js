@@ -431,6 +431,48 @@ function chest(payload) {
 
    So one sync now carries the field names — names only, no values, about a
    hundred bytes — and the next failure explains itself. */
+/* The two Hourglass alignments, listed by identifier rather than by name.
+
+   An accolade carries LocalisedTitle and nothing else — no English original
+   beside it, unlike the alignment one level up. So a French account's
+   "Or gagné" can never match "Gold Earned", and no Accept-Language header
+   changes that: Rare localises to the account, not the request.
+
+   ProgressId does not move. It reads
+   <alignment uuid>:<accolade uuid>:<index>, and the middle part names the
+   accolade itself in every language. Matching on that ends the problem for
+   good — but the identifiers have to be learned once, from a payload, which
+   is what this reports.
+
+   Only the two Hourglass paths, only ids and titles, and only while the
+   record is still not being found. */
+function hourglassIds(captaincy) {
+  const out = [];
+  const seen = new Set();
+
+  const scan = (alignments) => {
+    for (const a of alignments || []) {
+      const name = String(a.Title || a.LocalisedTitle || '');
+      if (!/guardian|servant|gardien|serviteur/i.test(name)) continue;
+      for (const acc of a.Accolades || []) {
+        const id = String(acc.ProgressId || '');
+        const mid = id.split(':')[1] || id;
+        if (!mid || seen.has(mid)) continue;
+        seen.add(mid);
+        const st = Array.isArray(acc.Stats) && acc.Stats[0] ? acc.Stats[0].Value : null;
+        out.push(mid + ' | ' + String(acc.LocalisedTitle || '').slice(0, 48) + ' | ' + st);
+        if (out.length >= 20) return;
+      }
+    }
+  };
+
+  if (captaincy && captaincy.Pirate) scan(captaincy.Pirate.Alignments);
+  if (!out.length && captaincy && Array.isArray(captaincy.Ships)) {
+    for (const sh of captaincy.Ships) { scan(sh.Alignments); if (out.length) break; }
+  }
+  return out.length ? out : null;
+}
+
 function shapeOf(captaincy) {
   const al = captaincy && captaincy.Pirate && captaincy.Pirate.Alignments;
   if (!Array.isArray(al)) return null;
@@ -452,4 +494,4 @@ function shapeOf(captaincy) {
   return null;
 }
 
-module.exports = { hourglassRecord, counters, ships, paths, chest, shapeOf, TITLES, COUNTERS };
+module.exports = { hourglassRecord, counters, ships, paths, chest, shapeOf, hourglassIds, TITLES, COUNTERS };

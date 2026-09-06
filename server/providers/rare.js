@@ -290,6 +290,7 @@ function normalizePayloads(payloads, probes) {
   const captaincyPaths = captaincy.paths(cap);
   const chestSummary = captaincy.chest((payloads && payloads.chest) || null);
   const capShape = captaincy.shapeOf(cap);
+  const capIds = captaincy.hourglassIds(cap);
 
   return {
     source: 'rare',
@@ -349,6 +350,7 @@ function normalizePayloads(payloads, probes) {
        Hourglass 165 reporting two battles is not a record, it is a
        symptom. */
     _shape: (captaincyRecord && captaincyRecord.battles > 10) ? null : capShape,
+    _hgIds: (captaincyRecord && captaincyRecord.battles > 10) ? null : capIds,
 
     _probes: probes || null
   };
