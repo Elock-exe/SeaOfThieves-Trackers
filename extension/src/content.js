@@ -101,7 +101,21 @@
       const res = await fetch(path, {
         method: 'GET',
         credentials: 'same-origin',
-        headers: { 'Accept': 'application/json, text/plain, */*' },
+        /* Asked for in English, not merely hoped for.
+
+           The Hourglass record is read by matching accolade titles, and
+           Rare hands back LocalisedTitle in whatever language it thinks
+           the reader wants. Choosing the unprefixed path got English by
+           luck of the default; this asks for it, so a page opened under
+           /fr/, /de/ or any other prefix still yields titles the server
+           can match.
+
+           Accept-Language is CORS-safelisted, so setting it adds no
+           preflight and changes nothing else about the request. */
+        headers: {
+          'Accept': 'application/json, text/plain, */*',
+          'Accept-Language': 'en-GB,en;q=0.9'
+        },
         signal: ctl.signal
       });
 
