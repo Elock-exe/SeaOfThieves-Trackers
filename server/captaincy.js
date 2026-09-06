@@ -77,8 +77,17 @@ function findByTitle(node, wanted, seen) {
      labels items elsewhere in the same document. */
   const TITLE_KEYS = ['Title', 'title', 'LocalisedTitle', 'localisedTitle',
     'DisplayName', 'displayName', 'Name', 'name', '#Name'];
-  const VALUE_KEYS = ['Value', 'value', 'Total', 'total', 'Count', 'count',
-    'Progress', 'progress', 'Amount', 'amount', 'MilestoneSum'];
+  /* CurrentProgress first, because that is what a captaincy accolade
+     actually calls its number — confirmed from a live payload, whose
+     accolades read { ProgressId, LocalisedTitle, IsPinned, MilestoneLevel,
+     LevelReachedAt, CurrentProgress, Threshold, Stats }.
+
+     That single missing name is why every lookup failed. The titles were
+     matching all along: the search found "Gold Earned", looked for a value
+     under eleven other spellings, found none, and moved on as though the
+     title had never matched. */
+  const VALUE_KEYS = ['CurrentProgress', 'Value', 'value', 'Total', 'total',
+    'Count', 'count', 'Progress', 'progress', 'Amount', 'amount', 'MilestoneSum'];
 
   let title = null;
   for (const k of TITLE_KEYS) {
