@@ -108,8 +108,35 @@ function findByTitle(node, wanted, seen) {
   return null;
 }
 
+/* The pirate's total, not the first ship that happens to carry the title.
+
+   captaincy is { Favourites, Ships, Pirate, Paths } — Ships comes first, so
+   a walk of the whole object reached a single vessel's accolades before the
+   career ones and stopped there. A pirate at Hourglass 165 published two
+   battles: the two fought aboard whichever ship the walk met first.
+
+   Pirate.Alignments carries the career figures — its MilestoneSum is the
+   sum across every vessel — so that is where a total is read. Ships are the
+   fallback, summed rather than sampled, for a payload that ever arrives
+   without the career block. */
+function careerFirst(captaincy, wanted) {
+  const pirate = captaincy && captaincy.Pirate;
+  if (pirate) {
+    const n = findByTitle(pirate, wanted);
+    if (n != null) return n;
+  }
+
+  const ships = captaincy && Array.isArray(captaincy.Ships) ? captaincy.Ships : [];
+  let sum = null;
+  for (const ship of ships) {
+    const n = findByTitle(ship, wanted);
+    if (n != null) sum = (sum || 0) + n;
+  }
+  return sum;
+}
+
 function read(payload, key) {
-  const n = findByTitle(payload, norm(TITLES[key]));
+  const n = careerFirst(payload, norm(TITLES[key]));
   return n == null ? null : n;
 }
 
@@ -185,7 +212,7 @@ function counters(captaincy) {
   const out = {};
   let found = 0;
   for (const key of Object.keys(COUNTERS)) {
-    const n = findByTitle(captaincy, norm(COUNTERS[key]));
+    const n = careerFirst(captaincy, norm(COUNTERS[key]));
     if (n != null) { out[key] = n; found++; }
   }
   return found ? out : null;
