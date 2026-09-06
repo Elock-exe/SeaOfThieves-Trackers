@@ -539,7 +539,7 @@ const supabaseDriver = {
      the same whether a pirate synced twice or ten thousand times. */
   async peakFor(handle) {
     const rows = await rest('snapshots?handle=ilike.' + encodeURIComponent(handle) +
-      '&select=hourglass:snapshot->hourglass&order=captured_at.desc&limit=200');
+      '&select=snapshot->hourglass&order=captured_at.desc&limit=200');
     return peakHourglass(rows);
   },
 
@@ -561,7 +561,7 @@ const supabaseDriver = {
        row is worth having, over a long window, then fetch the one row
        that wins. */
     const marks = await rest('snapshots?handle=ilike.' + h +
-      '&select=captured_at,currencies:snapshot->currencies,hourglass:snapshot->hourglass' +
+      '&select=captured_at,snapshot->currencies,snapshot->hourglass' +
       '&order=captured_at.desc&limit=200');
 
     /* The peak comes free: these are the same two hundred rows, and the
