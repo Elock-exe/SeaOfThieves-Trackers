@@ -34,6 +34,28 @@ const PLAYERS = path.join(DIR, 'players.json');
 
 const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const SUPABASE_KEY = process.env.SUPABASE_KEY || '';
+/* Whether a snapshot is worth showing.
+
+   Rare answers 200 with an empty wallet for a session it has half
+   rejected, and the collector files that like any other capture. One
+   account had 41 of them in a row after its session expired, each one
+   burying a profile that held 2,002,016 gold — because "latest" meant
+   newest, and the newest was empty.
+
+   Latest now means the newest that carries something. A real pirate with
+   no gold still has a reputation, an Hourglass side or a season; nothing
+   at all is a failed read, not a poor pirate. */
+function hasSomething(row) {
+  const s = row && row.snapshot;
+  if (!s) return false;
+  const c = s.currencies || {};
+  if (c.gold || c.doubloons || c.ancientCoins) return true;
+  if (s.hourglass) return true;
+  if (s.reputation && Object.keys(s.reputation).length) return true;
+  if (s.season && (Array.isArray(s.season) ? s.season.length : true)) return true;
+  return false;
+}
+
 const REMOTE = !!(SUPABASE_URL && SUPABASE_KEY);
 
 /* ---------------- file driver ---------------- */
@@ -192,7 +214,11 @@ const fileDriver = {
   /** The newest snapshot for one pirate. */
   async latestFor(handle) {
     const all = await this.snapshotsFor(handle);
-    return all.length ? all[all.length - 1] : null;
+    if (!all.length) return null;
+    for (let i = all.length - 1; i >= 0; i--) if (hasSomething(all[i])) return all[i];
+    /* Nothing substantive anywhere: return the newest anyway rather than
+       claiming the pirate does not exist. */
+    return all[all.length - 1];
   },
 
   /** Just the numbers the history chart plots, oldest first. */
@@ -457,10 +483,15 @@ const supabaseDriver = {
      that timed out. Ordering in the database and taking a single row costs
      the same whether a pirate synced twice or ten thousand times. */
   async latestFor(handle) {
+    /* Twenty, not one. A run of empty captures can be long — one account
+       collected 41 — and the point is to find the newest that says
+       something. Twenty rows is a cheap query and covers a lost day. */
     const rows = await rest('snapshots?handle=ilike.' + encodeURIComponent(handle) +
-      '&order=captured_at.desc&limit=1');
-    const r = rows && rows[0];
-    return r ? { handle: r.handle, capturedAt: r.captured_at, snapshot: r.snapshot } : null;
+      '&order=captured_at.desc&limit=20');
+    if (!rows || !rows.length) return null;
+    const wrap = (r) => ({ handle: r.handle, capturedAt: r.captured_at, snapshot: r.snapshot });
+    for (const r of rows) { const w = wrap(r); if (hasSomething(w)) return w; }
+    return wrap(rows[0]);
   },
 
   /* The history chart plots three numbers — gold, doubloons, Hourglass

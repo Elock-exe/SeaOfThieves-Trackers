@@ -468,6 +468,34 @@ async function handle(req, res) {
          parsed on every leaderboard build. See server/trim.js. */
       const snapshot = trim.trim(rare.normalizePayloads(bundle.payloads, bundle.probes));
 
+      /* A capture that came back empty must not replace one that did not.
+
+         The collector already refuses to send when NO endpoint answers. It
+         does send when some answer with nothing, and that is the case that
+         hurts: Rare returns 200 with a zeroed ledger for a session it has
+         half-rejected, so a profile with 1.6M gold and eight companies was
+         overwritten by zeroes and an absent reputation. The site shows the
+         newest snapshot, so one bad sync hides everything.
+
+         A real pirate with no gold still has reputation, or an Hourglass
+         side, or a season. Nothing at all is not a poor pirate, it is a
+         failed read — and it is refused rather than filed. */
+      const c = snapshot.currencies || {};
+      const looksEmpty = !(c.gold || c.doubloons || c.ancientCoins) &&
+        !snapshot.hourglass &&
+        !(snapshot.reputation && Object.keys(snapshot.reputation).length) &&
+        !(snapshot.season && (Array.isArray(snapshot.season) ? snapshot.season.length : true));
+
+      if (looksEmpty) {
+        console.warn(`[api] /sync refused — empty capture (${JSON.stringify(bundle.probes || {})})`);
+        return send(res, 422, {
+          error: {
+            code: 'empty_capture',
+            message: 'Every field came back empty, so nothing was saved. Sign in at seaofthieves.com, open your profile, and sync again.'
+          }
+        });
+      }
+
       /* The pirate these stats belong to: whatever the extension read off
          the page, or what its owner typed. Without it there is nothing to
          file the snapshot under, and every account would land in the same
