@@ -172,21 +172,93 @@ function read(payload, key) {
   return n == null ? null : n;
 }
 
+/* What an accolade is, learned rather than translated.
+
+   An accolade carries LocalisedTitle and nothing else — no English original
+   beside it, unlike the alignment above. So "Or gagne" cannot be matched
+   against "Gold Earned", and Accept-Language does not help: Rare localises
+   to the account, not to the request. Hardcoding the French would only move
+   the problem to German, and then to Japanese.
+
+   ProgressId does not move. It reads <alignment>:<accolade>:<index>, and
+   the middle part names the accolade itself in every language.
+
+   So: when an English profile syncs and its titles match, the identifiers
+   behind those titles are remembered. Every profile that syncs afterwards
+   is matched on identifiers, whatever language it speaks. One English
+   account teaches the rest, and this service has one syncing hourly.
+
+   Held in memory on purpose. It costs nothing, it survives as long as the
+   process, and a restart re-learns it within the hour from the next English
+   sync — which is cheaper than a schema, and cannot go stale. */
+const LEARNED = new Map();
+
+function accoladeId(acc) {
+  const parts = String((acc && acc.ProgressId) || '').split(':');
+  return parts.length > 1 && parts[1] ? parts[1] : null;
+}
+
+function accoladeValue(acc) {
+  const total = statsTotal(acc && acc.Stats);
+  if (total != null) return total;
+  const n = Number(acc && acc.CurrentProgress);
+  return Number.isFinite(n) ? n : null;
+}
+
+/* Every accolade of the two Hourglass paths, keyed by what it means.
+   Titles are tried first and teach the identifiers; identifiers answer for
+   everyone else. */
+function hourglassFigures(captaincy) {
+  const wanted = new Map();
+  for (const key of Object.keys(TITLES)) wanted.set(norm(TITLES[key]), key);
+
+  const out = {};
+  const take = (alignments) => {
+    for (const a of alignments || []) {
+      const name = norm(a.Title) + ' ' + norm(a.LocalisedTitle);
+      if (!/guardian|servant|gardien|serviteur/.test(name)) continue;
+
+      for (const acc of a.Accolades || []) {
+        const id = accoladeId(acc);
+        const byTitle = wanted.get(norm(acc.LocalisedTitle)) ||
+          wanted.get(norm(acc.Title));
+
+        const key = byTitle || (id ? LEARNED.get(id) : null);
+        if (!key || out[key] != null) continue;
+
+        const v = accoladeValue(acc);
+        if (v == null) continue;
+
+        out[key] = v;
+        if (byTitle && id) LEARNED.set(id, byTitle);
+      }
+    }
+  };
+
+  if (captaincy && captaincy.Pirate) take(captaincy.Pirate.Alignments);
+  /* Ships only if the career block gave nothing — summing them would
+     double-count against a career total that already includes them. */
+  if (!Object.keys(out).length && captaincy && Array.isArray(captaincy.Ships)) {
+    for (const sh of captaincy.Ships) take(sh.Alignments);
+  }
+  return out;
+}
+
 /** The Hourglass record, or null when the payload carries none. */
 function hourglassRecord(captaincy) {
   if (!captaincy || typeof captaincy !== 'object') return null;
 
-  const g = read(captaincy, 'battlesGuardians');
-  const s = read(captaincy, 'battlesServants');
+  const f = hourglassFigures(captaincy);
+  const g = f.battlesGuardians != null ? f.battlesGuardians : read(captaincy, 'battlesGuardians');
+  const s = f.battlesServants != null ? f.battlesServants : read(captaincy, 'battlesServants');
   if (g == null && s == null) return null;   // not a captaincy payload
 
   const battlesGuardians = g || 0;
   const battlesServants = s || 0;
 
-  const wonGuardians = (read(captaincy, 'wonVsServantsSeeking') || 0) +
-    (read(captaincy, 'wonVsServantsRepelling') || 0);
-  const wonServants = (read(captaincy, 'wonVsGuardiansSeeking') || 0) +
-    (read(captaincy, 'wonVsGuardiansRepelling') || 0);
+  const of = (k) => (f[k] != null ? f[k] : (read(captaincy, k) || 0));
+  const wonGuardians = of('wonVsServantsSeeking') + of('wonVsServantsRepelling');
+  const wonServants = of('wonVsGuardiansSeeking') + of('wonVsGuardiansRepelling');
 
   const battles = battlesGuardians + battlesServants;
   const wins = wonGuardians + wonServants;
@@ -210,8 +282,7 @@ function hourglassRecord(captaincy) {
     /* One decimal, like the game's own figures. A rate over zero battles is
        null, not 0% — "no data" and "lost everything" are not the same. */
     winRate: battles > 0 ? Math.round((wins / battles) * 1000) / 10 : null,
-    shipsSunk: (read(captaincy, 'servantShipsSunk') || 0) +
-      (read(captaincy, 'guardianShipsSunk') || 0),
+    shipsSunk: of('servantShipsSunk') + of('guardianShipsSunk'),
     guardians: side(battlesGuardians, wonGuardians),
     servants: side(battlesServants, wonServants),
     /* Said on the page, not buried in a tooltip: the number excludes every
