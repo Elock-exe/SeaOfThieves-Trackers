@@ -135,12 +135,44 @@ function trimSeason(season) {
   return season;
 }
 
+/* Achievements, as two numbers.
+
+   Rare sends 306 of them with their artwork, descriptions and a taxonomy
+   apiece — 249 KB of a 334 KB snapshot, stored on every sync, for every
+   pirate, and displayed nowhere: the profile takes its achievement count
+   from the public Steam or Xbox lookup instead.
+
+   That is the same weight that took the API down with an out-of-memory
+   once already, arriving through a different door.
+
+   Whether one is unlocked is not a field but a tag — Taxonomy.Tags carries
+   { "#Name": "Unlocked" } — so the count comes from looking for it. Checked
+   against a real profile: 144 of 306, where Steam reports 143. */
+function trimAchievements(a) {
+  if (!a || typeof a !== 'object') return a;
+  const list = Array.isArray(a.sorted) ? a.sorted : null;
+  if (!list) return a;
+
+  let unlocked = 0;
+  for (const item of list) {
+    const tags = item && item.Taxonomy && item.Taxonomy.Tags;
+    if (!tags) continue;
+    if (JSON.stringify(tags).toLowerCase().indexOf('unlocked') >= 0) unlocked++;
+  }
+
+  /* Named as the public lookup names them, so this drops straight into
+     the same display — and becomes the fallback for a pirate whose Steam or
+     Xbox profile is private and has no achievement count at all. */
+  return { unlockedCount: unlocked, totalCount: list.length };
+}
+
 /** A snapshot carrying the same information, minus what nothing displays. */
 function trim(snapshot) {
   if (!snapshot || typeof snapshot !== 'object') return snapshot;
   return Object.assign({}, snapshot, {
     reputation: trimReputation(snapshot.reputation),
-    season: trimSeason(snapshot.season)
+    season: trimSeason(snapshot.season),
+    achievements: trimAchievements(snapshot.achievements)
   });
 }
 
