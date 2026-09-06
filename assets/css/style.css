@@ -788,7 +788,7 @@ footer {
   margin-top: 22px;
   background: var(--bg-2);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--teal);
+  /* accent moved: see the torn-edge note at the end of this file */
   border-radius: var(--radius);
   color: var(--text-1);
   font-size: 13px;
@@ -3433,6 +3433,9 @@ h1, h2, h3, h4 { font-weight: 400; }
 .trio-card,
 .stat-tile,
 .stat-strip,
+.hgr-card,
+.shp-card,
+.cst-card,
 .cta-strip {
   border: 0 !important;
   border-radius: 0 !important;
@@ -3459,7 +3462,7 @@ h1, h2, h3, h4 { font-weight: 400; }
    cards simply keep straight edges, which is a plainer card and not a
    broken one — so no fallback is needed beyond removing the radius. */
 @supports not ((-webkit-mask-box-image: url('#x')) or (mask-border: url('#x'))) {
-  .torn-card, .repc, .ref-row, .promo-card, .stat-chip, .recent-card, .season-card, .news-row, .news-featured, .panel, .currency-card, .trio-card, .stat-tile, .stat-strip, .cta-strip { border: 1px solid var(--border) !important; }
+  .torn-card, .repc, .ref-row, .promo-card, .stat-chip, .recent-card, .season-card, .news-row, .news-featured, .panel, .currency-card, .trio-card, .stat-tile, .stat-strip, .hgr-card, .shp-card, .cst-card, .cta-strip { border: 1px solid var(--border) !important; }
 }
 
 /* ============================================================
@@ -3738,7 +3741,8 @@ footer::before {
 @media (max-width: 640px) {
   .torn-card, .repc, .ref-row, .promo-card, .stat-chip, .recent-card,
   .season-card, .news-row, .news-featured, .panel, .currency-card,
-  .trio-card, .stat-tile, .stat-strip, .cta-strip {
+  .trio-card, .stat-tile, .stat-strip, .cta-strip,
+  .hgr-card, .shp-card, .cst-card {
     -webkit-mask-box-image: none;
     mask-border: none;
     border: 1px solid var(--border-soft);
@@ -3884,3 +3888,350 @@ footer::before {
 .erase-status { margin: 12px 0 0; font-size: 13.5px; line-height: 1.5; }
 .erase-status.erase-ok { color: var(--teal); }
 .erase-status.erase-err { color: var(--gold-soft); }
+/* Small currency icon, in the label rather than the corner. The .deco-mark /
+   .currency-art watermark sits at 9-50% opacity behind the number: it gives
+   the card a texture, not an identity. This one is small, opaque and next to
+   the words, so the coin is readable as a coin. */
+.currency-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.currency-icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  object-fit: contain;
+}
+/* The lead card carries a bigger number, so its coin grows with it. */
+.currency-lead .currency-icon { width: 22px; height: 22px; }
+
+/* ---------- Hourglass record ---------- */
+
+/* The win rate leads at display size and everything else is a supporting
+   count, because the rate is the one number nobody could see before. Wins
+   green and defeats red is the only place on this page colour carries
+   meaning rather than decoration, so the two are the only coloured numbers
+   in the card. */
+.hgr-card {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+.hgr-top { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; }
+
+.hgr-rate { flex: none; }
+.hgr-rate-value {
+  font: 700 40px/1 var(--font-data), system-ui, sans-serif;
+  color: var(--teal);
+  letter-spacing: -0.5px;
+}
+.hgr-rate-label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-top: 6px;
+}
+
+.hgr-grid {
+  flex: 1 1 300px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.hgr-num { font: 700 20px/1.1 var(--font-data), system-ui, sans-serif; color: var(--text-0); }
+.hgr-num.is-win { color: var(--teal); }
+.hgr-num.is-loss { color: var(--danger); }
+.hgr-key {
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-top: 5px;
+}
+
+.hgr-sides {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-soft);
+}
+.hgr-side-name { font-size: 12px; color: var(--text-2); }
+.hgr-side-rate {
+  font: 700 17px/1.2 var(--font-data), system-ui, sans-serif;
+  color: var(--text-0);
+  margin: 4px 0 2px;
+}
+.hgr-side-line { font-size: 12px; color: var(--text-3); }
+.hgr-side-line .is-win { color: var(--teal); font-weight: 700; }
+.hgr-side-line .is-loss { color: var(--danger); font-weight: 700; }
+.hgr-side-total { margin-left: 4px; }
+
+/* Stated on the card, not hidden in a tooltip: the rate covers captained
+   ships only, and a number that excludes half someone's battles has to say
+   so where the number is. */
+.hgr-note {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-3);
+  margin: 14px 0 0;
+}
+
+@media (max-width: 640px) {
+  .hgr-grid { grid-template-columns: repeat(2, 1fr); }
+  .hgr-sides { grid-template-columns: 1fr; }
+  .hgr-rate-value { font-size: 32px; }
+}
+
+/* ---------- merits ---------- */
+
+.mer-group { margin-top: 22px; }
+.mer-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font: 700 14px/1.2 var(--font-display), var(--font-body), serif;
+  color: var(--text-0);
+  margin: 0 0 12px;
+}
+.mer-count {
+  font: 700 12px/1 var(--font-data), system-ui, sans-serif;
+  color: var(--text-3);
+}
+
+/* auto-fill rather than a fixed column count: a company with three merits
+   should not leave five empty columns, and one with forty should use the
+   width it has. */
+.mer-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 10px;
+}
+.mer-tile {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  grid-template-areas: 'art name' 'art bar' 'art grade';
+  align-items: center;
+  gap: 2px 10px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+/* A finished merit is the only one that earns colour. Every tile glowing
+   would say nothing at all. */
+.mer-tile.is-done { border-color: rgba(var(--teal-rgb), 0.45); }
+
+.mer-art { grid-area: art; width: 48px; height: 48px; display: block; }
+.mer-art img { width: 48px; height: 48px; object-fit: contain; display: block; }
+
+.mer-name {
+  grid-area: name;
+  font-size: 12px;
+  line-height: 1.25;
+  color: var(--text-1);
+  /* Rare's names run long; two lines then ellipsis, with the full name in
+     the tile's title attribute. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mer-bar {
+  grid-area: bar;
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--bg-3);
+  margin: 5px 0 3px;
+  overflow: hidden;
+}
+.mer-bar > span { display: block; height: 100%; background: var(--teal); }
+.mer-tile.is-done .mer-bar > span { background: var(--teal-soft); }
+.mer-grade {
+  grid-area: grade;
+  font: 700 10px/1 var(--font-data), system-ui, sans-serif;
+  color: var(--text-3);
+}
+
+.mer-hint { font-size: 11px; color: var(--text-3); margin: 18px 0 0; }
+
+@media (max-width: 640px) {
+  .mer-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .mer-tile { grid-template-columns: 40px 1fr; padding: 8px 10px; }
+  .mer-art, .mer-art img { width: 40px; height: 40px; }
+}
+
+/* ---------- ships ---------- */
+
+.shp-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
+}
+/* The coloured edge is the only ornament: these cards sit in a row and the
+   eye needs a left margin to count them, not a border on all four sides. */
+.shp-card {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  /* accent moved: see the torn-edge note at the end of this file */
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.shp-type {
+  font: 700 10px/1 var(--font-data), system-ui, sans-serif;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.shp-name {
+  font: 700 16px/1.25 var(--font-display), var(--font-body), serif;
+  color: var(--text-0);
+  margin: 7px 0 10px;
+}
+.shp-sum { font: 700 24px/1 var(--font-data), system-ui, sans-serif; color: var(--teal); }
+.shp-unit { font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-3); margin-top: 4px; }
+
+.shp-paths { list-style: none; margin: 12px 0 0; padding: 10px 0 0; border-top: 1px solid var(--border-soft); }
+.shp-paths li { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--text-2); padding: 2px 0; }
+.shp-paths b { font-family: var(--font-data), system-ui, sans-serif; color: var(--text-1); }
+
+/* ---------- chest ---------- */
+
+.cst-card {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+.cst-head { display: flex; gap: 40px; padding-bottom: 16px; border-bottom: 1px solid var(--border-soft); }
+.cst-total { font: 700 26px/1 var(--font-data), system-ui, sans-serif; color: var(--text-0); }
+.cst-key { font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-3); margin-top: 5px; }
+
+.cst-rows { list-style: none; margin: 14px 0 0; padding: 0; }
+.cst-row { padding: 2px 0; }
+.cst-name { font-size: 13px; color: var(--text-1); }
+/* Bars are relative to the largest category, not to a total. The question a
+   reader has is which shelf is fullest, and a percentage of everything
+   answers a question nobody asked. */
+.cst-bar { height: 5px; border-radius: 3px; background: var(--bg-3); overflow: hidden; }
+.cst-bar > span { display: block; height: 100%; background: var(--teal-dim); }
+.cst-num { font: 700 13px/1 var(--font-data), system-ui, sans-serif; color: var(--text-0); }
+
+@media (max-width: 640px) {
+  .shp-grid { grid-template-columns: 1fr; }
+  .cst-head { gap: 26px; }
+  .cst-rows li { grid-template-columns: 1fr auto; }
+  .cst-bar { display: none; }
+}
+
+/* ---------- torn edges on the new cards ---------- */
+
+/* The tear bites about 24px inward, so these need room the bordered
+   versions did not: without it the first line of a ship name lands inside
+   a notch. */
+.hgr-card { padding: 26px 28px; }
+.shp-card { padding: 22px 24px; }
+.cst-card { padding: 26px 28px; }
+
+/* No edge accent on a torn card, in any form.
+
+   The ship card wore a teal left border. Moving it into the fill so the
+   mask would clip it did not help: the tear is ragged exactly there, so a
+   3px stripe came out as teal crumbs in the corners — which reads as a
+   rendering fault, not as a design.
+
+   The card keeps its own ground and nothing else, like every other torn
+   card on the page. The colour it needed is already on the number. */
+.shp-card { border-left: 0 !important; background: var(--bg-1); }
+
+/* The category row is the summary of its own fold, so the grid that used
+   to sit on the <li> sits on the <summary> instead — the bar has to line
+   up whether the row opens or not. */
+/* The grid belongs to the row, or to the summary when the row folds —
+   never to the label inside it, which is what put the name and the number
+   on two lines and left no room for the bar. */
+.cst-fold > summary,
+.cst-row:not(:has(.cst-fold)) {
+  display: grid;
+  grid-template-columns: 1fr 3fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 0;
+  cursor: pointer;
+  list-style: none;
+}
+.cst-fold > summary::-webkit-details-marker { display: none; }
+.cst-fold > summary:hover .cst-name { color: var(--text-0); }
+/* A hairline, not a chevron: the row is already three columns wide and a
+   marker in a fourth would push the numbers out of line. */
+.cst-fold[open] > summary .cst-name { color: var(--teal); }
+
+.cst-sub { list-style: none; margin: 2px 0 10px; padding: 8px 0 0 14px; border-left: 1px solid var(--border); }
+.cst-sub li { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--text-2); padding: 3px 0; }
+.cst-sub b { font-family: var(--font-data), system-ui, sans-serif; color: var(--text-1); }
+
+/* ---------- cosmetic thumbnails ---------- */
+
+.cst-fold2 > summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+  padding: 3px 0;
+}
+.cst-fold2 > summary::-webkit-details-marker { display: none; }
+.cst-fold2 > summary:hover span { color: var(--text-0); }
+.cst-fold2[open] > summary span { color: var(--teal); }
+
+/* auto-fill so a sub-type with four pieces does not leave eight empty
+   columns, and one with eighty uses the width it has. */
+.cst-thumbs {
+  list-style: none;
+  margin: 8px 0 12px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 8px;
+}
+.cst-thumbs li {
+  display: block;
+  background: var(--bg-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 8px 6px;
+  text-align: center;
+}
+.cst-thumbs img { width: 56px; height: 56px; object-fit: contain; display: block; margin: 0 auto 6px; }
+/* Two lines then ellipsis; the full name is on the tile's title attribute,
+   because Rare's cosmetic names run long and a grid cannot widen for them. */
+.cst-thumbs span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 10px;
+  line-height: 1.3;
+  color: var(--text-2);
+}
+
+@media (max-width: 640px) {
+  .cst-thumbs { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
+}
+
+/* A sub-type row that opens is no longer a two-column line: the flex that
+   spreads "Sail Livery ... 80" would squeeze the thumbnail grid inside it
+   into a single column. The row keeps its flex; the fold gets a block. */
+.cst-sub li:has(.cst-fold2) { display: block; }

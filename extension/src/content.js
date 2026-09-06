@@ -39,23 +39,41 @@
 
   /* The site calls these under its locale prefix (/fr/api/profilev2/...),
      which is what its own resource timings show. The unprefixed form answers
-     too, so try the locale first and keep the bare path as a fallback.
-
-     No "season" group: the overview payload already contains a "seasons"
-     key, so the season endpoint we used to probe never existed. Likewise
-     nothing is guessed for hourglass any more — see the sweep below. */
+     too, so try the locale first and keep the bare path as a fallback. */
   const LOCALE = (location.pathname.match(/^\/([a-z]{2}(?:-[a-z]{2})?)\//) || [])[1] || '';
   const p = (path) => (LOCALE ? [`/${LOCALE}${path}`, path] : [path]);
 
+  /* The last six were found by watching what the site and other trackers
+     actually request, rather than guessed. An earlier sweep here tried
+     sixteen invented hourglass paths and found nothing, which is what
+     guessing at names is worth; seaofthieves.com calling /captaincy from its
+     own bundle settled in one line what that sweep could not.
+
+     captaincy is the one that matters: Hourglass battles are recorded per
+     captained ship, so wins AND losses live there. Nothing else Rare serves
+     carries a defeat — which is why this tracker could show a level but
+     never a win rate.
+
+     Most of these 404 for most pirates. A player with no named ship has no
+     captaincy record, and 404 is the normal answer, not a fault: a group
+     that fails is dropped and the sync proceeds on the rest. */
   const ENDPOINTS = {
     overview:   [...p('/api/profilev2/overview'), '/api/profilev2/summary'],
     reputation: [...p('/api/profilev2/reputation')],
-    ledger:     [...p('/api/profilev2/balance'), '/api/profilev2/ledger']
+    ledger:     [...p('/api/profilev2/balance'), '/api/profilev2/ledger'],
+    captaincy:  [...p('/api/profilev2/captaincy')],
+    chest:      [...p('/api/profilev2/chest')],
+    achievements: [...p('/api/profilev2/achievements')],
+    seasonsProgress: [...p('/api/profilev2/seasons-progress')],
+    flameheart: [...p('/api/profilev2/flameheart')],
+    piratelord: [...p('/api/profilev2/piratelord')]
   };
 
-  /* No hourglass group: the sweep ruled out sixteen candidate paths, and the
-     reputation payload turned out to carry both sides already (Flameheart
-     and PirateLord). The server reads them from there. */
+  /* flameheart and piratelord are the two Hourglass sides. The reputation
+     payload already carries both, and the server reads them from there —
+     these are fetched anyway because the dedicated endpoints may carry the
+     battle counts that the reputation copy does not. If they turn out to be
+     duplicates, delete them; trim.js drops what nothing displays. */
 
   /* Two candidate paths per group have to fit inside the worker's 10s
      budget for that group, so 6s each was one path too many. */

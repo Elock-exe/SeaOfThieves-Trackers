@@ -193,7 +193,17 @@
   var ENDPOINTS = {
     overview:   p('/api/profilev2/overview').concat(['/api/profilev2/summary']),
     reputation: p('/api/profilev2/reputation'),
-    ledger:     p('/api/profilev2/balance').concat(['/api/profilev2/ledger'])
+    ledger:     p('/api/profilev2/balance').concat(['/api/profilev2/ledger']),
+    /* captaincy holds the Hourglass battles, per captained ship — the only
+       place Rare records a defeat. The rest are fetched because the site
+       serves them and they cost one request each; 404 is a normal answer
+       here and drops the group without failing the import. */
+    captaincy:  p('/api/profilev2/captaincy'),
+    chest:      p('/api/profilev2/chest'),
+    achievements: p('/api/profilev2/achievements'),
+    seasonsProgress: p('/api/profilev2/seasons-progress'),
+    flameheart: p('/api/profilev2/flameheart'),
+    piratelord: p('/api/profilev2/piratelord')
   };
 
   var FETCH_TIMEOUT_MS = 8000;
@@ -391,7 +401,19 @@
   /* ---------------- run ---------------- */
 
   var GROUPS = Object.keys(ENDPOINTS);
-  var LABEL = { overview: 'seasons and achievements', reputation: 'reputation', ledger: 'gold and doubloons' };
+  /* Named in the progress line, so a slow group says what it is waiting on
+     rather than showing a raw key. Falls back to the key when unnamed. */
+  var LABEL = {
+    overview: 'seasons and achievements',
+    reputation: 'reputation',
+    ledger: 'gold and doubloons',
+    captaincy: 'ships and Hourglass battles',
+    chest: 'the chest',
+    achievements: 'achievements',
+    seasonsProgress: 'season progress',
+    flameheart: 'Servants of the Flame',
+    piratelord: 'Guardians of Fortune'
+  };
 
   var payloads = {};
   var probes = {};
@@ -435,7 +457,21 @@
         /* Match a discovered path to the group by name: the overview call
            contains 'overview', and so on. Anything unmatched is left alone
            rather than posted to a group it does not belong to. */
-        var hint = { overview: /overview|summary/i, reputation: /reputation/i, ledger: /balance|ledger/i }[name];
+        var hint = {
+          overview: /overview|summary/i,
+          reputation: /reputation/i,
+          ledger: /balance|ledger/i,
+          captaincy: /captaincy/i,
+          chest: /chest/i,
+          achievements: /achievement/i,
+          seasonsProgress: /seasons?-?progress/i,
+          flameheart: /flameheart/i,
+          piratelord: /piratelord/i
+        }[name];
+        /* A group with no hint has nothing to match on, and calling .test on
+           the undefined it used to return threw. Skipping it leaves the group
+           unfilled, which is the same outcome as finding no candidate. */
+        if (!hint) return null;
         var candidates = real.filter(function (p) { return hint.test(p); });
         if (!candidates.length) return null;
         return collectGroup(name, candidates, 62);

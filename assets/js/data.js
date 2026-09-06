@@ -232,9 +232,28 @@
   function faction(raw, key, name) {
     if (!raw || typeof raw !== 'object') return null;
     const level = raw.Level != null ? Number(raw.Level) : null;
+    /* The counts have always been here; the emblems themselves are new.
+
+       trim.js keeps a short record per emblem — file name, display name,
+       grade, value, threshold — and drops the ones with no progress. The
+       artwork is imported once by tools/fetch-emblems.js and served from
+       this site, so `i` is a file name rather than Rare's URL.
+
+       Older snapshots carry no list at all, and pirates on a public lookup
+       never had one. An empty array means "nothing to show", which is what
+       the merits panel checks before drawing itself. */
+    const block = raw.Emblems && typeof raw.Emblems === 'object' ? raw.Emblems : null;
     const emblems = {
-      unlocked: Number(raw.EmblemsUnlocked || 0),
-      total: Number(raw.EmblemsTotal || 0)
+      unlocked: Number(raw.EmblemsUnlocked || (block && block.unlocked) || 0),
+      total: Number(raw.EmblemsTotal || (block && block.total) || 0),
+      items: (block && Array.isArray(block.items) ? block.items : []).map((e) => ({
+        image: e.i || null,
+        name: e.n || '',
+        grade: Number(e.g) || 0,
+        maxGrade: Number(e.m) || 0,
+        value: Number(e.v) || 0,
+        threshold: Number(e.t) || 0
+      }))
     };
     return {
       key,
@@ -442,6 +461,18 @@
       season: seasonsOf(snap),
       emblems: emblemTotals(snap),
       session: null,
+
+      /* Both computed on the server from the captaincy accolades, and both
+         absent for most pirates: the record lives per captained ship, so a
+         pirate who never named a ship has none. Null here means "not
+         recorded", never "zero battles" — the difference decides whether the
+         profile shows a panel or leaves the space alone. */
+      hourglassRecord: snap.hourglassRecord || null,
+      ships: snap.ships || null,
+      paths: snap.paths || null,
+      chest: snap.chest || null,
+      counters: snap.counters || null,
+
       probes: snap._probes || null
     };
   }

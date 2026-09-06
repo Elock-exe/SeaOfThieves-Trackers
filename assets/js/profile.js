@@ -231,6 +231,11 @@
   function renderAll() {
     render();
     renderKeyStats();
+    renderHourglassRecord();
+    renderMerits();
+    renderPaths();
+    renderShips();
+    renderChest();
     renderSeasons();
     buildTabs();
   }
@@ -428,7 +433,16 @@
         <div class="currency-grid">
           <div class="currency-card coin-gold currency-lead">
             ${SOTIcons.mark('coins')}
-            <div class="currency-label">${t('currency.gold')}</div>
+            <div class="currency-label">
+              <!-- The game's own coin, at reading size. The big faint mark in
+                   the corner decorates the card; this one says which currency
+                   the number belongs to, which the watermark never did at 9%
+                   opacity. onerror removes it so a missing file leaves the
+                   label alone rather than a broken-image box. -->
+              <img class="currency-icon" src="assets/img/coin-gold.svg" alt=""
+                   width="18" height="18" loading="lazy" onerror="this.remove()" />
+              ${t('currency.gold')}
+            </div>
             <div class="currency-value">${SOT.formatNumber(c.gold)}</div>
           </div>
           <div class="currency-stack">
@@ -438,12 +452,20 @@
               <img class="currency-art" src="assets/img/coin-doubloon.webp" alt=""
                    loading="lazy" onerror="this.remove()" />
               ${SOTIcons.mark('doubloon')}
-              <div class="currency-label">${t('currency.doubloons')}</div>
+              <div class="currency-label">
+                <img class="currency-icon" src="assets/img/coin-doubloon.svg" alt=""
+                     width="18" height="18" loading="lazy" onerror="this.remove()" />
+                ${t('currency.doubloons')}
+              </div>
               <div class="currency-value">${SOT.formatNumber(c.doubloons)}</div>
             </div>
             <div class="currency-card coin-ancient">
               ${SOTIcons.mark('ancient')}
-              <div class="currency-label">${t('currency.ancientCoins')}</div>
+              <div class="currency-label">
+                <img class="currency-icon" src="assets/img/coin-ancient.svg" alt=""
+                     width="18" height="18" loading="lazy" onerror="this.remove()" />
+                ${t('currency.ancientCoins')}
+              </div>
               <div class="currency-value">${SOT.formatNumber(c.ancientCoins)}</div>
             </div>
           </div>
@@ -667,6 +689,301 @@
      The headline numbers as one dense grid rather than a card each: label,
      value, and the one line of context that makes the value mean something.
      Reading six numbers should not take six scroll gestures. */
+
+  /* ui.js has one of these, but keeps it inside its own closure. */
+  function esc(v) {
+    return String(v == null ? '' : v)
+      .split('&').join('&amp;')
+      .split('<').join('&lt;')
+      .split('>').join('&gt;')
+      .split('"').join('&quot;');
+  }
+
+
+
+  /* ---------- captaincy ---------- */
+
+  /* The pirate's own milestone paths, summed across every ship they have
+     ever sailed — captaincy.Pirate.Alignments, as opposed to the per-ship
+     figures on the cards below.
+
+     Nine or ten rows, largest first. A bar against the biggest path, not
+     against a total: the useful comparison is between the paths, and no
+     total exists that any of them is a share of. */
+  function renderPaths() {
+    const el = document.getElementById('paths-section');
+    if (!el) return;
+
+    const list = (p && p.paths) || [];
+    if (!list.length) { el.innerHTML = ''; return; }
+
+    const t = I18N.t;
+    const most = list[0].sum || 1;
+
+    el.innerHTML = '<div class="section-label">' + esc(t('profile.captaincy')) + '</div>' +
+      `<div class="cst-card">
+        <div class="cst-head">
+          <div><div class="cst-total">${SOT.formatNumber(list.reduce((n, x) => n + x.sum, 0))}</div>
+               <div class="cst-key">${esc(t('profile.milestoneSum'))}</div></div>
+          <div><div class="cst-total">${list.length}</div>
+               <div class="cst-key">${esc(t('profile.paths'))}</div></div>
+        </div>
+        <ul class="cst-rows">
+          ${list.map((x) => `
+            <li class="cst-row">
+              <span class="cst-name">${esc(x.title)}</span>
+              <span class="cst-bar"><span style="width:${Math.round((x.sum / most) * 100)}%"></span></span>
+              <b class="cst-num">${SOT.formatNumber(x.sum)}</b>
+            </li>`).join('')}
+        </ul>
+      </div>`;
+  }
+  /* ---------- ships ---------- */
+
+  /* One card per named ship. Rare files these under captaincy.Ships, each
+     carrying an Alignment per milestone path; the server sums them, because
+     the total is the number on the ship's plaque in game and the only one
+     a captain recognises.
+
+     The three biggest paths come with it. Twelve thousand milestones says
+     nothing about how they were earned; "The Ill-Fated 2801" says it at a
+     glance — this is a captain who sinks a lot. */
+  function renderShips() {
+    const el = document.getElementById('ships-section');
+    if (!el) return;
+
+    const list = (p && p.ships) || [];
+    if (!list.length) { el.innerHTML = ''; return; }
+
+    const t = I18N.t;
+    const card = (s) => `
+      <li class="shp-card">
+        <div class="shp-type">${esc(s.type)}</div>
+        <div class="shp-name">${esc(s.name)}</div>
+        <div class="shp-sum">${SOT.formatNumber(s.milestones)}</div>
+        <div class="shp-unit">${esc(t('profile.milestoneSum'))}</div>
+        <ul class="shp-paths">
+          ${s.top.map((q) => `<li><span>${esc(q.title)}</span><b>${SOT.formatNumber(q.sum)}</b></li>`).join('')}
+        </ul>
+      </li>`;
+
+    el.innerHTML = '<div class="section-label">' + esc(t('profile.ships')) + '</div>' +
+      '<ul class="shp-grid">' + list.map(card).join('') + '</ul>';
+  }
+
+  /* ---------- chest ---------- */
+
+  /* Counts, not contents. The payload is 257 KB of titles, descriptions and
+     artwork URLs for six hundred items, and every one of those strings is
+     the game's, identical for every pirate. What differs is how many of
+     each you own, so that is what the server keeps and this draws. */
+  function renderChest() {
+    const el = document.getElementById('chest-section');
+    if (!el) return;
+
+    const c = (p && p.chest) || null;
+    if (!c || !c.total) { el.innerHTML = ''; return; }
+
+    const t = I18N.t;
+    /* Falls back to Rare's own key when a category has no translation —
+       a new one appearing should read oddly, not vanish. */
+    const label = (k) => { const v = t('chest.' + k); return v === 'chest.' + k ? k : v; };
+    const most = c.categories[0] ? c.categories[0].count : 1;
+
+    el.innerHTML = '<div class="section-label">' + esc(t('profile.chest')) + '</div>' +
+      `<div class="cst-card">
+        <div class="cst-head">
+          <div><div class="cst-total">${SOT.formatNumber(c.total)}</div>
+               <div class="cst-key">${esc(t('profile.chestItems'))}</div></div>
+          <div><div class="cst-total">${c.categories.length}</div>
+               <div class="cst-key">${esc(t('profile.chestCats'))}</div></div>
+        </div>
+        <ul class="cst-rows">
+          ${c.categories.map((x) => {
+            const bar = `<span class="cst-bar"><span style="width:${Math.round((x.count / most) * 100)}%"></span></span>`;
+            const head = `<span class="cst-name">${esc(label(x.key))}</span>${bar}<b class="cst-num">${SOT.formatNumber(x.count)}</b>`;
+            /* Folded, not listed. Eight categories with their sub-types is
+               sixty rows, and nobody arrives wanting all sixty — they want
+               to know how many figureheads they own, once. A category with
+               no breakdown stays a plain row rather than an empty fold. */
+            if (!x.sub || !x.sub.length) return `<li class="cst-row">${head}</li>`;
+            return `
+              <li class="cst-row">
+                <details class="cst-fold">
+                  <summary>${head}</summary>
+                  <ul class="cst-sub">
+                    ${x.sub.map((sb) => {
+                      /* The pieces themselves, under the sub-type that names
+                         them. Artwork comes from this site: Rare serves each
+                         cosmetic as a full-size PNG, and a category holding
+                         four hundred of them would be a hundred megabytes on
+                         one page. tools/fetch-emblems.js imports them once at
+                         96px; onerror drops the tile's image so a piece not
+                         yet imported reads as plain, not broken. */
+                      const own = (x.items || []).filter((o) => o.s === sb.name);
+                      const row = `<span>${esc(sb.name)}</span><b>${SOT.formatNumber(sb.count)}</b>`;
+                      if (!own.length) return `<li>${row}</li>`;
+                      return `
+                        <li>
+                          <!-- Open by default. The category is already a fold;
+                               making the sub-type a second one put the artwork two
+                               clicks deep, which is one more than anyone spends
+                               before deciding a feature is not there. Images are
+                               lazy, so a category of four hundred pieces costs
+                               nothing until it is scrolled to. -->
+                          <details class="cst-fold2" open>
+                            <summary>${row}</summary>
+                            <ul class="cst-thumbs">
+                              ${own.map((o) => `
+                                <li title="${esc(o.n)}">
+                                  <img src="assets/img/emblems/${encodeURIComponent(o.i)}" alt=""
+                                       width="56" height="56" loading="lazy" onerror="this.remove()" />
+                                  <span>${esc(o.n)}</span>
+                                </li>`).join('')}
+                            </ul>
+                          </details>
+                        </li>`;
+                    }).join('')}
+                  </ul>
+                </details>
+              </li>`;
+          }).join('')}
+        </ul>
+      </div>`;
+  }
+
+  /* ---------- merits ---------- */
+
+  /* One tile per merit, grouped by company, artwork served from this site.
+
+     Rare hands over every emblem with a 1024px picture of about 350 KB, and
+     its CDN rejects any resize parameter. Shown straight from there, one
+     company's merits would cost a visitor 10 MB. tools/fetch-emblems.js
+     imports them once at 96px — 9 KB each — so the tile references a local
+     file and the payload only carries its name.
+
+     Merits with no progress are already dropped server-side: a wall of
+     0/250 rows is a list of everything not done, not an achievement. */
+  function renderMerits() {
+    const el = document.getElementById('merits-section');
+    if (!el) return;
+
+    /* Companies and campaigns both. Athena's Fortune, the Reaper's Bones,
+       Tall Tales and Adventures At Sea sit in `campaigns`, not `companies`,
+       and reading only the first list dropped three of the eight groups this
+       account actually has merits in — including the two with the most. */
+    const rep = (p && p.reputation) || {};
+    const groups = (rep.companies || []).concat(rep.campaigns || []);
+    const withItems = groups.filter(
+      (c) => c && c.emblems && c.emblems.items && c.emblems.items.length
+    );
+    if (!withItems.length) { el.innerHTML = ''; return; }
+
+    const t = I18N.t;
+
+    const tile = (e) => {
+      const done = e.maxGrade > 0 && e.grade >= e.maxGrade;
+      const pct = e.threshold > 0
+        ? Math.min(100, Math.round((e.value / e.threshold) * 100)) : (e.grade ? 100 : 0);
+      /* onerror hides the tile's image rather than leaving a broken-image
+         box: an emblem not yet imported should look plain, not broken. */
+      return `
+        <li class="mer-tile${done ? ' is-done' : ''}" title="${esc(e.name)}">
+          <span class="mer-art">
+            <img src="assets/img/emblems/${encodeURIComponent(e.image)}" alt=""
+                 width="48" height="48" loading="lazy" onerror="this.remove()" />
+          </span>
+          <span class="mer-name">${esc(e.name)}</span>
+          <span class="mer-bar"><span style="width:${pct}%"></span></span>
+          <span class="mer-grade">${e.grade}/${e.maxGrade || '—'}</span>
+        </li>`;
+    };
+
+    const group = (c) => `
+      <section class="mer-group">
+        <h3 class="mer-head">
+          <span>${esc(c.name)}</span>
+          <span class="mer-count">${c.emblems.unlocked}/${c.emblems.total}</span>
+        </h3>
+        <ul class="mer-grid">${c.emblems.items.map(tile).join('')}</ul>
+      </section>`;
+
+    el.innerHTML = '<div class="section-label">' + esc(t('profile.merits')) + '</div>' +
+      withItems.map(group).join('') +
+      '<p class="mer-hint">' + esc(t('profile.meritsHint')) + '</p>';
+  }
+
+  /* ---------- Hourglass record ---------- */
+
+  /* Rare publishes battles completed and battles won; the defeats are the
+     subtraction. That is the whole trick, and it is why this tracker could
+     show an Hourglass level for months without ever showing a win rate —
+     nothing here was hidden, nothing was asking.
+
+     The panel is drawn only when the server found a record. Most pirates
+     have none: the counters live per captained ship, so anyone who never
+     named a ship gets a 404 and nothing to draw. An empty panel reading
+     "0 battles" would be a lie about a pirate who simply is not recorded. */
+  function renderHourglassRecord() {
+    const el = document.getElementById('hg-record-section');
+    if (!el) return;
+
+    const r = p && p.hourglassRecord;
+    if (!r || !r.battles) { el.innerHTML = ''; return; }
+
+    const t = I18N.t;
+    const n = (v) => SOT.formatNumber(v);
+    const pct = (v) => (v == null ? '—' : String(v).replace('.', ',') + ' %');
+
+    const side = (key, s) => {
+      if (!s || !s.battles) return '';
+      return `
+        <div class="hgr-side">
+          <div class="hgr-side-name">${esc(t(key))}</div>
+          <div class="hgr-side-rate">${pct(s.winRate)}</div>
+          <div class="hgr-side-line">
+            <span class="is-win">${n(s.wins)}</span> /
+            <span class="is-loss">${n(s.losses)}</span>
+            <span class="hgr-side-total">sur ${n(s.battles)}</span>
+          </div>
+        </div>`;
+    };
+
+    el.innerHTML = `
+      <div class="section-label">${esc(t('profile.hgRecord'))}</div>
+      <div class="hgr-card">
+        <div class="hgr-top">
+          <div class="hgr-rate">
+            <div class="hgr-rate-value">${pct(r.winRate)}</div>
+            <div class="hgr-rate-label">${esc(t('profile.winRate'))}</div>
+          </div>
+          <div class="hgr-grid">
+            <div class="hgr-cell">
+              <div class="hgr-num">${n(r.battles)}</div>
+              <div class="hgr-key">${esc(t('profile.battles'))}</div>
+            </div>
+            <div class="hgr-cell">
+              <div class="hgr-num is-win">${n(r.wins)}</div>
+              <div class="hgr-key">${esc(t('profile.wins'))}</div>
+            </div>
+            <div class="hgr-cell">
+              <div class="hgr-num is-loss">${n(r.losses)}</div>
+              <div class="hgr-key">${esc(t('profile.losses'))}</div>
+            </div>
+            <div class="hgr-cell">
+              <div class="hgr-num">${n(r.shipsSunk)}</div>
+              <div class="hgr-key">${esc(t('profile.shipsSunk'))}</div>
+            </div>
+          </div>
+        </div>
+        <div class="hgr-sides">
+          ${side('hourglass.servants', r.servants)}
+          ${side('hourglass.guardians', r.guardians)}
+        </div>
+        <p class="hgr-note">${esc(t('profile.captainedOnly'))}</p>
+      </div>`;
+  }
+
   function renderKeyStats() {
     const t = I18N.t;
     const el = document.getElementById('keystats-section');
@@ -794,6 +1111,8 @@
     const defs = [
       { id: 'tab-overview', key: 'profile.tabOverview' },
       { id: 'tab-companies', key: 'profile.tabCompanies' },
+      { id: 'tab-captaincy', key: 'profile.tabCaptaincy' },
+      { id: 'tab-chest', key: 'profile.tabChest' },
       { id: 'tab-achievements', key: 'profile.tabAchievements' },
       { id: 'tab-seasons', key: 'profile.tabSeasons' }
     ].filter((d) => {
