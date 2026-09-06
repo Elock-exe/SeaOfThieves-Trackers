@@ -270,16 +270,36 @@ const fileDriver = {
   /** One row per pirate: their most recent snapshot. */
   async latestPerHandle() {
     const all = await this.snapshotsFor(null);
-    const latest = new Map();
+
+    /* Grouped first, then judged by the same rule a profile uses. Taking
+       whatever was filed last put a pirate at Hourglass 1 in the standings
+       while their own profile showed the real 160 — two pages disagreeing
+       about the same pirate. */
+    const byHandle = new Map();
     for (const rec of all) {
       if (!rec || !rec.handle) continue;
       const key = String(rec.handle).toLowerCase();
-      const prev = latest.get(key);
-      if (!prev || String(rec.capturedAt || '') >= String(prev.capturedAt || '')) {
-        latest.set(key, rec);
-      }
+      if (!byHandle.has(key)) byHandle.set(key, []);
+      byHandle.get(key).push(rec);
     }
-    return [...latest.values()];
+
+    const out = [];
+    for (const rows of byHandle.values()) {
+      rows.sort((a, b) => String(a.capturedAt || '').localeCompare(String(b.capturedAt || '')));
+      const peak = peakHourglass(rows);
+      let pick = null;
+      if (peak > 10) {
+        for (let i = rows.length - 1; i >= 0; i--) {
+          const hg = rows[i].snapshot && rows[i].snapshot.hourglass;
+          if (hg && (Number(hg.level) || 0) >= peak / 10) { pick = rows[i]; break; }
+        }
+      }
+      if (!pick) {
+        for (let i = rows.length - 1; i >= 0; i--) if (hasSomething(rows[i])) { pick = rows[i]; break; }
+      }
+      out.push(pick || rows[rows.length - 1]);
+    }
+    return out;
   }
 };
 
@@ -626,10 +646,14 @@ const supabaseDriver = {
     for (let i = 0; i < handles.length; i += CHUNK) {
       const batch = await Promise.all(handles.slice(i, i + CHUNK).map(async (h) => {
         try {
-          const hit = await rest('snapshots?handle=ilike.' + encodeURIComponent(h) +
-            '&order=captured_at.desc&limit=1');
-          const r = hit && hit[0];
-          return r ? { handle: r.handle, capturedAt: r.captured_at, snapshot: r.snapshot } : null;
+          /* Through latestFor, not a bare "newest row".
+
+             The boards used to take whatever was filed last, which meant a
+             failed read put a pirate at Hourglass 1 in the standings while
+             their own profile — already going through latestFor — showed
+             the real 160. Two pages disagreeing about the same pirate is
+             worse than either being wrong alone. */
+          return await this.latestFor(h);
         } catch (e) {
           return null;   // one unreadable pirate must not empty the board
         }
