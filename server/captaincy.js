@@ -170,4 +170,175 @@ function counters(captaincy) {
   return found ? out : null;
 }
 
-module.exports = { hourglassRecord, counters, TITLES, COUNTERS };
+
+/* Ships, as Rare files them: captaincy.Ships[], each with a name, a hull
+   type and one Alignment per milestone path — The Gold Seeker, The Voyager,
+   The Feared and so on — carrying that path's MilestoneSum.
+
+   The number a captain recognises is the sum across paths: it is what the
+   game shows on the ship's plaque, and what other trackers print under the
+   ship's name. Kept with the three biggest paths, because a galleon with
+   twelve thousand milestones says nothing about how they were earned and
+   "The Ill-Fated 2801" says it immediately. */
+function ships(captaincy) {
+  const list = captaincy && Array.isArray(captaincy.Ships) ? captaincy.Ships : null;
+  if (!list || !list.length) return null;
+
+  return list.map((sh) => {
+    const al = Array.isArray(sh.Alignments) ? sh.Alignments : [];
+    const paths = al
+      .map((a) => ({
+        title: a.LocalisedTitle || a.Title || '',
+        sum: Number(a.MilestoneSum) || 0
+      }))
+      .filter((p) => p.title && p.sum > 0)
+      .sort((a, b) => b.sum - a.sum);
+
+    return {
+      name: sh.Name || '',
+      type: sh.Type || '',
+      /* Summed here rather than on the page: the client would have to carry
+         every alignment to do it, and this is the only figure it draws. */
+      milestones: paths.reduce((n, p) => n + p.sum, 0),
+      top: paths.slice(0, 3)
+    };
+  }).filter((sh) => sh.name).sort((a, b) => b.milestones - a.milestones);
+}
+
+/* The pirate's own milestone paths, the same shape as a ship's. This is the
+   Captaincy tab: totals across every ship ever sailed, not just the named
+   ones. */
+function paths(captaincy) {
+  const al = captaincy && captaincy.Pirate && Array.isArray(captaincy.Pirate.Alignments)
+    ? captaincy.Pirate.Alignments : null;
+  if (!al || !al.length) return null;
+
+  const out = al
+    .map((a) => ({
+      title: a.LocalisedTitle || a.Title || '',
+      sum: Number(a.MilestoneSum) || 0,
+      accolades: Array.isArray(a.Accolades) ? a.Accolades.length : 0
+    }))
+    .filter((p) => p.title)
+    .sort((a, b) => b.sum - a.sum);
+
+  return out.length ? out : null;
+}
+
+/* The chest is a count per category and nothing more.
+
+   Each entry carries a title, a subtitle and an artwork URL, and there are
+   six hundred of them — 257 KB for a page that prints eight numbers and a
+   total. The names are the game's, identical for every pirate, so storing
+   them per pirate per sync would be the emblem mistake again. */
+/* Which sub-type an item belongs to — a cannon, a figurehead, a hull
+   livery — read by matching rather than by a known field.
+
+   categoryMap names the sub-types Rare uses for each category, and every
+   item carries a Taxonomy whose tags say which one it is. The tag objects'
+   own shape was never visible in what came back, so instead of guessing at
+   a key name this collects every string in the taxonomy and keeps the one
+   that matches a name already declared in categoryMap.
+
+   Underscores are Rare's ("Bone_Colour"); spaces are what a reader
+   expects. */
+function labelOf(name) {
+  return String(name || '').replace(/_/g, ' ').trim();
+}
+
+function collectStrings(node, out, depth) {
+  if (!node || (depth || 0) > 4) return out;
+  if (typeof node === 'string') { out.push(node); return out; }
+  if (typeof node !== 'object') return out;
+  for (const v of Object.values(node)) collectStrings(v, out, (depth || 0) + 1);
+  return out;
+}
+
+/* Every cosmetic's artwork sits on the same CDN under the same versioned
+   folder, so the address is one prefix plus a file name. Storing the prefix
+   once and the file name per item costs about 60 KB less per snapshot than
+   storing six hundred absolute URLs, and the importer can rebuild any of
+   them from the two. */
+function splitUrl(url) {
+  const u = String(url || '');
+  const cut = u.lastIndexOf('/');
+  if (u.indexOf('https://') !== 0 || cut < 0) return null;
+  return { base: u.slice(0, cut + 1), file: u.slice(cut + 1).split('?')[0] };
+}
+
+function knownMap(known) {
+  if (!Array.isArray(known) || !known.length) return null;
+  const m = new Map();
+  for (const k of known) m.set(labelOf(k).toLowerCase(), labelOf(k));
+  return m;
+}
+
+function subTypeOf(item, wanted) {
+  if (!wanted) return null;
+  for (const str of collectStrings(item && item.Taxonomy, [], 0)) {
+    const hit = wanted.get(labelOf(str).toLowerCase());
+    if (hit) return hit;
+  }
+  return null;
+}
+
+function subTypes(items, known) {
+  const wanted = knownMap(known);
+  if (!wanted) return null;
+
+  const tally = new Map();
+  for (const item of items) {
+    const hit = subTypeOf(item, wanted);
+    if (hit) tally.set(hit, (tally.get(hit) || 0) + 1);
+  }
+
+  const out = [...tally.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
+  return out.length ? out : null;
+}
+
+function chest(payload) {
+  const data = payload && payload.chestData;
+  if (!data || typeof data !== 'object') return null;
+  const map = (payload && payload.categoryMap) || {};
+
+  const categories = [];
+  let total = 0;
+  let artBase = null;
+
+  for (const [key, items] of Object.entries(data)) {
+    if (!Array.isArray(items) || !items.length) continue;
+    /* The breakdown is what makes this worth opening: "Ship cosmetics 109"
+       says how much, "Figurehead 67, Mast 63" says what kind of captain. */
+    const sub = subTypes(items, map[key]);
+
+    /* The pieces themselves, so the page can show them rather than only
+       count them. Name and file name and nothing else: the description is
+       a sentence of flavour text per item, six hundred of them, and the
+       artwork is fetched once by tools/fetch-emblems.js and served from
+       here — the pirate's copy of a figurehead looks like everyone's. */
+    const wanted = knownMap(map[key]);
+    const owned = [];
+    for (const it of items) {
+      const parts = splitUrl(it && it.image);
+      const name = (it && (it.title || it['#Name'])) || '';
+      if (!parts || !name) continue;
+      if (!artBase) artBase = parts.base;
+      const kind = subTypeOf(it, wanted);
+      owned.push(kind ? { i: parts.file, n: name, s: kind } : { i: parts.file, n: name });
+    }
+
+    const entry = { key, count: items.length };
+    if (sub) entry.sub = sub;
+    if (owned.length) entry.items = owned;
+    categories.push(entry);
+    total += items.length;
+  }
+  if (!categories.length) return null;
+
+  categories.sort((a, b) => b.count - a.count);
+  return artBase ? { total, artBase, categories } : { total, categories };
+}
+
+module.exports = { hourglassRecord, counters, ships, paths, chest, TITLES, COUNTERS };

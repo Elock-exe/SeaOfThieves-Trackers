@@ -35,11 +35,63 @@ function count(v) {
    adds keys over time — new event factions arrive as bare UUIDs — so this
    drops the two known-heavy ones rather than allowlisting, and a field we
    have not seen yet survives instead of vanishing silently. */
+/* One emblem, cut down to what a card shows.
+
+   Rare sends about 700 bytes each: a description, a taxonomy of tags, an
+   absolute artwork URL, internal type markers. Across every company that is
+   1009 KB of a 1182 KB snapshot — the weight that took the API down with an
+   out-of-memory kill, and the reason these used to be dropped whole.
+
+   Kept instead: the picture's file name, the name shown, and the pirate's
+   standing in it. The artwork itself is imported once by
+   tools/fetch-emblems.js and served from this site, so the URL is not worth
+   storing per pirate per sync; the file name is enough to find it.
+
+   Emblems with no progress are dropped. A pirate holds a few hundred of the
+   game's fifteen hundred, and a row reading 0/250 is not a merit, it is a
+   list of everything not done yet. */
+function trimEmblem(e) {
+  if (!e || typeof e !== 'object') return null;
+
+  const url = typeof e.image === 'string' ? e.image : (e.Image || '');
+  const file = String(url).split('/').pop().split('?')[0];
+  const grade = Number(e.Grade) || 0;
+  const value = Number(e.Value) || 0;
+  if (!file || (!grade && !value)) return null;
+
+  return {
+    i: file,
+    n: e.DisplayName || e['#Name'] || '',
+    g: grade,
+    m: Number(e.MaxGrade) || 0,
+    v: value,
+    t: Number(e.Threshold) || 0
+  };
+}
+
+function trimEmblems(block) {
+  if (!block || typeof block !== 'object') return null;
+  const list = Array.isArray(block.Emblems) ? block.Emblems
+    : Array.isArray(block) ? block : null;
+  if (!list) return null;
+
+  const kept = list.map(trimEmblem).filter(Boolean);
+  return {
+    total: Number(block.EmblemsTotal) || list.length,
+    unlocked: Number(block.EmblemsUnlocked) || kept.filter((e) => e.g > 0).length,
+    items: kept
+  };
+}
+
 function trimFaction(f) {
   if (!f || typeof f !== 'object') return f;
   const out = {};
   for (const [k, v] of Object.entries(f)) {
-    if (k === 'Emblems') continue;              // never read
+    if (k === 'Emblems') {
+      const em = trimEmblems(v);
+      if (em && em.items.length) out.Emblems = em;
+      continue;
+    }
     if (k === 'Campaigns') { out.Campaigns = count(v); continue; }
     out[k] = v;
   }

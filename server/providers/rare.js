@@ -286,6 +286,9 @@ function normalizePayloads(payloads, probes) {
   const cap = (payloads && payloads.captaincy) || null;
   const captaincyRecord = captaincy.hourglassRecord(cap);
   const captaincyCounters = captaincy.counters(cap);
+  const captaincyShips = captaincy.ships(cap);
+  const captaincyPaths = captaincy.paths(cap);
+  const chestSummary = captaincy.chest((payloads && payloads.chest) || null);
 
   return {
     source: 'rare',
@@ -324,6 +327,14 @@ function normalizePayloads(payloads, probes) {
     achievements: (payloads && payloads.achievements) || null,
     hourglassRecord: captaincyRecord,
     counters: captaincyCounters,
+
+    /* Named ships, the pirate's milestone paths, and how full the chest
+       is. All three are summaries: the payloads they come from are 465 KB
+       and 257 KB, and almost all of that is text and artwork identical for
+       every pirate. What differs is a handful of numbers. */
+    ships: captaincyShips,
+    paths: captaincyPaths,
+    chest: chestSummary,
 
     _probes: probes || null
   };
