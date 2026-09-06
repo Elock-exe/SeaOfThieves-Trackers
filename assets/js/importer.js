@@ -507,6 +507,66 @@
     finish('Something went wrong', (e && e.message) || String(e), null, true);
   });
 
+  /* Ask for the key that already owns this pirate, then retry once. */
+  function askForKey(handle) {
+    step(100, 'This pirate is already published',
+      'It was claimed by another browser or by the extension. Paste that account key to publish here too.');
+    if (bar) bar.style.background = '#c9414d';
+
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.spellcheck = false;
+    input.autocomplete = 'off';
+    input.placeholder = 'account key';
+    input.style.cssText = [
+      'display:block', 'width:100%', 'box-sizing:border-box', 'margin-top:16px',
+      'padding:9px 11px', 'background:#0d1117', 'color:#e6edf3',
+      'border:1px solid #26323f', 'border-radius:8px',
+      'font:13px ui-monospace,monospace'
+    ].join(';');
+    box.appendChild(input);
+
+    var go = document.createElement('button');
+    go.textContent = 'Publish with this key';
+    go.style.cssText = [
+      'display:block', 'width:100%', 'margin-top:10px', 'padding:9px 16px',
+      'background:#ff4655', 'color:#fff', 'border:0', 'border-radius:8px',
+      'cursor:pointer', 'font-weight:600', 'font-size:13px'
+    ].join(';');
+    box.appendChild(go);
+
+    var note = document.createElement('p');
+    note.textContent = 'The extension shows it in its popup, under “Your account key”.';
+    note.style.cssText = 'margin:10px 0 0;font-size:11px;color:#6e7d8f';
+    box.appendChild(note);
+
+    /* A way out for whoever does not have the key to hand. Built before the
+       handler that clears it, so the reference is real when the click comes
+       rather than merely hoisted. */
+    var giveUp = document.createElement('button');
+    giveUp.textContent = 'Not now';
+    giveUp.style.cssText = [
+      'display:block', 'margin:12px auto 0', 'padding:7px 16px',
+      'background:transparent', 'color:#8fa0b3', 'border:1px solid #26323f',
+      'border-radius:8px', 'cursor:pointer', 'font-size:13px'
+    ].join(';');
+    giveUp.onclick = function () { overlay.remove(); done(); };
+    box.appendChild(giveUp);
+
+    go.addEventListener('click', function () {
+      var k = String(input.value || '').trim();
+      if (!k) { input.focus(); return; }
+      /* Stored before the retry, so a second run needs no pasting. */
+      try { localStorage.setItem(KEY_STORAGE, k); } catch (e) { /* private mode */ }
+      [input, go, note, giveUp].forEach(function (el) { box.removeChild(el); });
+      step(60, 'Publishing…', '');
+      if (bar) bar.style.background = '#3fb950';
+      send(handle);
+    });
+
+    input.focus();
+  }
+
   function send(handle) {
 
     var key = accountKey();
@@ -540,9 +600,18 @@
          belongs to a different key. That is the protection working, not a
          bug — but it looks like a bug unless it says so. */
       if (r.status === 409) {
-        return finish('That pirate is already taken',
-          'Another browser already publishes ' + (handle || 'this pirate') + '.',
-          null, true);
+        /* Not a wall, a prompt.
+
+           The bookmarklet keeps its key in this origin's localStorage, which
+           is the only storage it has; the extension keeps its own somewhere
+           this page cannot reach. So a pirate first published by the
+           extension refused every bookmarklet sync afterwards, and said only
+           that the name was taken — true, unhelpful, and with no way out.
+
+           The key proves ownership and the owner already has it: the
+           extension shows it in its popup, and this overlay prints it at the
+           end of a successful run. Asking for it is the whole fix. */
+        return askForKey(handle);
       }
 
       var err = (r.body && r.body.error) || {};
