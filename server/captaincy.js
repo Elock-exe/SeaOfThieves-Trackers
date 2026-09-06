@@ -43,6 +43,24 @@ const TITLES = {
   guardianShipsSunk: 'Guardians of Fortune Ships Sunk'
 };
 
+/* The sum of an accolade's breakdown, whatever shape its entries take:
+   bare numbers, { Value }, or { Name, Value } as the Hourglass endpoints
+   use. Null when there is nothing to add, so the caller falls through to
+   the single-field candidates rather than reading zero as an answer. */
+function statsTotal(stats) {
+  if (!Array.isArray(stats) || !stats.length) return null;
+  let sum = 0;
+  let seen = 0;
+  for (const st of stats) {
+    const raw = st && typeof st === 'object'
+      ? (st.Value != null ? st.Value : (st.value != null ? st.value : st.CurrentProgress))
+      : st;
+    const n = Number(raw);
+    if (raw != null && Number.isFinite(n)) { sum += n; seen++; }
+  }
+  return seen ? sum : null;
+}
+
 function norm(s) {
   return String(s == null ? '' : s).replace(/\s+/g, ' ').trim().toLowerCase();
 }
@@ -95,6 +113,20 @@ function findByTitle(node, wanted, seen) {
   }
 
   if (title != null && norm(title) === wanted) {
+    /* Stats before CurrentProgress.
+
+       CurrentProgress is progress toward the milestone in hand, not a
+       career total — it sits beside MilestoneLevel, LevelReachedAt and
+       Threshold, which is what those four are for. Reading it gave a pirate
+       holding 2.38M gold a "Gold Earned" of 54,000: the part earned since
+       the last milestone.
+
+       The lifetime figure is the breakdown underneath. Another tracker
+       prints "Battles Completed (as Guardians) 546" over Galleons 499,
+       Brigantines 27 and Sloops 20 — the total is the sum of its parts. */
+    const total = statsTotal(node.Stats);
+    if (total != null) return total;
+
     for (const k of VALUE_KEYS) {
       const n = Number(node[k]);
       if (node[k] != null && Number.isFinite(n)) return n;
@@ -405,10 +437,15 @@ function shapeOf(captaincy) {
   for (const a of al) {
     const acc = a && a.Accolades;
     if (Array.isArray(acc) && acc.length && acc[0] && typeof acc[0] === 'object') {
+      /* One accolade whole, values included, capped at 700 characters.
+         These are game statistics the profile publishes anyway, and reading
+         the field names alone was not enough: it showed CurrentProgress
+         existed without showing that it counts the wrong thing. */
+      const full = JSON.stringify(acc[0]);
       return {
         alignment: Object.keys(a).slice(0, 12),
         accolade: Object.keys(acc[0]).slice(0, 14),
-        sample: String(acc[0].Title || acc[0].LocalisedTitle || acc[0]['#Name'] || '').slice(0, 60)
+        sample: full.length > 700 ? full.slice(0, 700) + '…' : full
       };
     }
   }

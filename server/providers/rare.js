@@ -342,7 +342,13 @@ function normalizePayloads(payloads, probes) {
        came back empty, and each time the only way to learn why was asking
        someone to run a probe in their browser and paste the output — a
        poor way to inspect a payload this service receives all day. */
-    _shape: captaincyRecord ? null : capShape,
+    /* Emitted while the record still looks wrong, not only when it is
+       missing. The first version dropped the diagnostic as soon as a
+       record was produced, and the next failure produced one — small,
+       plausible and wrong — with nothing left to explain it. A pirate at
+       Hourglass 165 reporting two battles is not a record, it is a
+       symptom. */
+    _shape: (captaincyRecord && captaincyRecord.battles > 10) ? null : capShape,
 
     _probes: probes || null
   };
