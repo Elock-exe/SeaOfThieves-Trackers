@@ -73,3 +73,11 @@
   for = "/*.html"
   [headers.values]
     Cache-Control = "no-cache"
+
+# Link previews. The profile page is drawn by JavaScript and Discord does not
+# run JavaScript, so a shared profile unfurled with placeholder tags — the
+# same title and sentence whoever it belonged to. The edge function fills
+# them in for crawlers, and leaves every real visit untouched.
+[[edge_functions]]
+  path = "/profile"
+  function = "profile-preview"
